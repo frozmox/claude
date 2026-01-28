@@ -809,6 +809,14 @@
                         <span class="icon">💑</span>
                         Relaciones
                     </button>
+                    <button class="action-btn" onclick="showStats()">
+                        <span class="icon">📊</span>
+                        Estadísticas
+                    </button>
+                    <button class="action-btn" onclick="saveGame()">
+                        <span class="icon">💾</span>
+                        Guardar
+                    </button>
                     <button class="action-btn" onclick="passMonth()" style="background: linear-gradient(135deg, #4CAF50, #45a049);">
                         <span class="icon">⏭️</span>
                         Pasar Mes
@@ -1335,6 +1343,26 @@
             document.getElementById('balanceDetail').textContent = `Ing: ${formatMoney(income)} - Gast: ${formatMoney(expenses)}`;
 
             document.getElementById('creditsAmount').textContent = gameState.credits;
+
+            // Mostrar advertencias si los stats están críticos
+            let warnings = [];
+            if (gameState.health < 25) warnings.push('⚠️ Salud crítica');
+            if (gameState.happiness < 25) warnings.push('⚠️ Muy infeliz');
+            if (gameState.energy < 20) warnings.push('⚠️ Sin energía');
+            if (gameState.stress > 80) warnings.push('⚠️ Estrés extremo');
+            if (gameState.money < 100 && gameState.money >= -5000) warnings.push('⚠️ Dinero bajo');
+            if (gameState.money < -3000) warnings.push('🚨 Deuda peligrosa');
+
+            if (warnings.length > 0 && !document.querySelector('.warning-shown')) {
+                showNotification(warnings.join(' | '), 'warning');
+                // Marcar que se mostró la advertencia este frame
+                const marker = document.createElement('div');
+                marker.className = 'warning-shown';
+                marker.style.display = 'none';
+                document.body.appendChild(marker);
+                setTimeout(() => marker.remove(), 5000);
+            }
+
             checkGameOver();
         }
 
@@ -1689,8 +1717,17 @@
                 </div>
             </div>`;
 
+            // Agregar botón para cerrar
+            html += `
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="closeModal()">Continuar</button>
+                </div>
+            `;
+
             document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = ''; // Limpiar opciones
             gameState.interviewState = null;
+            clampStats();
             updateUI();
         }
 
@@ -1841,9 +1878,15 @@
                     return;
             }
 
+            // Mantener stats en rangos válidos
+            clampStats();
+
             // Mostrar resultado
             showActivityResult(result);
             updateUI();
+
+            // Verificar game over después de la actividad
+            setTimeout(() => checkGameOver(), 500);
         }
 
         function showActivityResult(result) {
@@ -1855,9 +1898,13 @@
                     <div class="changes">
                         ${result.changes.map(c => `<span class="change-item ${c.positive ? 'positive' : 'negative'}">${c.text}</span>`).join('')}
                     </div>
+                    <button class="btn btn-success" style="margin-top: 20px;" onclick="closeModal()">
+                        Continuar
+                    </button>
                 </div>
             `;
             document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = ''; // Limpiar opciones
         }
 
         function comeOut() {
@@ -1885,6 +1932,7 @@
                 addLog('Saliste del closet pero tu familia te rechazó...', 'negative');
             }
 
+            clampStats();
             showActivityResult(result);
             updateUI();
         }
@@ -2068,11 +2116,29 @@
 
         function closeModal() {
             document.getElementById('gameModal').classList.remove('active');
+            // Limpiar estado de entrevista si existe
+            if (gameState.interviewState) {
+                gameState.interviewState = null;
+            }
+        }
+
+        // Función para mantener stats en rangos válidos
+        function clampStats() {
+            gameState.health = Math.max(0, Math.min(100, gameState.health));
+            gameState.happiness = Math.max(0, Math.min(100, gameState.happiness));
+            gameState.energy = Math.max(0, Math.min(100, gameState.energy));
+            gameState.stress = Math.max(0, Math.min(100, gameState.stress));
         }
 
         // ==================== PASO DEL TIEMPO ====================
 
         function passMonth() {
+            // Guardar estado previo para comparar
+            const prevHealth = gameState.health;
+            const prevHappiness = gameState.happiness;
+            const prevMoney = gameState.money;
+            const prevEnergy = gameState.energy;
+
             const income = calculateMonthlyIncome();
             const expenses = calculateMonthlyExpenses();
 
@@ -2123,78 +2189,213 @@
                 gameState.credits += 5;
             }
 
-            // Evento aleatorio (40% de probabilidad)
-            if (Math.random() < 0.4) {
+            // Evento aleatorio (50% de probabilidad - más dinámico)
+            if (Math.random() < 0.5) {
                 triggerRandomEvent();
             }
 
+            // Mantener stats en rangos válidos
+            clampStats();
+
+            // Verificar condiciones de fin del juego
+            checkGameOver();
+
             updateUI();
-            showNotification(`Pasó un mes. Ahora es ${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][gameState.month-1]} ${gameState.year}`, 'info');
+
+            // Crear resumen del mes
+            const monthName = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][gameState.month-1];
+            const moneyChange = gameState.money - prevMoney;
+            const moneyText = moneyChange >= 0 ? `+${formatMoney(moneyChange)}` : formatMoney(moneyChange);
+
+            showNotification(`${monthName} ${gameState.year} | ${moneyText}`, moneyChange >= 0 ? 'info' : 'warning');
         }
 
         // ==================== EVENTOS ALEATORIOS ====================
 
         function triggerRandomEvent() {
             const events = [
+                // Eventos de gastos
                 { condition: () => true, effect: () => {
                     const cost = randomRange(100, 400);
                     gameState.money -= cost;
                     addLog(`💸 Se te rompió el celular. Reparación: -${formatMoney(cost)}`, 'negative');
                 }},
+                { condition: () => true, effect: () => {
+                    const cost = randomRange(80, 200);
+                    gameState.money -= cost;
+                    addLog(`🔧 Se malogró algo en casa. Arreglo: -${formatMoney(cost)}`, 'negative');
+                }},
+                { condition: () => true, effect: () => {
+                    const cost = randomRange(50, 150);
+                    gameState.money -= cost;
+                    addLog(`🏥 Gastos de salud inesperados: -${formatMoney(cost)}`, 'negative');
+                }},
+                // Eventos positivos de trabajo
                 { condition: () => gameState.job, effect: () => {
                     const bonus = randomRange(200, 600);
                     gameState.money += bonus;
                     gameState.happiness += 10;
                     addLog(`💰 ¡Tu jefe te dio un bono de ${formatMoney(bonus)}!`, 'positive');
                 }},
+                { condition: () => gameState.job, effect: () => {
+                    gameState.happiness += 8;
+                    gameState.stress -= 5;
+                    addLog(`⭐ Tu jefe reconoció tu buen trabajo. Te sientes valorado/a.`, 'positive');
+                }},
+                { condition: () => gameState.job, effect: () => {
+                    const overtime = randomRange(100, 300);
+                    gameState.money += overtime;
+                    gameState.energy -= 10;
+                    gameState.stress += 8;
+                    addLog(`⏰ Hiciste horas extra y ganaste ${formatMoney(overtime)}`, 'neutral');
+                }},
+                // Eventos sociales
                 { condition: () => true, effect: () => {
                     if (gameState.money >= 30) {
                         gameState.money -= 30;
-                        gameState.happiness += 10;
-                        addLog(`🎉 Fuiste a una pollada del barrio. Comiste rico.`, 'positive');
+                        gameState.happiness += 15;
+                        gameState.stress -= 5;
+                        addLog(`🎉 Fuiste a una pollada del barrio. Comiste rico y bailaste.`, 'positive');
                     }
                 }},
+                { condition: () => true, effect: () => {
+                    gameState.happiness += 12;
+                    addLog(`📞 Un viejo amigo te llamó. Conversaron por horas.`, 'positive');
+                }},
+                { condition: () => true, effect: () => {
+                    if (gameState.money >= 60) {
+                        gameState.money -= 60;
+                        gameState.happiness += 18;
+                        addLog(`🎬 Fuiste al cine con amigos. La pasaron muy bien.`, 'positive');
+                    }
+                }},
+                // Eventos familiares
                 { condition: () => gameState.money > 300, effect: () => {
                     const amount = randomRange(100, 250);
                     gameState.money -= amount;
                     addLog(`👨‍👩‍👧 Un familiar te pidió prestado ${formatMoney(amount)}. Probablemente no te lo devuelva.`, 'neutral');
                 }},
+                { condition: () => gameState.character.familySituationData.support > 0, effect: () => {
+                    const gift = randomRange(50, 200);
+                    gameState.money += gift;
+                    gameState.happiness += 8;
+                    addLog(`🎁 Tu familia te envió ${formatMoney(gift)} como regalo sorpresa.`, 'positive');
+                }},
+                // Eventos de tráfico/transporte
                 { condition: () => gameState.job, effect: () => {
                     gameState.stress += 15;
-                    addLog(`🚌 El tráfico de Lima te hizo llegar tarde. Tu jefe se molestó.`, 'negative');
+                    gameState.energy -= 5;
+                    addLog(`🚌 El tráfico de Lima estuvo terrible. Llegaste agotado/a.`, 'negative');
                 }},
+                { condition: () => true, effect: () => {
+                    const cost = randomRange(20, 80);
+                    gameState.money -= cost;
+                    addLog(`🚕 Tuviste que tomar taxi de emergencia: -${formatMoney(cost)}`, 'neutral');
+                }},
+                // Eventos de salud
                 { condition: () => gameState.health < 60, effect: () => {
                     gameState.health -= 10;
                     gameState.money -= 80;
                     addLog(`🤒 Te enfermaste. Gastos de farmacia: -${formatMoney(80)}`, 'negative');
                 }},
+                { condition: () => gameState.stress > 70, effect: () => {
+                    gameState.health -= 5;
+                    gameState.happiness -= 10;
+                    addLog(`😰 El estrés te está afectando. Te sientes mal físicamente.`, 'negative');
+                }},
+                { condition: () => gameState.energy < 30, effect: () => {
+                    gameState.health -= 3;
+                    addLog(`😴 El cansancio acumulado está afectando tu salud.`, 'warning');
+                }},
+                // Eventos positivos aleatorios
                 { condition: () => true, effect: () => {
                     gameState.happiness += 10;
                     gameState.stress -= 10;
                     addLog(`☀️ Tuviste un día inusualmente bueno. Todo salió bien.`, 'positive');
                 }},
+                { condition: () => true, effect: () => {
+                    gameState.energy += 15;
+                    gameState.happiness += 5;
+                    addLog(`😊 Dormiste increíblemente bien. Amaneciste con energía.`, 'positive');
+                }},
+                // Eventos de discriminación
                 { condition: () => gameState.character.appearanceData.discriminationRisk > 20, effect: () => {
                     if (Math.random() * 100 < gameState.character.appearanceData.discriminationRisk) {
                         gameState.happiness -= 15;
                         gameState.stress += 10;
-                        addLog(`😤 Alguien te trató mal por tu apariencia. Te afectó.`, 'negative');
+                        addLog(`😤 Sufriste discriminación. Te afectó emocionalmente.`, 'negative');
                     }
                 }},
-                { condition: () => gameState.job && Math.random() < 0.15, effect: () => {
+                { condition: () => gameState.isOut && Math.random() < 0.3, effect: () => {
+                    gameState.happiness -= 10;
+                    gameState.stress += 8;
+                    addLog(`🏳️‍🌈 Alguien hizo un comentario ofensivo sobre tu orientación.`, 'negative');
+                }},
+                // Eventos de trabajo negativos
+                { condition: () => gameState.job && Math.random() < 0.12, effect: () => {
                     const oldJob = JOBS[gameState.job].name;
                     gameState.job = null;
                     gameState.happiness -= 20;
+                    gameState.stress += 25;
                     addLog(`😱 ¡Te despidieron de ${oldJob}! La empresa hizo recortes.`, 'negative');
                 }},
-                { condition: () => !gameState.job, effect: () => {
+                { condition: () => gameState.job, effect: () => {
+                    gameState.stress += 12;
                     gameState.happiness -= 5;
-                    gameState.stress += 5;
-                    addLog(`😔 Otro mes sin trabajo. La presión aumenta.`, 'negative');
+                    addLog(`😤 Problemas con un compañero de trabajo. Ambiente tenso.`, 'negative');
                 }},
-                { condition: () => gameState.money > 500, effect: () => {
+                // Desempleo
+                { condition: () => !gameState.job, effect: () => {
+                    gameState.happiness -= 8;
+                    gameState.stress += 8;
+                    addLog(`😔 Otro mes sin trabajo. La presión económica aumenta.`, 'negative');
+                }},
+                { condition: () => !gameState.job && gameState.money < 500, effect: () => {
+                    gameState.stress += 15;
+                    gameState.happiness -= 10;
+                    addLog(`😰 El dinero se acaba y no encuentras trabajo. Desesperación.`, 'negative');
+                }},
+                // Encuentros de suerte
+                { condition: () => true, effect: () => {
                     const found = randomRange(20, 100);
                     gameState.money += found;
                     addLog(`🍀 ¡Encontraste ${formatMoney(found)} en un pantalón viejo!`, 'positive');
+                }},
+                { condition: () => true, effect: () => {
+                    const found = randomRange(10, 50);
+                    gameState.money += found;
+                    addLog(`💵 Encontraste ${formatMoney(found)} en la calle. ¡Tu día de suerte!`, 'positive');
+                }},
+                // Eventos de oportunidad
+                { condition: () => !gameState.job, effect: () => {
+                    gameState.happiness += 5;
+                    addLog(`📱 Un conocido te habló de una posible oportunidad laboral. ¡Investiga!`, 'info');
+                }},
+                { condition: () => gameState.experience > 10, effect: () => {
+                    gameState.happiness += 10;
+                    addLog(`🌟 Alguien reconoció tu experiencia. Tu reputación crece.`, 'positive');
+                }},
+                // Eventos de economia peruana
+                { condition: () => true, effect: () => {
+                    if (Math.random() < 0.3) {
+                        const loss = Math.floor(gameState.money * 0.03);
+                        gameState.money -= loss;
+                        addLog(`📉 El dólar subió. Perdiste poder adquisitivo: -${formatMoney(loss)}`, 'negative');
+                    } else {
+                        const gain = Math.floor(gameState.money * 0.02);
+                        gameState.money += gain;
+                        addLog(`📈 El dólar bajó. Ganaste un poco: +${formatMoney(gain)}`, 'positive');
+                    }
+                }},
+                { condition: () => true, effect: () => {
+                    gameState.stress += 5;
+                    addLog(`📰 Noticias políticas tensas. El país está convulsionado.`, 'neutral');
+                }},
+                // Eventos climáticos
+                { condition: () => Math.random() < 0.3, effect: () => {
+                    gameState.happiness -= 5;
+                    gameState.stress += 5;
+                    addLog(`🌧️ Semana de lluvia intensa. El tráfico empeoró.`, 'neutral');
                 }}
             ];
 
@@ -2202,6 +2403,7 @@
             if (applicable.length > 0) {
                 randomFromArray(applicable).effect();
                 gameState.stats.eventsExperienced++;
+                clampStats(); // Asegurar valores válidos después del evento
             }
         }
 
@@ -2281,18 +2483,45 @@
         }
 
         function showStats() {
-            document.getElementById('modalTitle').textContent = '📊 Estadísticas';
+            const char = gameState.character;
+            document.getElementById('modalTitle').textContent = '📊 Estadísticas y Perfil';
             document.getElementById('modalBody').innerHTML = `
-                <p><strong>Personaje:</strong> ${gameState.character.name}</p>
-                <p><strong>Dificultad:</strong> ${gameState.character.difficulty.name}</p>
-                <p><strong>Edad:</strong> ${gameState.age} años</p>
-                <p><strong>Dinero actual:</strong> ${formatMoney(gameState.money)}</p>
-                <p><strong>Total ganado:</strong> ${formatMoney(gameState.stats.totalEarned)}</p>
-                <p><strong>Total gastado:</strong> ${formatMoney(gameState.stats.totalSpent)}</p>
-                <p><strong>Trabajos:</strong> ${gameState.stats.jobsHad}</p>
-                <p><strong>Entrevistas pasadas:</strong> ${gameState.stats.interviewsPassed}</p>
-                <p><strong>Entrevistas fallidas:</strong> ${gameState.stats.interviewsFailed}</p>
-                <p><strong>Créditos:</strong> 💎 ${gameState.credits}</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #ff6b6b; margin-bottom: 10px;">👤 Perfil</h4>
+                        <p><strong>Nombre:</strong> ${char.name}</p>
+                        <p><strong>Género:</strong> ${char.genderData.name}</p>
+                        <p><strong>Edad:</strong> ${gameState.age} años</p>
+                        <p><strong>Orientación:</strong> ${char.orientationData.name}</p>
+                        <p><strong>Apariencia:</strong> ${char.appearanceData.name}</p>
+                        <p><strong>Lugar origen:</strong> ${char.locationData.name}</p>
+                        <p><strong>Clase social:</strong> ${char.socialClassData.name}</p>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #4CAF50; margin-bottom: 10px;">💰 Economía</h4>
+                        <p><strong>Dinero actual:</strong> ${formatMoney(gameState.money)}</p>
+                        <p><strong>Total ganado:</strong> ${formatMoney(gameState.stats.totalEarned)}</p>
+                        <p><strong>Total gastado:</strong> ${formatMoney(gameState.stats.totalSpent)}</p>
+                        <p><strong>Balance neto:</strong> <span style="color: ${gameState.stats.totalEarned - gameState.stats.totalSpent >= 0 ? '#4CAF50' : '#f44336'}">${formatMoney(gameState.stats.totalEarned - gameState.stats.totalSpent)}</span></p>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #2196F3; margin-bottom: 10px;">💼 Carrera</h4>
+                        <p><strong>Educación:</strong> ${gameState.education}</p>
+                        <p><strong>Experiencia:</strong> ${gameState.experience} pts</p>
+                        <p><strong>Trabajos:</strong> ${gameState.stats.jobsHad}</p>
+                        <p><strong>Meses trabajados:</strong> ${gameState.stats.monthsWorked}</p>
+                        <p><strong>Entrevistas pasadas:</strong> ${gameState.stats.interviewsPassed}</p>
+                        <p><strong>Entrevistas fallidas:</strong> ${gameState.stats.interviewsFailed}</p>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #ff9800; margin-bottom: 10px;">⚡ Estado</h4>
+                        <p><strong>Dificultad:</strong> <span class="difficulty-badge difficulty-${char.difficulty.class}">${char.difficulty.name}</span></p>
+                        <p><strong>Eventos vividos:</strong> ${gameState.stats.eventsExperienced}</p>
+                        <p><strong>Créditos:</strong> 💎 ${gameState.credits}</p>
+                        ${char.healthConditionData.condition !== 'Ninguna' ? `<p style="color: #f44336;"><strong>Condición:</strong> ${char.healthConditionData.condition}</p>` : ''}
+                        ${gameState.isOut ? '<p style="color: #e91e63;">🌈 Fuera del closet</p>' : ''}
+                    </div>
+                </div>
             `;
             document.getElementById('modalOptions').innerHTML = '';
             document.getElementById('gameModal').classList.add('active');
