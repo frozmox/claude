@@ -24,7 +24,6 @@
             padding: 20px;
         }
 
-        /* Pantalla de inicio */
         .screen {
             display: none;
             animation: fadeIn 0.5s ease;
@@ -93,9 +92,19 @@
             background: linear-gradient(135deg, #ff9800, #f57c00);
         }
 
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+        }
+
         .btn-small {
             padding: 8px 20px;
             font-size: 0.9em;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Panel de personaje */
@@ -170,7 +179,7 @@
         /* Info cards */
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
@@ -191,7 +200,7 @@
         }
 
         .info-card .value {
-            font-size: 1.2em;
+            font-size: 1.1em;
         }
 
         .info-card .detail {
@@ -215,7 +224,7 @@
 
         .actions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 10px;
         }
 
@@ -269,9 +278,9 @@
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border-radius: 20px;
             padding: 30px;
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
             animation: modalIn 0.3s ease;
         }
@@ -303,8 +312,14 @@
             text-align: left;
         }
 
-        .modal-option:hover {
+        .modal-option:hover:not(:disabled) {
             background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .modal-option:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .modal-option .option-title {
@@ -316,6 +331,18 @@
             font-size: 0.85em;
             color: #aaa;
         }
+
+        .modal-option .probability {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            margin-left: 10px;
+        }
+
+        .prob-high { background: #4CAF50; }
+        .prob-medium { background: #ff9800; }
+        .prob-low { background: #f44336; }
 
         /* Log de eventos */
         .event-log {
@@ -347,6 +374,7 @@
         .log-entry.negative { color: #f44336; }
         .log-entry.neutral { color: #aaa; }
         .log-entry.special { color: #ffeb3b; }
+        .log-entry.info { color: #2196F3; }
 
         /* Perfil de nacimiento */
         .birth-profile {
@@ -445,6 +473,131 @@
             font-weight: bold;
         }
 
+        /* Interview system */
+        .interview-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .interview-question {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .interview-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .interview-option {
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .interview-option:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: #ff6b6b;
+        }
+
+        .interview-progress {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .interview-progress .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .interview-progress .dot.completed { background: #4CAF50; }
+        .interview-progress .dot.current { background: #ff6b6b; }
+
+        /* Job card detailed */
+        .job-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .job-card.selected {
+            border-color: #ff6b6b;
+            background: rgba(255,107,107,0.1);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .job-title {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .job-salary {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .job-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        .job-tag {
+            padding: 3px 8px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .job-tag.warning { background: rgba(255,152,0,0.3); color: #ff9800; }
+        .job-tag.danger { background: rgba(244,67,54,0.3); color: #f44336; }
+        .job-tag.success { background: rgba(76,175,80,0.3); color: #4CAF50; }
+
+        /* Notification popup */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 2000;
+            animation: notificationIn 0.3s ease;
+            max-width: 90%;
+        }
+
+        .notification.success { background: #4CAF50; }
+        .notification.error { background: #f44336; }
+        .notification.warning { background: #ff9800; }
+        .notification.info { background: #2196F3; }
+
+        @keyframes notificationIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
         /* Responsive */
         @media (max-width: 600px) {
             .title-screen h1 {
@@ -459,48 +612,14 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-        }
 
-        /* Animaciones de números */
-        .money-change {
-            animation: moneyPop 0.5s ease;
-        }
-
-        @keyframes moneyPop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
+            .modal-content {
+                padding: 20px;
+            }
         }
 
         .positive-change { color: #4CAF50 !important; }
         .negative-change { color: #f44336 !important; }
-
-        /* Tooltips */
-        .tooltip {
-            position: relative;
-            cursor: help;
-        }
-
-        .tooltip::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 5px;
-            font-size: 0.8em;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        .tooltip:hover::after {
-            opacity: 1;
-        }
 
         /* Credits display */
         .credits-display {
@@ -511,12 +630,41 @@
             padding: 8px 15px;
             border-radius: 20px;
             font-size: 0.9em;
+            z-index: 100;
         }
 
         .credits-display span {
             color: #ffd700;
             font-weight: bold;
         }
+
+        /* Activity result */
+        .activity-result {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .activity-result .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .activity-result .changes {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .activity-result .change-item {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+        }
+
+        .activity-result .change-item.positive { background: rgba(76,175,80,0.3); color: #4CAF50; }
+        .activity-result .change-item.negative { background: rgba(244,67,54,0.3); color: #f44336; }
     </style>
 </head>
 <body>
@@ -635,7 +783,7 @@
 
             <!-- Panel de Acciones -->
             <div class="actions-panel">
-                <h2>¿Qué quieres hacer?</h2>
+                <h2>¿Qué quieres hacer este mes?</h2>
                 <div class="actions-grid">
                     <button class="action-btn" onclick="openJobMenu()">
                         <span class="icon">💼</span>
@@ -657,7 +805,11 @@
                         <span class="icon">🏦</span>
                         Finanzas
                     </button>
-                    <button class="action-btn" onclick="passMonth()">
+                    <button class="action-btn" onclick="openRelationshipsMenu()">
+                        <span class="icon">💑</span>
+                        Relaciones
+                    </button>
+                    <button class="action-btn" onclick="passMonth()" style="background: linear-gradient(135deg, #4CAF50, #45a049);">
                         <span class="icon">⏭️</span>
                         Pasar Mes
                     </button>
@@ -685,9 +837,7 @@
                 <h1>💀 GAME OVER</h1>
                 <p id="gameOverReason">Tu vida ha terminado</p>
 
-                <div class="game-over-stats" id="gameOverStats">
-                    <!-- Stats finales -->
-                </div>
+                <div class="game-over-stats" id="gameOverStats"></div>
 
                 <div class="continue-options">
                     <div class="continue-option">
@@ -733,173 +883,35 @@
     <script>
         // ==================== DATOS DEL JUEGO ====================
 
-        // Ubicaciones
         const LOCATIONS = {
-            lima_residencial: {
-                name: "Lima - Zona Residencial",
-                description: "Miraflores, San Isidro, La Molina",
-                probability: 5,
-                jobBonus: 30,
-                costMultiplier: 1.5,
-                educationAccess: "alta"
-            },
-            lima_media: {
-                name: "Lima - Clase Media",
-                description: "Jesús María, Lince, Pueblo Libre",
-                probability: 15,
-                jobBonus: 15,
-                costMultiplier: 1.2,
-                educationAccess: "media"
-            },
-            lima_cono: {
-                name: "Lima - Cono",
-                description: "SJL, VMT, Comas, Ate",
-                probability: 30,
-                jobBonus: 0,
-                costMultiplier: 0.8,
-                educationAccess: "baja"
-            },
-            lima_asentamiento: {
-                name: "Lima - Asentamiento Humano",
-                description: "Zonas periféricas",
-                probability: 10,
-                jobBonus: -20,
-                costMultiplier: 0.5,
-                educationAccess: "muy_baja"
-            },
-            provincia_grande: {
-                name: "Provincia - Ciudad Grande",
-                description: "Arequipa, Trujillo, Chiclayo",
-                probability: 15,
-                jobBonus: -10,
-                costMultiplier: 0.7,
-                educationAccess: "media"
-            },
-            provincia_pequena: {
-                name: "Provincia - Ciudad Pequeña",
-                description: "Ciudades menores",
-                probability: 15,
-                jobBonus: -25,
-                costMultiplier: 0.5,
-                educationAccess: "baja"
-            },
-            sierra_rural: {
-                name: "Sierra - Comunidad Rural",
-                description: "Zonas andinas",
-                probability: 7,
-                jobBonus: -40,
-                costMultiplier: 0.3,
-                educationAccess: "muy_baja"
-            },
-            selva: {
-                name: "Selva - Comunidad",
-                description: "Zonas amazónicas",
-                probability: 3,
-                jobBonus: -50,
-                costMultiplier: 0.3,
-                educationAccess: "muy_baja"
-            }
+            lima_residencial: { name: "Lima - Zona Residencial", description: "Miraflores, San Isidro, La Molina", probability: 5, jobBonus: 30, costMultiplier: 1.5 },
+            lima_media: { name: "Lima - Clase Media", description: "Jesús María, Lince, Pueblo Libre", probability: 15, jobBonus: 15, costMultiplier: 1.2 },
+            lima_cono: { name: "Lima - Cono", description: "SJL, VMT, Comas, Ate", probability: 30, jobBonus: 0, costMultiplier: 0.8 },
+            lima_asentamiento: { name: "Lima - Asentamiento Humano", description: "Zonas periféricas", probability: 10, jobBonus: -20, costMultiplier: 0.5 },
+            provincia_grande: { name: "Provincia - Ciudad Grande", description: "Arequipa, Trujillo, Chiclayo", probability: 15, jobBonus: -10, costMultiplier: 0.7 },
+            provincia_pequena: { name: "Provincia - Ciudad Pequeña", description: "Ciudades menores", probability: 15, jobBonus: -25, costMultiplier: 0.5 },
+            sierra_rural: { name: "Sierra - Comunidad Rural", description: "Zonas andinas", probability: 7, jobBonus: -40, costMultiplier: 0.3 },
+            selva: { name: "Selva - Comunidad", description: "Zonas amazónicas", probability: 3, jobBonus: -50, costMultiplier: 0.3 }
         };
 
-        // Clases sociales
         const SOCIAL_CLASSES = {
-            pobreza_extrema: {
-                name: "Pobreza Extrema",
-                probability: 15,
-                startMoney: [0, 100],
-                education: "primaria_incompleta",
-                resilience: 30,
-                jobPenalty: -30,
-                familyHelp: 0
-            },
-            clase_baja: {
-                name: "Clase Baja",
-                probability: 35,
-                startMoney: [100, 500],
-                education: "secundaria_incompleta",
-                resilience: 20,
-                jobPenalty: -15,
-                familyHelp: 150
-            },
-            clase_media_baja: {
-                name: "Clase Media-Baja",
-                probability: 25,
-                startMoney: [500, 2000],
-                education: "secundaria_completa",
-                resilience: 10,
-                jobPenalty: 0,
-                familyHelp: 300
-            },
-            clase_media: {
-                name: "Clase Media",
-                probability: 18,
-                startMoney: [2000, 5000],
-                education: "secundaria_completa",
-                resilience: 0,
-                jobPenalty: 10,
-                familyHelp: 500
-            },
-            clase_media_alta: {
-                name: "Clase Media-Alta",
-                probability: 6,
-                startMoney: [5000, 15000],
-                education: "universidad_posible",
-                resilience: -10,
-                jobPenalty: 25,
-                familyHelp: 2000
-            },
-            clase_alta: {
-                name: "Clase Alta",
-                probability: 1,
-                startMoney: [50000, 100000],
-                education: "universidad_pagada",
-                resilience: -25,
-                jobPenalty: 50,
-                familyHelp: 10000
-            }
+            pobreza_extrema: { name: "Pobreza Extrema", probability: 15, startMoney: [0, 100], education: "primaria_incompleta", resilience: 30, jobPenalty: -30, familyHelp: 0 },
+            clase_baja: { name: "Clase Baja", probability: 35, startMoney: [100, 500], education: "secundaria_incompleta", resilience: 20, jobPenalty: -15, familyHelp: 150 },
+            clase_media_baja: { name: "Clase Media-Baja", probability: 25, startMoney: [500, 2000], education: "secundaria_completa", resilience: 10, jobPenalty: 0, familyHelp: 300 },
+            clase_media: { name: "Clase Media", probability: 18, startMoney: [2000, 5000], education: "secundaria_completa", resilience: 0, jobPenalty: 10, familyHelp: 500 },
+            clase_media_alta: { name: "Clase Media-Alta", probability: 6, startMoney: [5000, 15000], education: "universidad_posible", resilience: -10, jobPenalty: 25, familyHelp: 2000 },
+            clase_alta: { name: "Clase Alta", probability: 1, startMoney: [50000, 100000], education: "universidad_pagada", resilience: -25, jobPenalty: 50, familyHelp: 10000 }
         };
 
-        // Apariencias
         const APPEARANCES = {
-            blanco: {
-                name: "Blanco/Caucásico",
-                probability: 5,
-                jobBonus: 25,
-                discriminationRisk: 0
-            },
-            mestizo_claro: {
-                name: "Mestizo Claro",
-                probability: 25,
-                jobBonus: 10,
-                discriminationRisk: 5
-            },
-            mestizo: {
-                name: "Mestizo/Trigueño",
-                probability: 40,
-                jobBonus: 0,
-                discriminationRisk: 10
-            },
-            andino: {
-                name: "Andino",
-                probability: 20,
-                jobBonus: -15,
-                discriminationRisk: 25
-            },
-            afroperuano: {
-                name: "Afroperuano",
-                probability: 7,
-                jobBonus: -20,
-                discriminationRisk: 30
-            },
-            amazonico: {
-                name: "Amazónico",
-                probability: 3,
-                jobBonus: -25,
-                discriminationRisk: 35
-            }
+            blanco: { name: "Blanco/Caucásico", probability: 5, jobBonus: 25, discriminationRisk: 0 },
+            mestizo_claro: { name: "Mestizo Claro", probability: 25, jobBonus: 10, discriminationRisk: 5 },
+            mestizo: { name: "Mestizo/Trigueño", probability: 40, jobBonus: 0, discriminationRisk: 10 },
+            andino: { name: "Andino", probability: 20, jobBonus: -15, discriminationRisk: 25 },
+            afroperuano: { name: "Afroperuano", probability: 7, jobBonus: -20, discriminationRisk: 30 },
+            amazonico: { name: "Amazónico", probability: 3, jobBonus: -25, discriminationRisk: 35 }
         };
 
-        // Géneros
         const GENDERS = {
             hombre: { name: "Hombre", probability: 48, salaryBonus: 5 },
             mujer: { name: "Mujer", probability: 48, salaryBonus: -5 },
@@ -907,14 +919,12 @@
             no_binario: { name: "No Binario", probability: 1, salaryBonus: -10 }
         };
 
-        // Orientaciones
         const ORIENTATIONS = {
             heterosexual: { name: "Heterosexual", probability: 88 },
             homosexual: { name: "Homosexual", probability: 8, closetPenalty: -15 },
             bisexual: { name: "Bisexual", probability: 4, closetPenalty: -10 }
         };
 
-        // Condiciones de salud
         const HEALTH_CONDITIONS = {
             ninguna: { name: "Sin condiciones", probability: 60, monthlyCost: 0, energyPenalty: 0 },
             asma: { name: "Asma", probability: 10, monthlyCost: 50, energyPenalty: -10 },
@@ -927,93 +937,56 @@
             sordera: { name: "Sordera", probability: 1, monthlyCost: 50, jobLimit: true }
         };
 
-        // Situaciones familiares
         const FAMILY_SITUATIONS = {
-            nuclear_estable: {
-                name: "Familia Nuclear Estable",
-                probability: 25,
-                support: 500,
-                happinessBonus: 20,
-                monthlyObligation: 0
-            },
-            madre_soltera: {
-                name: "Madre/Padre Soltero",
-                probability: 30,
-                support: 200,
-                happinessBonus: 0,
-                monthlyObligation: 200
-            },
-            abuelos: {
-                name: "Criado por Abuelos",
-                probability: 10,
-                support: 150,
-                happinessBonus: 5,
-                monthlyObligation: 100
-            },
-            disfuncional: {
-                name: "Familia Disfuncional",
-                probability: 20,
-                support: 0,
-                happinessBonus: -20,
-                monthlyObligation: 0,
-                traumaRisk: true
-            },
-            huerfano: {
-                name: "Huérfano/Sistema de Acogida",
-                probability: 8,
-                support: 0,
-                happinessBonus: -10,
-                monthlyObligation: 0,
-                resilience: 40
-            },
-            inmigrante: {
-                name: "Familia Inmigrante",
-                probability: 7,
-                support: 100,
-                happinessBonus: 0,
-                monthlyObligation: 300
-            }
+            nuclear_estable: { name: "Familia Nuclear Estable", probability: 25, support: 500, happinessBonus: 20, monthlyObligation: 0 },
+            madre_soltera: { name: "Madre/Padre Soltero", probability: 30, support: 200, happinessBonus: 0, monthlyObligation: 200 },
+            abuelos: { name: "Criado por Abuelos", probability: 10, support: 150, happinessBonus: 5, monthlyObligation: 100 },
+            disfuncional: { name: "Familia Disfuncional", probability: 20, support: 0, happinessBonus: -20, monthlyObligation: 0, traumaRisk: true },
+            huerfano: { name: "Huérfano/Sistema de Acogida", probability: 8, support: 0, happinessBonus: -10, monthlyObligation: 0, resilience: 40 },
+            inmigrante: { name: "Familia Inmigrante", probability: 7, support: 100, happinessBonus: 0, monthlyObligation: 300 }
         };
 
-        // Trabajos
+        // Trabajos con más detalles
         const JOBS = {
             // Sin estudios
-            limpieza: { name: "Limpieza de casas", salary: 800, education: "ninguno", stress: 20, energy: -20 },
-            peon: { name: "Peón de construcción", salary: 1200, education: "ninguno", stress: 30, energy: -40, physical: true },
-            ambulante: { name: "Vendedor ambulante", salary: [400, 1500], education: "ninguno", stress: 40, energy: -30 },
-            estibador: { name: "Estibador", salary: 1000, education: "ninguno", stress: 35, energy: -50, physical: true },
-            reciclador: { name: "Reciclador", salary: [300, 900], education: "ninguno", stress: 25, energy: -35 },
+            limpieza: { name: "Limpieza de casas", salary: 800, education: "ninguno", stress: 20, energy: -20, genderPreference: "mujer", category: "limpieza" },
+            peon: { name: "Peón de construcción", salary: 1200, education: "ninguno", stress: 30, energy: -40, physical: true, genderPreference: "hombre", category: "construccion" },
+            ambulante: { name: "Vendedor ambulante", salary: [400, 1500], education: "ninguno", stress: 40, energy: -30, category: "ventas" },
+            estibador: { name: "Estibador", salary: 1000, education: "ninguno", stress: 35, energy: -50, physical: true, genderPreference: "hombre", category: "carga" },
+            reciclador: { name: "Reciclador", salary: [300, 900], education: "ninguno", stress: 25, energy: -35, category: "informal" },
 
             // Secundaria
-            fastfood: { name: "Fast Food", salary: 1025, education: "secundaria", stress: 35, energy: -25 },
-            cajero: { name: "Cajero Retail", salary: 1100, education: "secundaria", stress: 30, energy: -20 },
-            callcenter: { name: "Call Center", salary: 1300, education: "secundaria", stress: 50, energy: -30 },
-            seguridad: { name: "Vigilante", salary: 1300, education: "secundaria", stress: 25, energy: -20 },
-            mozo: { name: "Mozo/Mesero", salary: 1200, education: "secundaria", stress: 35, energy: -30 },
-            cobrador: { name: "Cobrador de combi", salary: 1000, education: "secundaria", stress: 45, energy: -35, informal: true },
-            operario: { name: "Operario de fábrica", salary: 1200, education: "secundaria", stress: 30, energy: -35 },
-            albanil: { name: "Albañil", salary: 1800, education: "secundaria", stress: 25, energy: -45, physical: true },
+            fastfood: { name: "Fast Food (KFC, McDonald's)", salary: 1025, education: "secundaria", stress: 35, energy: -25, category: "atencion" },
+            cajero: { name: "Cajero/a Retail", salary: 1100, education: "secundaria", stress: 30, energy: -20, category: "atencion" },
+            callcenter: { name: "Call Center", salary: 1300, education: "secundaria", stress: 50, energy: -30, category: "atencion" },
+            seguridad: { name: "Vigilante/Seguridad", salary: 1300, education: "secundaria", stress: 25, energy: -20, genderPreference: "hombre", category: "seguridad" },
+            mozo: { name: "Mozo/Mesero", salary: 1200, education: "secundaria", stress: 35, energy: -30, category: "atencion" },
+            cobrador: { name: "Cobrador de combi", salary: 1000, education: "secundaria", stress: 45, energy: -35, informal: true, genderPreference: "hombre", category: "transporte" },
+            operario: { name: "Operario de fábrica", salary: 1200, education: "secundaria", stress: 30, energy: -35, category: "manufactura" },
+            albanil: { name: "Albañil", salary: 1800, education: "secundaria", stress: 25, energy: -45, physical: true, genderPreference: "hombre", category: "construccion" },
+            costurera: { name: "Costurera/Textil", salary: 1000, education: "secundaria", stress: 30, energy: -25, genderPreference: "mujer", category: "manufactura" },
+            recepcionista: { name: "Recepcionista", salary: 1200, education: "secundaria", stress: 25, energy: -15, requiresPresencia: true, category: "atencion" },
 
             // Técnico
-            soporte_ti: { name: "Soporte TI", salary: 1800, education: "tecnico", stress: 35, energy: -20 },
-            mecanico: { name: "Mecánico", salary: 2200, education: "tecnico", stress: 30, energy: -35 },
-            electricista: { name: "Electricista", salary: 2500, education: "tecnico", stress: 30, energy: -30 },
-            cocinero: { name: "Cocinero", salary: 2000, education: "tecnico", stress: 40, energy: -35 },
-            enfermero_tec: { name: "Técnico en Enfermería", salary: 1600, education: "tecnico", stress: 45, energy: -30 },
-            contador_asist: { name: "Asistente Contable", salary: 1800, education: "tecnico", stress: 35, energy: -20 },
+            soporte_ti: { name: "Soporte TI", salary: 1800, education: "tecnico", stress: 35, energy: -20, category: "tecnologia" },
+            mecanico: { name: "Mecánico Automotriz", salary: 2200, education: "tecnico", stress: 30, energy: -35, genderPreference: "hombre", category: "tecnico" },
+            electricista: { name: "Electricista", salary: 2500, education: "tecnico", stress: 30, energy: -30, genderPreference: "hombre", category: "tecnico" },
+            cocinero: { name: "Cocinero/Chef", salary: 2000, education: "tecnico", stress: 40, energy: -35, category: "gastronomia" },
+            enfermero_tec: { name: "Técnico en Enfermería", salary: 1600, education: "tecnico", stress: 45, energy: -30, category: "salud" },
+            contador_asist: { name: "Asistente Contable", salary: 1800, education: "tecnico", stress: 35, energy: -20, category: "oficina" },
+            esteticista: { name: "Esteticista/Cosmetóloga", salary: 1500, education: "tecnico", stress: 25, energy: -20, genderPreference: "mujer", category: "belleza" },
 
             // Universidad
-            programador_jr: { name: "Programador Junior", salary: 3000, education: "universidad", stress: 40, energy: -25 },
-            programador_sr: { name: "Programador Senior", salary: 8000, education: "universidad", experience: 5, stress: 35, energy: -20 },
-            contador: { name: "Contador", salary: 3500, education: "universidad", stress: 40, energy: -20 },
-            ingeniero: { name: "Ingeniero", salary: 4500, education: "universidad", stress: 40, energy: -25 },
-            abogado: { name: "Abogado", salary: 4000, education: "universidad", stress: 50, energy: -25 },
-            medico: { name: "Médico", salary: 6000, education: "medicina", stress: 60, energy: -40 },
-            gerente: { name: "Gerente", salary: 8000, education: "universidad", experience: 8, stress: 55, energy: -30 },
-            ejecutivo: { name: "Ejecutivo", salary: 15000, education: "maestria", experience: 10, stress: 60, energy: -35 }
+            programador_jr: { name: "Programador Junior", salary: 3000, education: "universidad", stress: 40, energy: -25, category: "tecnologia" },
+            programador_sr: { name: "Programador Senior", salary: 8000, education: "universidad", experience: 5, stress: 35, energy: -20, category: "tecnologia" },
+            contador: { name: "Contador", salary: 3500, education: "universidad", stress: 40, energy: -20, category: "oficina" },
+            ingeniero: { name: "Ingeniero", salary: 4500, education: "universidad", stress: 40, energy: -25, category: "ingenieria" },
+            abogado: { name: "Abogado", salary: 4000, education: "universidad", stress: 50, energy: -25, category: "legal" },
+            medico: { name: "Médico", salary: 6000, education: "medicina", stress: 60, energy: -40, category: "salud" },
+            gerente: { name: "Gerente", salary: 8000, education: "universidad", experience: 8, stress: 55, energy: -30, category: "gerencia" },
+            ejecutivo: { name: "Ejecutivo", salary: 15000, education: "maestria", experience: 10, stress: 60, energy: -35, category: "gerencia" }
         };
 
-        // Viviendas
         const HOUSING = {
             calle: { name: "En la calle", cost: 0, happiness: -30, health: -20 },
             familia: { name: "Casa familiar", cost: 0, happiness: 0, health: 0, contribution: 200 },
@@ -1025,13 +998,62 @@
             casa: { name: "Casa (alquiler)", cost: 3000, happiness: 25, health: 15 }
         };
 
-        // Estudios
         const EDUCATION_OPTIONS = {
             secundaria: { name: "Secundaria", duration: 0, cost: 0 },
             instituto: { name: "Instituto Técnico", duration: 24, costPerMonth: 400, result: "tecnico" },
             uni_publica: { name: "Universidad Pública", duration: 60, costPerMonth: 50, result: "universidad", difficulty: "alta" },
             uni_privada_media: { name: "Universidad Privada (Media)", duration: 60, costPerMonth: 1500, result: "universidad" },
             uni_privada_cara: { name: "Universidad Privada (Top)", duration: 60, costPerMonth: 3500, result: "universidad", prestige: true }
+        };
+
+        // Preguntas de entrevista
+        const INTERVIEW_QUESTIONS = {
+            general: [
+                { question: "¿Por qué quieres trabajar aquí?",
+                  options: [
+                    { text: "Necesito el dinero urgentemente", score: -10, response: "Hmm, esperábamos más motivación..." },
+                    { text: "Me interesa aprender y crecer profesionalmente", score: 20, response: "¡Excelente actitud!" },
+                    { text: "Queda cerca de mi casa", score: 5, response: "Bueno, eso es práctico..." },
+                    { text: "Escuché que pagan bien", score: 0, response: "Somos competitivos, sí." }
+                  ]
+                },
+                { question: "¿Cuál es tu mayor fortaleza?",
+                  options: [
+                    { text: "Soy muy puntual y responsable", score: 15, response: "Eso es muy importante para nosotros." },
+                    { text: "Aprendo rápido", score: 15, response: "Bien, aquí hay mucho que aprender." },
+                    { text: "No sé, soy normal", score: -15, response: "Deberías conocerte mejor..." },
+                    { text: "Trabajo bien bajo presión", score: 10, response: "Aquí hay bastante presión, así que bien." }
+                  ]
+                },
+                { question: "¿Dónde te ves en 5 años?",
+                  options: [
+                    { text: "En un puesto mejor aquí mismo", score: 20, response: "Nos gusta la gente con ambición." },
+                    { text: "No sé, depende de cómo vaya", score: 0, response: "Entiendo, la vida es incierta." },
+                    { text: "Teniendo mi propio negocio", score: 5, response: "Interesante... aunque esperamos que te quedes." },
+                    { text: "En otro país", score: -10, response: "Hmm, entonces esto sería temporal..." }
+                  ]
+                }
+            ],
+            physical: [
+                { question: "Este trabajo requiere cargar peso. ¿Estás preparado/a?",
+                  options: [
+                    { text: "Sí, estoy en buena forma física", score: 20, response: "Perfecto, lo necesitarás." },
+                    { text: "Puedo intentarlo", score: 5, response: "Necesitamos seguridad, no intentos." },
+                    { text: "¿Qué tan pesado?", score: 0, response: "Entre 20 y 50 kilos regularmente." },
+                    { text: "Honestamente, no mucho", score: -20, response: "Este trabajo no es para ti entonces." }
+                  ]
+                }
+            ],
+            customer_service: [
+                { question: "Un cliente te grita injustamente. ¿Qué haces?",
+                  options: [
+                    { text: "Mantengo la calma y trato de entender su problema", score: 20, response: "Perfecto, eso es profesionalismo." },
+                    { text: "Le digo que no me grite", score: -10, response: "Entendemos, pero hay que ser diplomáticos." },
+                    { text: "Llamo al supervisor", score: 10, response: "Bien, aunque esperamos que puedas manejarlo." },
+                    { text: "Lo ignoro", score: -15, response: "No podemos ignorar a los clientes." }
+                  ]
+                }
+            ]
         };
 
         // Nombres peruanos
@@ -1046,7 +1068,7 @@
         let gameState = {
             character: null,
             money: 0,
-            credits: 50, // Créditos premium iniciales
+            credits: 50,
             health: 100,
             happiness: 100,
             energy: 100,
@@ -1066,11 +1088,15 @@
                 totalSpent: 0,
                 jobsHad: 0,
                 monthsWorked: 0,
-                eventsExperienced: 0
+                eventsExperienced: 0,
+                interviewsFailed: 0,
+                interviewsPassed: 0
             },
             achievements: [],
             inCloset: true,
-            isOut: false
+            isOut: false,
+            relationship: null,
+            interviewState: null
         };
 
         // ==================== FUNCIONES DE UTILIDAD ====================
@@ -1085,9 +1111,7 @@
 
         function weightedRandom(items) {
             let total = 0;
-            for (let key in items) {
-                total += items[key].probability;
-            }
+            for (let key in items) total += items[key].probability;
             let random = Math.random() * total;
             for (let key in items) {
                 random -= items[key].probability;
@@ -1097,7 +1121,19 @@
         }
 
         function formatMoney(amount) {
-            return "S/ " + amount.toLocaleString('es-PE');
+            return "S/ " + Math.floor(amount).toLocaleString('es-PE');
+        }
+
+        function showNotification(message, type = 'info') {
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+
+            setTimeout(() => notif.remove(), 3000);
         }
 
         // ==================== GENERACIÓN DE PERSONAJE ====================
@@ -1105,26 +1141,19 @@
         function generateCharacter() {
             const gender = weightedRandom(GENDERS);
             const genderData = GENDERS[gender];
-
             const appearance = weightedRandom(APPEARANCES);
             const appearanceData = APPEARANCES[appearance];
-
             const socialClass = weightedRandom(SOCIAL_CLASSES);
             const socialClassData = SOCIAL_CLASSES[socialClass];
-
             const location = weightedRandom(LOCATIONS);
             const locationData = LOCATIONS[location];
-
             const orientation = weightedRandom(ORIENTATIONS);
             const orientationData = ORIENTATIONS[orientation];
-
             const healthCondition = weightedRandom(HEALTH_CONDITIONS);
             const healthConditionData = HEALTH_CONDITIONS[healthCondition];
-
             const familySituation = weightedRandom(FAMILY_SITUATIONS);
             const familySituationData = FAMILY_SITUATIONS[familySituation];
 
-            // Generar nombre basado en características
             let lastName;
             if (socialClass === 'clase_alta' || socialClass === 'clase_media_alta') {
                 lastName = randomFromArray(LAST_NAMES_UPPER);
@@ -1137,15 +1166,12 @@
             const firstName = gender === 'mujer' || gender === 'trans' ?
                 randomFromArray(FIRST_NAMES_FEMALE) : randomFromArray(FIRST_NAMES_MALE);
 
-            // Calcular dinero inicial
             const [minMoney, maxMoney] = socialClassData.startMoney;
             const startMoney = randomRange(minMoney, maxMoney);
 
-            // Calcular modificadores totales
             const totalJobBonus = locationData.jobBonus + socialClassData.jobPenalty +
                                   appearanceData.jobBonus + genderData.salaryBonus;
 
-            // Calcular dificultad
             let difficultyScore = 0;
             difficultyScore -= totalJobBonus;
             difficultyScore += healthConditionData.monthlyCost / 10;
@@ -1162,26 +1188,10 @@
 
             return {
                 name: `${firstName} ${lastName}`,
-                firstName,
-                lastName,
-                gender,
-                genderData,
-                appearance,
-                appearanceData,
-                socialClass,
-                socialClassData,
-                location,
-                locationData,
-                orientation,
-                orientationData,
-                healthCondition,
-                healthConditionData,
-                familySituation,
-                familySituationData,
-                startMoney,
-                totalJobBonus,
-                difficulty,
-                difficultyScore
+                firstName, lastName, gender, genderData, appearance, appearanceData,
+                socialClass, socialClassData, location, locationData, orientation, orientationData,
+                healthCondition, healthConditionData, familySituation, familySituationData,
+                startMoney, totalJobBonus, difficulty, difficultyScore
             };
         }
 
@@ -1211,9 +1221,10 @@
             gameState.studyMonthsLeft = 0;
             gameState.experience = 0;
             gameState.eventLog = [];
-            gameState.stats = { totalEarned: 0, totalSpent: 0, jobsHad: 0, monthsWorked: 0, eventsExperienced: 0 };
+            gameState.stats = { totalEarned: 0, totalSpent: 0, jobsHad: 0, monthsWorked: 0, eventsExperienced: 0, interviewsFailed: 0, interviewsPassed: 0 };
             gameState.inCloset = gameState.character.orientation !== 'heterosexual';
             gameState.isOut = false;
+            gameState.relationship = null;
 
             renderBirthScreen();
             showScreen('birthScreen');
@@ -1222,103 +1233,51 @@
         function renderBirthScreen() {
             const char = gameState.character;
 
-            // Generar desafíos
             let challenges = [];
-            if (char.totalJobBonus < 0) {
-                challenges.push(`${Math.abs(char.totalJobBonus)}% menos probabilidad en entrevistas`);
-            }
-            if (char.healthConditionData.monthlyCost > 0) {
-                challenges.push(`Gastos médicos: ${formatMoney(char.healthConditionData.monthlyCost)}/mes`);
-            }
-            if (char.familySituationData.monthlyObligation > 0) {
-                challenges.push(`Aportar a familia: ${formatMoney(char.familySituationData.monthlyObligation)}/mes`);
-            }
-            if (char.healthConditionData.energyPenalty) {
-                challenges.push(`${Math.abs(char.healthConditionData.energyPenalty)}% menos energía`);
-            }
-            if (char.orientation !== 'heterosexual') {
-                challenges.push(`Vivir en el closet afecta tu felicidad`);
-            }
-            if (char.healthConditionData.jobLimit) {
-                challenges.push(`Trabajos físicos limitados`);
-            }
+            if (char.totalJobBonus < 0) challenges.push(`${Math.abs(char.totalJobBonus)}% menos probabilidad en entrevistas`);
+            if (char.healthConditionData.monthlyCost > 0) challenges.push(`Gastos médicos: ${formatMoney(char.healthConditionData.monthlyCost)}/mes`);
+            if (char.familySituationData.monthlyObligation > 0) challenges.push(`Aportar a familia: ${formatMoney(char.familySituationData.monthlyObligation)}/mes`);
+            if (char.healthConditionData.energyPenalty) challenges.push(`${Math.abs(char.healthConditionData.energyPenalty)}% menos energía`);
+            if (char.orientation !== 'heterosexual') challenges.push(`Vivir en el closet afecta tu felicidad`);
+            if (char.healthConditionData.jobLimit) challenges.push(`Trabajos físicos limitados`);
 
-            // Generar fortalezas
             let strengths = [];
-            if (char.socialClassData.resilience > 0) {
-                strengths.push(`+${char.socialClassData.resilience}% Resiliencia`);
-            }
-            if (char.familySituationData.resilience) {
-                strengths.push(`+${char.familySituationData.resilience}% Resiliencia adicional`);
-            }
-            if (char.healthConditionData.creativityBonus) {
-                strengths.push(`+${char.healthConditionData.creativityBonus}% Creatividad`);
-            }
-            if (char.familySituationData.support > 0) {
-                strengths.push(`Apoyo familiar disponible`);
-            }
-            if (char.totalJobBonus > 0) {
-                strengths.push(`+${char.totalJobBonus}% probabilidad en entrevistas`);
-            }
+            if (char.socialClassData.resilience > 0) strengths.push(`+${char.socialClassData.resilience}% Resiliencia`);
+            if (char.familySituationData.resilience) strengths.push(`+${char.familySituationData.resilience}% Resiliencia adicional`);
+            if (char.healthConditionData.creativityBonus) strengths.push(`+${char.healthConditionData.creativityBonus}% Creatividad`);
+            if (char.familySituationData.support > 0) strengths.push(`Apoyo familiar disponible`);
+            if (char.totalJobBonus > 0) strengths.push(`+${char.totalJobBonus}% probabilidad en entrevistas`);
 
-            const html = `
+            document.getElementById('birthProfileContent').innerHTML = `
                 <div class="profile-section">
                     <p><strong>Nombre:</strong> ${char.name}</p>
                     <p><strong>Género:</strong> ${char.genderData.name}</p>
                 </div>
-
                 <div class="profile-section">
                     <h4>📍 Ubicación</h4>
                     <p><strong>${char.locationData.name}</strong></p>
                     <p style="color: #888; font-size: 0.9em;">${char.locationData.description}</p>
                 </div>
-
                 <div class="profile-section">
                     <h4>🏠 Origen</h4>
                     <p><strong>${char.socialClassData.name}</strong></p>
                     <p><strong>Familia:</strong> ${char.familySituationData.name}</p>
                 </div>
-
                 <div class="profile-section">
                     <h4>👤 Características</h4>
                     <p><strong>Apariencia:</strong> ${char.appearanceData.name}</p>
                     <p><strong>Orientación:</strong> ${char.orientationData.name}</p>
                     <p><strong>Salud:</strong> ${char.healthConditionData.name}</p>
                 </div>
-
                 <div class="profile-section">
                     <h4>💰 Situación Inicial</h4>
                     <p><strong>Dinero:</strong> ${formatMoney(char.startMoney)}</p>
                     <p><strong>Educación:</strong> ${gameState.education === 'secundaria' ? 'Secundaria Completa' : 'Primaria'}</p>
-                    <p><strong>Vivienda:</strong> Casa familiar</p>
                 </div>
-
-                ${challenges.length > 0 ? `
-                <div class="profile-section">
-                    <h4>⚠️ Desafíos</h4>
-                    <ul class="challenge-list">
-                        ${challenges.map(c => `<li>• ${c}</li>`).join('')}
-                    </ul>
-                </div>
-                ` : ''}
-
-                ${strengths.length > 0 ? `
-                <div class="profile-section">
-                    <h4>✨ Fortalezas</h4>
-                    <ul class="strength-list">
-                        ${strengths.map(s => `<li>• ${s}</li>`).join('')}
-                    </ul>
-                </div>
-                ` : ''}
-
-                <div style="text-align: center;">
-                    <span class="difficulty-badge ${char.difficulty.class}">
-                        ${'⭐'.repeat(char.difficulty.stars)} ${char.difficulty.name}
-                    </span>
-                </div>
+                ${challenges.length > 0 ? `<div class="profile-section"><h4>⚠️ Desafíos</h4><ul class="challenge-list">${challenges.map(c => `<li>• ${c}</li>`).join('')}</ul></div>` : ''}
+                ${strengths.length > 0 ? `<div class="profile-section"><h4>✨ Fortalezas</h4><ul class="strength-list">${strengths.map(s => `<li>• ${s}</li>`).join('')}</ul></div>` : ''}
+                <div style="text-align: center;"><span class="difficulty-badge ${char.difficulty.class}">${'⭐'.repeat(char.difficulty.stars)} ${char.difficulty.name}</span></div>
             `;
-
-            document.getElementById('birthProfileContent').innerHTML = html;
         }
 
         function startLife() {
@@ -1331,38 +1290,28 @@
         // ==================== ACTUALIZACIÓN DE UI ====================
 
         function updateUI() {
-            // Limitar valores
             gameState.health = Math.max(0, Math.min(100, gameState.health));
             gameState.happiness = Math.max(0, Math.min(100, gameState.happiness));
             gameState.energy = Math.max(0, Math.min(100, gameState.energy));
             gameState.stress = Math.max(0, Math.min(100, gameState.stress));
 
-            // Header
             document.getElementById('charName').textContent = gameState.character.name;
-            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            document.getElementById('charAge').textContent =
-                `${gameState.age} años - ${months[gameState.month - 1]} ${gameState.year}`;
-            document.getElementById('charMoney').textContent = formatMoney(Math.floor(gameState.money));
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            document.getElementById('charAge').textContent = `${gameState.age} años - ${months[gameState.month - 1]} ${gameState.year}`;
+            document.getElementById('charMoney').textContent = formatMoney(gameState.money);
 
-            // Stats bars
             document.getElementById('healthValue').textContent = Math.floor(gameState.health) + '%';
             document.getElementById('healthBar').style.width = gameState.health + '%';
-
             document.getElementById('happinessValue').textContent = Math.floor(gameState.happiness) + '%';
             document.getElementById('happinessBar').style.width = gameState.happiness + '%';
-
             document.getElementById('energyValue').textContent = Math.floor(gameState.energy) + '%';
             document.getElementById('energyBar').style.width = gameState.energy + '%';
-
             document.getElementById('stressValue').textContent = Math.floor(gameState.stress) + '%';
             document.getElementById('stressBar').style.width = gameState.stress + '%';
 
-            // Info cards
             if (gameState.job) {
                 const job = JOBS[gameState.job];
-                const salary = Array.isArray(job.salary) ?
-                    Math.floor((job.salary[0] + job.salary[1]) / 2) : job.salary;
+                const salary = Array.isArray(job.salary) ? Math.floor((job.salary[0] + job.salary[1]) / 2) : job.salary;
                 document.getElementById('jobName').textContent = job.name;
                 document.getElementById('jobSalary').textContent = formatMoney(salary) + '/mes';
             } else {
@@ -1374,118 +1323,144 @@
             document.getElementById('housingName').textContent = housing.name;
             document.getElementById('housingCost').textContent = formatMoney(housing.cost) + '/mes';
 
-            const eduLabels = {
-                'primaria': 'Primaria',
-                'secundaria': 'Secundaria',
-                'tecnico': 'Técnico',
-                'universidad': 'Universidad',
-                'maestria': 'Maestría'
-            };
+            const eduLabels = { 'primaria': 'Primaria', 'secundaria': 'Secundaria', 'tecnico': 'Técnico', 'universidad': 'Universidad', 'maestria': 'Maestría' };
             document.getElementById('educationLevel').textContent = eduLabels[gameState.education] || gameState.education;
-            if (gameState.studying) {
-                document.getElementById('educationDetail').textContent =
-                    `Estudiando... (${gameState.studyMonthsLeft} meses restantes)`;
-            } else {
-                document.getElementById('educationDetail').textContent = 'Completada';
-            }
+            document.getElementById('educationDetail').textContent = gameState.studying ? `Estudiando... (${gameState.studyMonthsLeft} meses)` : 'Completada';
 
-            // Balance mensual
             const income = calculateMonthlyIncome();
             const expenses = calculateMonthlyExpenses();
             const balance = income - expenses;
             document.getElementById('monthlyBalance').textContent = formatMoney(balance);
-            document.getElementById('monthlyBalance').className =
-                'value ' + (balance >= 0 ? 'positive-change' : 'negative-change');
-            document.getElementById('balanceDetail').textContent =
-                `Ingresos: ${formatMoney(income)} - Gastos: ${formatMoney(expenses)}`;
+            document.getElementById('monthlyBalance').className = 'value ' + (balance >= 0 ? 'positive-change' : 'negative-change');
+            document.getElementById('balanceDetail').textContent = `Ing: ${formatMoney(income)} - Gast: ${formatMoney(expenses)}`;
 
-            // Credits
             document.getElementById('creditsAmount').textContent = gameState.credits;
-
-            // Check game over conditions
             checkGameOver();
         }
 
         function calculateMonthlyIncome() {
             if (!gameState.job) return 0;
             const job = JOBS[gameState.job];
-            let salary = Array.isArray(job.salary) ?
-                Math.floor((job.salary[0] + job.salary[1]) / 2) : job.salary;
-
-            // Aplicar bonus/penalty por características
+            let salary = Array.isArray(job.salary) ? Math.floor((job.salary[0] + job.salary[1]) / 2) : job.salary;
             const bonus = gameState.character.totalJobBonus / 100;
-            salary = Math.floor(salary * (1 + bonus * 0.5)); // El bonus afecta parcialmente el salario
-
-            return salary;
+            return Math.floor(salary * (1 + bonus * 0.3));
         }
 
         function calculateMonthlyExpenses() {
             let total = 0;
-
-            // Vivienda
             const housing = HOUSING[gameState.housing];
             total += housing.cost;
-            if (housing.contribution) total += housing.contribution; // Aporte familiar
-
-            // Comida básica
-            total += 350;
-
-            // Transporte
-            total += 150;
-
-            // Servicios
-            total += 100;
-
-            // Gastos médicos
+            if (housing.contribution) total += housing.contribution;
+            total += 350; // Comida
+            total += 150; // Transporte
+            total += 100; // Servicios
             total += gameState.character.healthConditionData.monthlyCost;
-
-            // Obligación familiar
             total += gameState.character.familySituationData.monthlyObligation;
-
-            // Estudios
-            if (gameState.studying) {
-                const study = EDUCATION_OPTIONS[gameState.studying];
-                total += study.costPerMonth;
-            }
-
+            if (gameState.studying) total += EDUCATION_OPTIONS[gameState.studying].costPerMonth;
             return total;
         }
-
-        // ==================== SISTEMA DE LOG ====================
 
         function addLog(message, type = 'neutral') {
             gameState.eventLog.unshift({ message, type, month: gameState.month, year: gameState.year });
             if (gameState.eventLog.length > 20) gameState.eventLog.pop();
-
-            const logDiv = document.getElementById('eventLogContent');
-            logDiv.innerHTML = gameState.eventLog.map(e =>
-                `<div class="log-entry ${e.type}">${e.message}</div>`
-            ).join('');
+            document.getElementById('eventLogContent').innerHTML = gameState.eventLog.map(e => `<div class="log-entry ${e.type}">${e.message}</div>`).join('');
         }
 
-        // ==================== MENÚS DE ACCIONES ====================
+        // ==================== SISTEMA DE TRABAJOS MEJORADO ====================
 
-        function openModal(title, body, options) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalBody').innerHTML = body;
+        function calculateHiringProbability(jobId) {
+            const job = JOBS[jobId];
+            let chance = 50;
 
-            const optionsDiv = document.getElementById('modalOptions');
-            optionsDiv.innerHTML = options.map((opt, i) => `
-                <button class="modal-option" onclick="${opt.action}" ${opt.disabled ? 'disabled' : ''}>
-                    <div class="option-title">${opt.title}</div>
-                    <div class="option-desc">${opt.desc}</div>
-                </button>
-            `).join('');
+            // Bonus general del personaje
+            chance += gameState.character.totalJobBonus;
 
-            document.getElementById('gameModal').classList.add('active');
+            // Preferencia de género
+            if (job.genderPreference) {
+                if (job.genderPreference === gameState.character.gender) {
+                    chance += 15;
+                } else if (job.genderPreference === 'hombre' && gameState.character.gender === 'mujer') {
+                    chance -= 25;
+                } else if (job.genderPreference === 'mujer' && gameState.character.gender === 'hombre') {
+                    chance -= 20;
+                }
+            }
+
+            // Requisito de "buena presencia"
+            if (job.requiresPresencia) {
+                if (gameState.character.appearance === 'blanco' || gameState.character.appearance === 'mestizo_claro') {
+                    chance += 20;
+                } else if (gameState.character.appearance === 'andino' || gameState.character.appearance === 'afroperuano') {
+                    chance -= 30;
+                }
+            }
+
+            // Experiencia
+            if (gameState.experience > 12) chance += 10;
+            if (gameState.experience > 36) chance += 10;
+
+            return Math.max(5, Math.min(95, chance));
         }
 
-        function closeModal() {
-            document.getElementById('gameModal').classList.remove('active');
+        function getJobRejectionReason(jobId, interviewScore) {
+            const job = JOBS[jobId];
+            const char = gameState.character;
+            const reasons = [];
+
+            // Razón por género en trabajos físicos
+            if (job.physical && char.gender === 'mujer') {
+                reasons.push("El supervisor dijo que este trabajo 'no es para mujeres'... 😤");
+                reasons.push("Te dijeron que buscan a alguien 'más fuerte'.");
+                reasons.push("'Señorita, esto es trabajo pesado', te dijeron condescendientemente.");
+            }
+
+            // Razón por género en trabajos "femeninos"
+            if (job.genderPreference === 'mujer' && char.gender === 'hombre') {
+                reasons.push("Te miraron raro cuando aplicaste. 'Esto es más para chicas', dijeron.");
+            }
+
+            // Razón por apariencia/discriminación
+            if (char.appearanceData.discriminationRisk > 20) {
+                reasons.push("Notaste que te miraron de arriba a abajo y cambiaron de actitud...");
+                reasons.push("'No cumples con el perfil que buscamos' (código para discriminación).");
+                reasons.push("El entrevistador apenas te miró y dijo que 'ya encontraron a alguien'.");
+            }
+
+            // Razón por "buena presencia"
+            if (job.requiresPresencia && (char.appearance === 'andino' || char.appearance === 'afroperuano')) {
+                reasons.push("Te dijeron que buscan 'otro perfil' para atención al público.");
+                reasons.push("'Necesitamos alguien con mejor presencia', dijeron sin mirarte a los ojos.");
+            }
+
+            // Razones generales por mala entrevista
+            if (interviewScore < 0) {
+                reasons.push("Tus respuestas en la entrevista no convencieron.");
+                reasons.push("El entrevistador no pareció satisfecho con tus respuestas.");
+            }
+
+            // Razones neutras
+            reasons.push("Había muchos postulantes y eligieron a otro.");
+            reasons.push("Te dijeron que te llamarían... pero nunca lo hicieron.");
+            reasons.push("El puesto ya estaba 'comprometido' para alguien más.");
+
+            return randomFromArray(reasons);
         }
 
         function openJobMenu() {
-            const availableJobs = [];
+            const postulationCost = 15; // Costo de pasaje y comida para ir a entrevistas
+
+            let html = `
+                <p style="margin-bottom: 15px;">
+                    ${gameState.job ? `<strong>Trabajo actual:</strong> ${JOBS[gameState.job].name}` : '<strong>Estado:</strong> Desempleado'}
+                </p>
+                <p style="color: #ff9800; margin-bottom: 15px;">⚠️ Postular cuesta ${formatMoney(postulationCost)} (pasaje + comida)</p>
+            `;
+
+            if (gameState.job) {
+                html += `<button class="btn btn-danger btn-small" onclick="quitJob()" style="margin-bottom: 15px;">❌ Renunciar</button>`;
+            }
+
+            html += `<h3 style="margin: 15px 0;">Trabajos disponibles:</h3><div style="max-height: 400px; overflow-y: auto;">`;
 
             for (let jobId in JOBS) {
                 const job = JOBS[jobId];
@@ -1501,80 +1476,221 @@
                     canApply = false;
                     reason = 'Requiere universidad';
                 }
-                if (job.education === 'maestria' && gameState.education !== 'maestria') {
-                    canApply = false;
-                    reason = 'Requiere maestría';
-                }
                 if (job.education === 'medicina') {
                     canApply = false;
                     reason = 'Requiere carrera de medicina';
                 }
-
-                // Check experiencia
                 if (job.experience && gameState.experience < job.experience * 12) {
                     canApply = false;
                     reason = `Requiere ${job.experience} años de experiencia`;
                 }
-
-                // Check físico
                 if (job.physical && gameState.character.healthConditionData.jobLimit) {
                     canApply = false;
-                    reason = 'No puedes realizar trabajos físicos';
+                    reason = 'Tu condición no permite trabajo físico';
+                }
+                if (gameState.money < postulationCost) {
+                    canApply = false;
+                    reason = 'No tienes dinero para postular';
                 }
 
-                const salary = Array.isArray(job.salary) ?
-                    `${formatMoney(job.salary[0])} - ${formatMoney(job.salary[1])}` : formatMoney(job.salary);
+                const salary = Array.isArray(job.salary) ? `${formatMoney(job.salary[0])} - ${formatMoney(job.salary[1])}` : formatMoney(job.salary);
+                const probability = calculateHiringProbability(jobId);
+                const probClass = probability >= 60 ? 'prob-high' : probability >= 35 ? 'prob-medium' : 'prob-low';
 
-                availableJobs.push({
-                    title: `${job.name} - ${salary}/mes`,
-                    desc: canApply ? `Estrés: ${job.stress}% | Energía: ${job.energy}` : reason,
-                    action: `applyForJob('${jobId}')`,
-                    disabled: !canApply
-                });
+                let tags = [];
+                if (job.physical) tags.push('<span class="job-tag warning">💪 Físico</span>');
+                if (job.genderPreference === 'hombre') tags.push('<span class="job-tag">👨 Prefieren hombres</span>');
+                if (job.genderPreference === 'mujer') tags.push('<span class="job-tag">👩 Prefieren mujeres</span>');
+                if (job.requiresPresencia) tags.push('<span class="job-tag danger">"Buena presencia"</span>');
+                if (job.informal) tags.push('<span class="job-tag warning">📝 Informal</span>');
+
+                html += `
+                    <div class="job-card ${canApply ? '' : 'disabled'}" style="${canApply ? '' : 'opacity: 0.5'}">
+                        <div class="job-header">
+                            <span class="job-title">${job.name}</span>
+                            <span class="job-salary">${salary}/mes</span>
+                        </div>
+                        <div class="job-details">
+                            ${tags.join(' ')}
+                            <span class="job-tag">😫 Estrés: ${job.stress}%</span>
+                        </div>
+                        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            ${canApply ?
+                                `<span class="probability ${probClass}">${probability}% probabilidad</span>
+                                 <button class="btn btn-small" onclick="startInterview('${jobId}')">Postular</button>` :
+                                `<span style="color: #f44336; font-size: 0.85em;">${reason}</span>`
+                            }
+                        </div>
+                    </div>
+                `;
             }
 
-            // Opción de renunciar
-            if (gameState.job) {
-                availableJobs.unshift({
-                    title: '❌ Renunciar al trabajo actual',
-                    desc: `Dejar de trabajar como ${JOBS[gameState.job].name}`,
-                    action: 'quitJob()',
-                    disabled: false
-                });
-            }
+            html += '</div>';
 
-            openModal('💼 Buscar Trabajo',
-                gameState.job ? `<p>Trabajo actual: ${JOBS[gameState.job].name}</p>` : '<p>Actualmente desempleado</p>',
-                availableJobs.slice(0, 10) // Mostrar solo 10 trabajos
-            );
+            document.getElementById('modalTitle').textContent = '💼 Buscar Trabajo';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
         }
 
-        function applyForJob(jobId) {
+        function startInterview(jobId) {
+            const postulationCost = 15;
+            gameState.money -= postulationCost;
+            gameState.energy -= 10;
+
+            addLog(`Gastaste ${formatMoney(postulationCost)} en pasajes y comida para la entrevista`, 'neutral');
+
             const job = JOBS[jobId];
 
-            // Calcular probabilidad de contratación
-            let chance = 50 + gameState.character.totalJobBonus;
-            chance = Math.max(10, Math.min(90, chance));
+            // Seleccionar preguntas relevantes
+            let questions = [...INTERVIEW_QUESTIONS.general];
+            if (job.physical) questions = questions.concat(INTERVIEW_QUESTIONS.physical);
+            if (job.category === 'atencion') questions = questions.concat(INTERVIEW_QUESTIONS.customer_service);
 
-            if (Math.random() * 100 < chance) {
-                gameState.job = jobId;
-                gameState.stats.jobsHad++;
-                addLog(`¡Conseguiste trabajo como ${job.name}!`, 'positive');
-                gameState.happiness += 10;
-            } else {
-                addLog(`No te contrataron como ${job.name}. Sigue intentando.`, 'negative');
-                gameState.happiness -= 5;
-
-                // Posible evento de discriminación
-                if (gameState.character.appearanceData.discriminationRisk > 0) {
-                    if (Math.random() * 100 < gameState.character.appearanceData.discriminationRisk) {
-                        addLog(`Sentiste que te discriminaron en la entrevista...`, 'negative');
-                        gameState.happiness -= 5;
-                    }
-                }
+            // Tomar 3 preguntas aleatorias
+            const selectedQuestions = [];
+            while (selectedQuestions.length < 3 && questions.length > 0) {
+                const idx = Math.floor(Math.random() * questions.length);
+                selectedQuestions.push(questions.splice(idx, 1)[0]);
             }
 
-            closeModal();
+            gameState.interviewState = {
+                jobId: jobId,
+                questions: selectedQuestions,
+                currentQuestion: 0,
+                score: 0,
+                responses: []
+            };
+
+            renderInterviewQuestion();
+        }
+
+        function renderInterviewQuestion() {
+            const state = gameState.interviewState;
+            const job = JOBS[state.jobId];
+
+            if (state.currentQuestion >= state.questions.length) {
+                finishInterview();
+                return;
+            }
+
+            const question = state.questions[state.currentQuestion];
+
+            let progressDots = '';
+            for (let i = 0; i < state.questions.length; i++) {
+                const dotClass = i < state.currentQuestion ? 'completed' : i === state.currentQuestion ? 'current' : '';
+                progressDots += `<div class="dot ${dotClass}"></div>`;
+            }
+
+            const html = `
+                <div class="interview-container">
+                    <p style="text-align: center; color: #aaa; margin-bottom: 10px;">Entrevista para: <strong>${job.name}</strong></p>
+                    <div class="interview-progress">${progressDots}</div>
+                    <div class="interview-question">
+                        <p>👔 Entrevistador:</p>
+                        <p style="font-size: 1.1em; margin-top: 10px;">"${question.question}"</p>
+                    </div>
+                    <div class="interview-options">
+                        ${question.options.map((opt, i) => `
+                            <div class="interview-option" onclick="answerInterview(${i})">
+                                ${opt.text}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '🎤 Entrevista de Trabajo';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+        }
+
+        function answerInterview(optionIndex) {
+            const state = gameState.interviewState;
+            const question = state.questions[state.currentQuestion];
+            const option = question.options[optionIndex];
+
+            state.score += option.score;
+            state.responses.push({
+                question: question.question,
+                answer: option.text,
+                response: option.response,
+                score: option.score
+            });
+
+            // Mostrar reacción del entrevistador brevemente
+            showNotification(`Entrevistador: "${option.response}"`, option.score > 0 ? 'success' : option.score < 0 ? 'warning' : 'info');
+
+            state.currentQuestion++;
+
+            setTimeout(() => {
+                renderInterviewQuestion();
+            }, 1500);
+        }
+
+        function finishInterview() {
+            const state = gameState.interviewState;
+            const job = JOBS[state.jobId];
+
+            // Calcular probabilidad final
+            let baseProbability = calculateHiringProbability(state.jobId);
+            let finalProbability = baseProbability + (state.score / 2);
+            finalProbability = Math.max(5, Math.min(95, finalProbability));
+
+            const success = Math.random() * 100 < finalProbability;
+
+            let html = `<div class="activity-result">`;
+
+            if (success) {
+                gameState.job = state.jobId;
+                gameState.stats.jobsHad++;
+                gameState.stats.interviewsPassed++;
+                gameState.happiness += 15;
+
+                html += `
+                    <div class="icon">🎉</div>
+                    <h3 style="color: #4CAF50;">¡FELICIDADES!</h3>
+                    <p>Has sido contratado/a como <strong>${job.name}</strong></p>
+                    <p style="margin-top: 10px;">Empiezas el próximo mes.</p>
+                `;
+
+                addLog(`¡Conseguiste trabajo como ${job.name}! 🎉`, 'positive');
+            } else {
+                gameState.stats.interviewsFailed++;
+                gameState.happiness -= 10;
+
+                const rejectionReason = getJobRejectionReason(state.jobId, state.score);
+
+                html += `
+                    <div class="icon">😔</div>
+                    <h3 style="color: #f44336;">No fuiste seleccionado/a</h3>
+                    <p style="margin: 15px 0; padding: 15px; background: rgba(244,67,54,0.2); border-radius: 10px;">
+                        ${rejectionReason}
+                    </p>
+                `;
+
+                addLog(`No conseguiste el trabajo de ${job.name}. ${rejectionReason}`, 'negative');
+            }
+
+            // Resumen de la entrevista
+            html += `
+                <div style="margin-top: 20px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px;">
+                    <h4>Resumen de tu entrevista:</h4>
+                    ${state.responses.map(r => `
+                        <p style="margin: 10px 0; padding: 8px; background: rgba(${r.score > 0 ? '76,175,80' : r.score < 0 ? '244,67,54' : '255,255,255'},0.1); border-radius: 5px;">
+                            <strong>Pregunta:</strong> ${r.question}<br>
+                            <strong>Tu respuesta:</strong> ${r.answer}<br>
+                            <span style="color: ${r.score > 0 ? '#4CAF50' : r.score < 0 ? '#f44336' : '#aaa'}">
+                                (${r.score > 0 ? '+' : ''}${r.score} puntos)
+                            </span>
+                        </p>
+                    `).join('')}
+                    <p style="margin-top: 10px;"><strong>Puntaje total:</strong> ${state.score} | <strong>Probabilidad final:</strong> ${Math.floor(finalProbability)}%</p>
+                </div>
+            </div>`;
+
+            document.getElementById('modalBody').innerHTML = html;
+            gameState.interviewState = null;
             updateUI();
         }
 
@@ -1586,21 +1702,215 @@
             updateUI();
         }
 
+        // ==================== SISTEMA DE ACTIVIDADES MEJORADO ====================
+
+        function openActivitiesMenu() {
+            const activities = [
+                { id: 'entertainment', icon: '🎮', name: 'Entretenimiento', desc: 'Videojuegos, películas, etc.', cost: 50, effects: { happiness: 15, energy: 10, stress: -10 } },
+                { id: 'gym', icon: '💪', name: 'Ir al gimnasio', desc: 'Ejercicio y salud', cost: 80, effects: { health: 8, energy: -15, stress: -15, happiness: 5 } },
+                { id: 'friends', icon: '🍺', name: 'Salir con amigos', desc: 'Socializar y divertirse', cost: 120, effects: { happiness: 20, energy: -10, stress: -10 } },
+                { id: 'rest', icon: '😴', name: 'Descansar', desc: 'Un día de relax en casa', cost: 0, effects: { energy: 30, health: 5, stress: -15 } },
+                { id: 'meditate', icon: '🧘', name: 'Meditar', desc: 'Paz mental y reflexión', cost: 0, effects: { stress: -25, happiness: 10, health: 3 } },
+                { id: 'study_self', icon: '📖', name: 'Estudiar por tu cuenta', desc: 'Leer y aprender online', cost: 20, effects: { stress: 5, energy: -10 }, special: 'skill' },
+                { id: 'side_hustle', icon: '💰', name: 'Cachuelo', desc: 'Trabajo informal por el día', cost: 0, effects: { energy: -25, stress: 10 }, special: 'money' },
+                { id: 'doctor', icon: '🏥', name: 'Ir al doctor', desc: 'Chequeo médico', cost: 100, effects: { health: 15, stress: -5 } }
+            ];
+
+            // Agregar opción de salir del closet si aplica
+            if (gameState.inCloset && !gameState.isOut) {
+                activities.push({ id: 'comeout', icon: '🌈', name: 'Salir del closet', desc: 'Revelar tu orientación', cost: 0, effects: {}, special: 'comeout' });
+            }
+
+            let html = `<p style="margin-bottom: 15px;">Elige una actividad para hacer este mes:</p>`;
+
+            html += activities.map(act => {
+                const canAfford = gameState.money >= act.cost;
+                const hasEnergy = gameState.energy >= 10;
+                const canDo = canAfford && hasEnergy;
+
+                let effectsText = Object.entries(act.effects).map(([key, val]) => {
+                    const labels = { happiness: '😊', health: '❤️', energy: '⚡', stress: '😫' };
+                    const color = (key === 'stress' ? (val < 0 ? '#4CAF50' : '#f44336') : (val > 0 ? '#4CAF50' : '#f44336'));
+                    return `<span style="color: ${color}">${labels[key] || key} ${val > 0 ? '+' : ''}${val}</span>`;
+                }).join(' | ');
+
+                if (act.special === 'money') effectsText += ' | <span style="color: #4CAF50">💵 +S/ 50-150</span>';
+                if (act.special === 'skill') effectsText += ' | <span style="color: #2196F3">📚 +Experiencia</span>';
+
+                return `
+                    <div class="modal-option" onclick="${canDo ? `doActivity('${act.id}')` : ''}" ${canDo ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'}>
+                        <div class="option-title">${act.icon} ${act.name} ${act.cost > 0 ? `<span style="color: #ff9800;">(${formatMoney(act.cost)})</span>` : '<span style="color: #4CAF50;">(Gratis)</span>'}</div>
+                        <div class="option-desc">${act.desc}</div>
+                        <div style="margin-top: 8px; font-size: 0.8em;">${effectsText}</div>
+                        ${!canAfford ? '<div style="color: #f44336; font-size: 0.8em;">No tienes suficiente dinero</div>' : ''}
+                        ${!hasEnergy ? '<div style="color: #f44336; font-size: 0.8em;">Estás muy cansado/a</div>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('modalTitle').textContent = '🎮 Actividades';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function doActivity(activityId) {
+            let result = { icon: '✅', title: 'Actividad completada', message: '', changes: [] };
+
+            switch(activityId) {
+                case 'entertainment':
+                    gameState.money -= 50;
+                    gameState.happiness += 15;
+                    gameState.energy += 10;
+                    gameState.stress -= 10;
+                    result = { icon: '🎮', title: '¡Tarde de diversión!', message: 'Jugaste videojuegos y viste series. Te sientes relajado/a.',
+                        changes: [{ text: '+15 Felicidad', positive: true }, { text: '+10 Energía', positive: true }, { text: '-10 Estrés', positive: true }, { text: '-S/ 50', positive: false }] };
+                    addLog('Pasaste el día jugando y relajándote', 'positive');
+                    break;
+
+                case 'gym':
+                    gameState.money -= 80;
+                    gameState.health += 8;
+                    gameState.energy -= 15;
+                    gameState.stress -= 15;
+                    gameState.happiness += 5;
+                    result = { icon: '💪', title: '¡Buen entrenamiento!', message: 'Hiciste ejercicio y te sientes más fuerte.',
+                        changes: [{ text: '+8 Salud', positive: true }, { text: '-15 Energía', positive: false }, { text: '-15 Estrés', positive: true }, { text: '-S/ 80', positive: false }] };
+                    addLog('Fuiste al gimnasio y entrenaste duro', 'positive');
+                    break;
+
+                case 'friends':
+                    gameState.money -= 120;
+                    gameState.happiness += 20;
+                    gameState.energy -= 10;
+                    gameState.stress -= 10;
+                    result = { icon: '🍻', title: '¡Noche increíble!', message: 'Saliste con tus amigos, se rieron mucho.',
+                        changes: [{ text: '+20 Felicidad', positive: true }, { text: '-10 Energía', positive: false }, { text: '-10 Estrés', positive: true }, { text: '-S/ 120', positive: false }] };
+                    addLog('Saliste con amigos y la pasaste genial', 'positive');
+                    break;
+
+                case 'rest':
+                    gameState.energy += 30;
+                    gameState.health += 5;
+                    gameState.stress -= 15;
+                    result = { icon: '😴', title: 'Día de descanso', message: 'Dormiste hasta tarde y no hiciste nada productivo. Se sintió bien.',
+                        changes: [{ text: '+30 Energía', positive: true }, { text: '+5 Salud', positive: true }, { text: '-15 Estrés', positive: true }] };
+                    addLog('Descansaste todo el día en casa', 'neutral');
+                    break;
+
+                case 'meditate':
+                    gameState.stress -= 25;
+                    gameState.happiness += 10;
+                    gameState.health += 3;
+                    result = { icon: '🧘', title: 'Paz interior', message: 'Meditaste y reflexionaste. Tu mente está más clara.',
+                        changes: [{ text: '-25 Estrés', positive: true }, { text: '+10 Felicidad', positive: true }, { text: '+3 Salud', positive: true }] };
+                    addLog('Meditaste y encontraste paz interior', 'positive');
+                    break;
+
+                case 'study_self':
+                    gameState.money -= 20;
+                    gameState.energy -= 10;
+                    gameState.stress += 5;
+                    gameState.experience += 2;
+                    result = { icon: '📖', title: 'Aprendizaje', message: 'Estudiaste por tu cuenta. Tu conocimiento aumentó.',
+                        changes: [{ text: '+2 Experiencia', positive: true }, { text: '+5 Estrés', positive: false }, { text: '-10 Energía', positive: false }] };
+                    addLog('Estudiaste y aprendiste cosas nuevas', 'info');
+                    break;
+
+                case 'side_hustle':
+                    const earnings = randomRange(50, 150);
+                    gameState.money += earnings;
+                    gameState.energy -= 25;
+                    gameState.stress += 10;
+                    result = { icon: '💰', title: '¡Cachuelo completado!', message: `Hiciste un trabajo informal y ganaste ${formatMoney(earnings)}.`,
+                        changes: [{ text: `+${formatMoney(earnings)}`, positive: true }, { text: '-25 Energía', positive: false }, { text: '+10 Estrés', positive: false }] };
+                    addLog(`Hiciste un cachuelo y ganaste ${formatMoney(earnings)}`, 'positive');
+                    break;
+
+                case 'doctor':
+                    gameState.money -= 100;
+                    gameState.health += 15;
+                    gameState.stress -= 5;
+                    result = { icon: '🏥', title: 'Chequeo médico', message: 'El doctor te revisó. Todo está bien (o ahora lo estará).',
+                        changes: [{ text: '+15 Salud', positive: true }, { text: '-5 Estrés', positive: true }, { text: '-S/ 100', positive: false }] };
+                    addLog('Fuiste al doctor para un chequeo', 'info');
+                    break;
+
+                case 'comeout':
+                    comeOut();
+                    return;
+            }
+
+            // Mostrar resultado
+            showActivityResult(result);
+            updateUI();
+        }
+
+        function showActivityResult(result) {
+            const html = `
+                <div class="activity-result">
+                    <div class="icon">${result.icon}</div>
+                    <h3>${result.title}</h3>
+                    <p style="margin: 15px 0;">${result.message}</p>
+                    <div class="changes">
+                        ${result.changes.map(c => `<span class="change-item ${c.positive ? 'positive' : 'negative'}">${c.text}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('modalBody').innerHTML = html;
+        }
+
+        function comeOut() {
+            const roll = Math.random() * 100;
+            let result;
+
+            gameState.isOut = true;
+            gameState.inCloset = false;
+
+            if (roll < 40) {
+                gameState.happiness += 30;
+                result = { icon: '🌈', title: '¡Te aceptaron!', message: 'Tu familia te aceptó completamente. Te sientes libre y amado/a. ¡Qué alivio!',
+                    changes: [{ text: '+30 Felicidad', positive: true }] };
+                addLog('Saliste del closet y tu familia te aceptó completamente 🌈', 'special');
+            } else if (roll < 75) {
+                gameState.happiness += 10;
+                result = { icon: '💛', title: 'Aceptación parcial', message: 'Tu familia lo está procesando. Hay tensión, pero también amor. Necesitan tiempo.',
+                    changes: [{ text: '+10 Felicidad', positive: true }] };
+                addLog('Saliste del closet. Tu familia necesita tiempo pero te quieren', 'neutral');
+            } else {
+                gameState.happiness -= 20;
+                gameState.character.familySituationData.support = 0;
+                result = { icon: '💔', title: 'Rechazo', message: 'Tu familia no lo tomó bien. Perdiste su apoyo... pero al menos ya no vives mintiendo.',
+                    changes: [{ text: '-20 Felicidad', positive: false }, { text: 'Perdiste apoyo familiar', positive: false }] };
+                addLog('Saliste del closet pero tu familia te rechazó...', 'negative');
+            }
+
+            showActivityResult(result);
+            updateUI();
+        }
+
+        // ==================== OTROS MENÚS ====================
+
         function openStudyMenu() {
             if (gameState.studying) {
-                openModal('📚 Estudios',
-                    `<p>Actualmente estudiando: ${EDUCATION_OPTIONS[gameState.studying].name}</p>
-                     <p>Meses restantes: ${gameState.studyMonthsLeft}</p>`,
-                    [{
-                        title: 'Abandonar estudios',
-                        desc: 'Pierdes el progreso y el dinero invertido',
-                        action: 'dropOutStudy()'
-                    }]
-                );
+                const study = EDUCATION_OPTIONS[gameState.studying];
+                document.getElementById('modalTitle').textContent = '📚 Estudios';
+                document.getElementById('modalBody').innerHTML = `
+                    <p>Actualmente estudiando: <strong>${study.name}</strong></p>
+                    <p>Meses restantes: <strong>${gameState.studyMonthsLeft}</strong></p>
+                    <p>Costo mensual: <strong>${formatMoney(study.costPerMonth)}</strong></p>
+                `;
+                document.getElementById('modalOptions').innerHTML = `
+                    <button class="modal-option" onclick="dropOutStudy()">
+                        <div class="option-title">❌ Abandonar estudios</div>
+                        <div class="option-desc">Pierdes el progreso y el dinero invertido</div>
+                    </button>
+                `;
+                document.getElementById('gameModal').classList.add('active');
                 return;
             }
 
-            const options = [];
+            let html = '<p style="margin-bottom: 15px;">Educación actual: <strong>' + (gameState.education) + '</strong></p>';
 
             for (let studyId in EDUCATION_OPTIONS) {
                 const study = EDUCATION_OPTIONS[studyId];
@@ -1609,7 +1919,6 @@
                 let canStudy = true;
                 let reason = '';
 
-                // Check si ya tiene ese nivel
                 if (studyId.includes('instituto') && gameState.education === 'tecnico') {
                     canStudy = false;
                     reason = 'Ya tienes estudios técnicos';
@@ -1618,33 +1927,31 @@
                     canStudy = false;
                     reason = 'Ya tienes estudios universitarios';
                 }
-
-                // Check si puede pagar
                 if (study.costPerMonth > gameState.money) {
                     canStudy = false;
-                    reason = 'No tienes dinero para la matrícula';
+                    reason = 'No tienes para la matrícula';
                 }
 
-                options.push({
-                    title: study.name,
-                    desc: canStudy ?
-                        `${study.duration} meses | ${formatMoney(study.costPerMonth)}/mes` : reason,
-                    action: `startStudying('${studyId}')`,
-                    disabled: !canStudy
-                });
+                html += `
+                    <button class="modal-option" onclick="${canStudy ? `startStudying('${studyId}')` : ''}" ${canStudy ? '' : 'disabled'}>
+                        <div class="option-title">${study.name}</div>
+                        <div class="option-desc">${canStudy ? `${study.duration} meses | ${formatMoney(study.costPerMonth)}/mes` : reason}</div>
+                    </button>
+                `;
             }
 
-            openModal('📚 Estudiar',
-                `<p>Educación actual: ${gameState.education}</p>`,
-                options
-            );
+            document.getElementById('modalTitle').textContent = '📚 Estudiar';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
         }
 
         function startStudying(studyId) {
             const study = EDUCATION_OPTIONS[studyId];
             gameState.studying = studyId;
             gameState.studyMonthsLeft = study.duration;
-            addLog(`Comenzaste a estudiar: ${study.name}`, 'positive');
+            addLog(`Comenzaste a estudiar: ${study.name}`, 'info');
+            showNotification(`¡Empezaste ${study.name}!`, 'success');
             closeModal();
             updateUI();
         }
@@ -1659,224 +1966,113 @@
         }
 
         function openHousingMenu() {
-            const options = [];
+            let html = `<p style="margin-bottom: 15px;">Vivienda actual: <strong>${HOUSING[gameState.housing].name}</strong></p>`;
 
             for (let housingId in HOUSING) {
                 const h = HOUSING[housingId];
                 const isCurrent = gameState.housing === housingId;
+                const canAfford = h.cost <= gameState.money + calculateMonthlyIncome();
 
-                let canAfford = h.cost <= gameState.money + calculateMonthlyIncome();
-
-                options.push({
-                    title: `${isCurrent ? '✓ ' : ''}${h.name}`,
-                    desc: `${formatMoney(h.cost)}/mes | Felicidad: ${h.happiness >= 0 ? '+' : ''}${h.happiness}`,
-                    action: `changeHousing('${housingId}')`,
-                    disabled: isCurrent || !canAfford
-                });
+                html += `
+                    <button class="modal-option" onclick="${!isCurrent && canAfford ? `changeHousing('${housingId}')` : ''}" ${isCurrent || !canAfford ? 'disabled' : ''}>
+                        <div class="option-title">${isCurrent ? '✓ ' : ''}${h.name}</div>
+                        <div class="option-desc">${formatMoney(h.cost)}/mes | Felicidad: ${h.happiness >= 0 ? '+' : ''}${h.happiness}</div>
+                    </button>
+                `;
             }
 
-            openModal('🏠 Vivienda',
-                `<p>Vivienda actual: ${HOUSING[gameState.housing].name}</p>`,
-                options
-            );
+            document.getElementById('modalTitle').textContent = '🏠 Vivienda';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
         }
 
         function changeHousing(housingId) {
-            const oldHousing = HOUSING[gameState.housing];
-            const newHousing = HOUSING[housingId];
-
+            const oldH = HOUSING[gameState.housing];
+            const newH = HOUSING[housingId];
             gameState.housing = housingId;
-            gameState.happiness += newHousing.happiness - oldHousing.happiness;
-
-            addLog(`Te mudaste a: ${newHousing.name}`, 'neutral');
-            closeModal();
-            updateUI();
-        }
-
-        function openActivitiesMenu() {
-            const options = [
-                {
-                    title: '🎮 Entretenimiento',
-                    desc: 'Costo: S/ 50 | +10 Felicidad, +15 Energía, -5 Estrés',
-                    action: 'doActivity("entertainment")'
-                },
-                {
-                    title: '💪 Ir al gimnasio',
-                    desc: 'Costo: S/ 80 | +5 Salud, -20 Energía, -10 Estrés',
-                    action: 'doActivity("gym")'
-                },
-                {
-                    title: '🍺 Salir con amigos',
-                    desc: 'Costo: S/ 100 | +15 Felicidad, -10 Energía',
-                    action: 'doActivity("friends")'
-                },
-                {
-                    title: '😴 Descansar',
-                    desc: 'Gratis | +30 Energía, +5 Salud, -10 Estrés',
-                    action: 'doActivity("rest")'
-                },
-                {
-                    title: '🧘 Meditar',
-                    desc: 'Gratis | -20 Estrés, +10 Felicidad',
-                    action: 'doActivity("meditate")'
-                }
-            ];
-
-            // Si está en el closet, agregar opción
-            if (gameState.inCloset && !gameState.isOut) {
-                options.push({
-                    title: '🌈 Salir del closet',
-                    desc: 'Revelar tu orientación a familia y amigos',
-                    action: 'comeOut()'
-                });
-            }
-
-            openModal('🎮 Actividades', '', options);
-        }
-
-        function doActivity(activity) {
-            switch(activity) {
-                case 'entertainment':
-                    if (gameState.money >= 50) {
-                        gameState.money -= 50;
-                        gameState.happiness += 10;
-                        gameState.energy += 15;
-                        gameState.stress -= 5;
-                        addLog('Pasaste tiempo jugando videojuegos', 'positive');
-                    } else {
-                        addLog('No tienes dinero para entretenimiento', 'negative');
-                    }
-                    break;
-                case 'gym':
-                    if (gameState.money >= 80) {
-                        gameState.money -= 80;
-                        gameState.health += 5;
-                        gameState.energy -= 20;
-                        gameState.stress -= 10;
-                        addLog('Fuiste al gimnasio', 'positive');
-                    } else {
-                        addLog('No tienes dinero para el gimnasio', 'negative');
-                    }
-                    break;
-                case 'friends':
-                    if (gameState.money >= 100) {
-                        gameState.money -= 100;
-                        gameState.happiness += 15;
-                        gameState.energy -= 10;
-                        addLog('Saliste con tus amigos', 'positive');
-                    } else {
-                        addLog('No tienes dinero para salir', 'negative');
-                    }
-                    break;
-                case 'rest':
-                    gameState.energy += 30;
-                    gameState.health += 5;
-                    gameState.stress -= 10;
-                    addLog('Descansaste en casa', 'neutral');
-                    break;
-                case 'meditate':
-                    gameState.stress -= 20;
-                    gameState.happiness += 10;
-                    addLog('Meditaste y te sientes mejor', 'positive');
-                    break;
-            }
-            closeModal();
-            updateUI();
-        }
-
-        function comeOut() {
-            // Evento de salir del closet
-            const familySupport = gameState.character.familySituationData;
-            const roll = Math.random() * 100;
-
-            gameState.isOut = true;
-            gameState.inCloset = false;
-
-            if (roll < 40) {
-                // Aceptación total
-                addLog('Tu familia te aceptó completamente. ¡Te sientes libre!', 'positive');
-                gameState.happiness += 30;
-            } else if (roll < 75) {
-                // Aceptación parcial
-                addLog('Tu familia lo está procesando. Hay tensión pero amor.', 'neutral');
-                gameState.happiness += 10;
-            } else {
-                // Rechazo
-                addLog('Tu familia no lo tomó bien. Perdiste su apoyo...', 'negative');
-                gameState.happiness -= 20;
-                gameState.character.familySituationData.support = 0;
-            }
-
+            gameState.happiness += newH.happiness - oldH.happiness;
+            addLog(`Te mudaste a: ${newH.name}`, 'neutral');
+            showNotification(`Te mudaste a ${newH.name}`, 'success');
             closeModal();
             updateUI();
         }
 
         function openFinanceMenu() {
-            const options = [
-                {
-                    title: '💰 Ver estado financiero',
-                    desc: `Dinero: ${formatMoney(gameState.money)}`,
-                    action: 'showFinanceDetails()'
-                }
-            ];
-
-            // Si familia puede ayudar
-            if (gameState.character.familySituationData.support > 0) {
-                options.push({
-                    title: '🆘 Pedir ayuda a la familia',
-                    desc: `Posible: hasta ${formatMoney(gameState.character.familySituationData.support)} (una vez)`,
-                    action: 'askFamilyHelp()'
-                });
-            }
-
-            openModal('🏦 Finanzas', '', options);
-        }
-
-        function showFinanceDetails() {
             const income = calculateMonthlyIncome();
             const expenses = calculateMonthlyExpenses();
 
-            let details = `
-                <h3>Ingresos Mensuales</h3>
+            let html = `
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <h3>💰 Tu dinero: ${formatMoney(gameState.money)}</h3>
+                </div>
+
+                <h4>Ingresos Mensuales</h4>
                 <p>Trabajo: ${gameState.job ? formatMoney(income) : 'S/ 0'}</p>
 
-                <h3>Gastos Mensuales</h3>
+                <h4 style="margin-top: 15px;">Gastos Mensuales</h4>
                 <p>Vivienda: ${formatMoney(HOUSING[gameState.housing].cost)}</p>
                 <p>Comida: ${formatMoney(350)}</p>
                 <p>Transporte: ${formatMoney(150)}</p>
                 <p>Servicios: ${formatMoney(100)}</p>
-                ${gameState.character.healthConditionData.monthlyCost > 0 ?
-                    `<p>Gastos médicos: ${formatMoney(gameState.character.healthConditionData.monthlyCost)}</p>` : ''}
-                ${gameState.character.familySituationData.monthlyObligation > 0 ?
-                    `<p>Aporte familiar: ${formatMoney(gameState.character.familySituationData.monthlyObligation)}</p>` : ''}
-                ${gameState.studying ?
-                    `<p>Estudios: ${formatMoney(EDUCATION_OPTIONS[gameState.studying].costPerMonth)}</p>` : ''}
+                ${gameState.character.healthConditionData.monthlyCost > 0 ? `<p>Gastos médicos: ${formatMoney(gameState.character.healthConditionData.monthlyCost)}</p>` : ''}
+                ${gameState.character.familySituationData.monthlyObligation > 0 ? `<p>Aporte familiar: ${formatMoney(gameState.character.familySituationData.monthlyObligation)}</p>` : ''}
+                ${gameState.studying ? `<p>Estudios: ${formatMoney(EDUCATION_OPTIONS[gameState.studying].costPerMonth)}</p>` : ''}
 
-                <h3>Balance</h3>
-                <p style="font-size: 1.2em; color: ${income - expenses >= 0 ? '#4CAF50' : '#f44336'}">
-                    ${formatMoney(income - expenses)}/mes
-                </p>
+                <div style="margin-top: 15px; padding: 15px; background: rgba(${income - expenses >= 0 ? '76,175,80' : '244,67,54'},0.2); border-radius: 10px;">
+                    <h4>Balance Mensual: <span style="color: ${income - expenses >= 0 ? '#4CAF50' : '#f44336'}">${formatMoney(income - expenses)}</span></h4>
+                </div>
             `;
 
-            document.getElementById('modalBody').innerHTML = details;
+            let options = [];
+            if (gameState.character.familySituationData.support > 0) {
+                options.push(`
+                    <button class="modal-option" onclick="askFamilyHelp()">
+                        <div class="option-title">🆘 Pedir ayuda a la familia</div>
+                        <div class="option-desc">Hasta ${formatMoney(gameState.character.familySituationData.support)} (solo una vez)</div>
+                    </button>
+                `);
+            }
+
+            document.getElementById('modalTitle').textContent = '🏦 Finanzas';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = options.join('');
+            document.getElementById('gameModal').classList.add('active');
         }
 
         function askFamilyHelp() {
             const support = gameState.character.familySituationData.support;
             const amount = Math.floor(support * (0.5 + Math.random() * 0.5));
-
             gameState.money += amount;
-            gameState.character.familySituationData.support = 0; // Solo se puede pedir una vez
-
+            gameState.character.familySituationData.support = 0;
             addLog(`Tu familia te ayudó con ${formatMoney(amount)}`, 'positive');
+            showNotification(`¡Recibiste ${formatMoney(amount)} de tu familia!`, 'success');
             closeModal();
             updateUI();
+        }
+
+        function openRelationshipsMenu() {
+            let html = `
+                <div style="text-align: center; padding: 20px;">
+                    <p style="font-size: 1.2em;">🚧 Próximamente 🚧</p>
+                    <p style="color: #aaa; margin-top: 10px;">El sistema de relaciones está en desarrollo.</p>
+                    <p style="color: #888; margin-top: 5px;">Podrás tener pareja, amigos, y hasta hijos.</p>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '💑 Relaciones';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
         }
 
         // ==================== PASO DEL TIEMPO ====================
 
         function passMonth() {
-            // Calcular ingresos y gastos
             const income = calculateMonthlyIncome();
             const expenses = calculateMonthlyExpenses();
 
@@ -1884,7 +2080,6 @@
             gameState.stats.totalEarned += income;
             gameState.stats.totalSpent += expenses;
 
-            // Si tiene trabajo, aumentar experiencia y aplicar efectos
             if (gameState.job) {
                 const job = JOBS[gameState.job];
                 gameState.experience++;
@@ -1893,7 +2088,6 @@
                 gameState.energy += job.energy / 4;
             }
 
-            // Si está estudiando
             if (gameState.studying) {
                 gameState.studyMonthsLeft--;
                 gameState.stress += 5;
@@ -1902,14 +2096,14 @@
                 if (gameState.studyMonthsLeft <= 0) {
                     const study = EDUCATION_OPTIONS[gameState.studying];
                     gameState.education = study.result;
-                    addLog(`¡Completaste tus estudios de ${study.name}!`, 'special');
-                    gameState.happiness += 20;
-                    gameState.credits += 20; // Bonus de créditos
+                    addLog(`¡Completaste ${study.name}! 🎓`, 'special');
+                    showNotification(`¡Te graduaste de ${study.name}!`, 'success');
+                    gameState.happiness += 25;
+                    gameState.credits += 25;
                     gameState.studying = null;
                 }
             }
 
-            // Efectos del closet
             if (gameState.inCloset && !gameState.isOut) {
                 gameState.happiness -= 2;
             }
@@ -1917,129 +2111,96 @@
             // Recuperación natural
             gameState.energy += 10;
             gameState.stress -= 5;
-            gameState.health -= 1; // Envejecimiento natural
+            gameState.health -= 0.5;
 
-            // Avanzar tiempo
             gameState.month++;
             if (gameState.month > 12) {
                 gameState.month = 1;
                 gameState.year++;
                 gameState.age++;
-
-                // Evento de cumpleaños
-                addLog(`¡Feliz cumpleaños! Ahora tienes ${gameState.age} años.`, 'special');
+                addLog(`¡Feliz cumpleaños! Ahora tienes ${gameState.age} años 🎂`, 'special');
                 gameState.happiness += 5;
-                gameState.credits += 5; // Bonus de créditos por año
+                gameState.credits += 5;
             }
 
-            // Evento aleatorio
-            if (Math.random() < 0.3) {
+            // Evento aleatorio (40% de probabilidad)
+            if (Math.random() < 0.4) {
                 triggerRandomEvent();
             }
 
             updateUI();
+            showNotification(`Pasó un mes. Ahora es ${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][gameState.month-1]} ${gameState.year}`, 'info');
         }
 
         // ==================== EVENTOS ALEATORIOS ====================
 
         function triggerRandomEvent() {
             const events = [
-                // Eventos económicos
-                {
-                    condition: () => true,
-                    title: '💸 Gasto inesperado',
-                    message: 'Se te rompió el celular y necesitas uno nuevo.',
-                    effect: () => {
-                        const cost = randomRange(200, 500);
-                        gameState.money -= cost;
-                        addLog(`Gasto inesperado: celular roto (-${formatMoney(cost)})`, 'negative');
-                    }
-                },
-                {
-                    condition: () => gameState.job,
-                    title: '💰 Bono sorpresa',
-                    message: 'Tu jefe te dio un bono por buen desempeño.',
-                    effect: () => {
-                        const bonus = randomRange(200, 800);
-                        gameState.money += bonus;
-                        addLog(`¡Recibiste un bono de ${formatMoney(bonus)}!`, 'positive');
+                { condition: () => true, effect: () => {
+                    const cost = randomRange(100, 400);
+                    gameState.money -= cost;
+                    addLog(`💸 Se te rompió el celular. Reparación: -${formatMoney(cost)}`, 'negative');
+                }},
+                { condition: () => gameState.job, effect: () => {
+                    const bonus = randomRange(200, 600);
+                    gameState.money += bonus;
+                    gameState.happiness += 10;
+                    addLog(`💰 ¡Tu jefe te dio un bono de ${formatMoney(bonus)}!`, 'positive');
+                }},
+                { condition: () => true, effect: () => {
+                    if (gameState.money >= 30) {
+                        gameState.money -= 30;
                         gameState.happiness += 10;
+                        addLog(`🎉 Fuiste a una pollada del barrio. Comiste rico.`, 'positive');
                     }
-                },
-                {
-                    condition: () => true,
-                    title: '🎉 Pollada del barrio',
-                    message: 'Hay una pollada para ayudar a un vecino.',
-                    effect: () => {
-                        if (gameState.money >= 30) {
-                            gameState.money -= 30;
-                            gameState.happiness += 10;
-                            addLog('Fuiste a la pollada y la pasaste bien', 'positive');
-                        }
+                }},
+                { condition: () => gameState.money > 300, effect: () => {
+                    const amount = randomRange(100, 250);
+                    gameState.money -= amount;
+                    addLog(`👨‍👩‍👧 Un familiar te pidió prestado ${formatMoney(amount)}. Probablemente no te lo devuelva.`, 'neutral');
+                }},
+                { condition: () => gameState.job, effect: () => {
+                    gameState.stress += 15;
+                    addLog(`🚌 El tráfico de Lima te hizo llegar tarde. Tu jefe se molestó.`, 'negative');
+                }},
+                { condition: () => gameState.health < 60, effect: () => {
+                    gameState.health -= 10;
+                    gameState.money -= 80;
+                    addLog(`🤒 Te enfermaste. Gastos de farmacia: -${formatMoney(80)}`, 'negative');
+                }},
+                { condition: () => true, effect: () => {
+                    gameState.happiness += 10;
+                    gameState.stress -= 10;
+                    addLog(`☀️ Tuviste un día inusualmente bueno. Todo salió bien.`, 'positive');
+                }},
+                { condition: () => gameState.character.appearanceData.discriminationRisk > 20, effect: () => {
+                    if (Math.random() * 100 < gameState.character.appearanceData.discriminationRisk) {
+                        gameState.happiness -= 15;
+                        gameState.stress += 10;
+                        addLog(`😤 Alguien te trató mal por tu apariencia. Te afectó.`, 'negative');
                     }
-                },
-                {
-                    condition: () => gameState.money > 500,
-                    title: '👨‍👩‍👧 Familiar pide préstamo',
-                    message: 'Un familiar te pide dinero prestado...',
-                    effect: () => {
-                        const amount = randomRange(100, 300);
-                        gameState.money -= amount;
-                        addLog(`Prestaste ${formatMoney(amount)} a un familiar`, 'neutral');
-                        // 30% de que te lo devuelvan después
-                    }
-                },
-                {
-                    condition: () => gameState.job,
-                    title: '🚌 Problema de transporte',
-                    message: 'El tráfico te hizo llegar tarde al trabajo.',
-                    effect: () => {
-                        gameState.stress += 15;
-                        addLog('El tráfico de Lima te estresó', 'negative');
-                    }
-                },
-                // Eventos de salud
-                {
-                    condition: () => gameState.health < 50,
-                    title: '🏥 Te enfermaste',
-                    message: 'El estrés y el cansancio te pasaron factura.',
-                    effect: () => {
-                        gameState.health -= 10;
-                        gameState.money -= 100;
-                        addLog('Te enfermaste. Gastos médicos y días de reposo.', 'negative');
-                    }
-                },
-                // Eventos de felicidad
-                {
-                    condition: () => true,
-                    title: '☀️ Buen día',
-                    message: 'Hoy todo salió bien sin razón aparente.',
-                    effect: () => {
-                        gameState.happiness += 10;
-                        gameState.stress -= 10;
-                        addLog('Tuviste un día particularmente bueno', 'positive');
-                    }
-                },
-                // Eventos de discriminación (si aplica)
-                {
-                    condition: () => gameState.character.appearanceData.discriminationRisk > 20,
-                    title: '😤 Discriminación',
-                    message: 'Alguien te trató mal por tu apariencia.',
-                    effect: () => {
-                        if (Math.random() * 100 < gameState.character.appearanceData.discriminationRisk) {
-                            gameState.happiness -= 15;
-                            gameState.stress += 10;
-                            addLog('Sufriste un acto de discriminación', 'negative');
-                        }
-                    }
-                }
+                }},
+                { condition: () => gameState.job && Math.random() < 0.15, effect: () => {
+                    const oldJob = JOBS[gameState.job].name;
+                    gameState.job = null;
+                    gameState.happiness -= 20;
+                    addLog(`😱 ¡Te despidieron de ${oldJob}! La empresa hizo recortes.`, 'negative');
+                }},
+                { condition: () => !gameState.job, effect: () => {
+                    gameState.happiness -= 5;
+                    gameState.stress += 5;
+                    addLog(`😔 Otro mes sin trabajo. La presión aumenta.`, 'negative');
+                }},
+                { condition: () => gameState.money > 500, effect: () => {
+                    const found = randomRange(20, 100);
+                    gameState.money += found;
+                    addLog(`🍀 ¡Encontraste ${formatMoney(found)} en un pantalón viejo!`, 'positive');
+                }}
             ];
 
-            // Filtrar eventos aplicables
             const applicable = events.filter(e => e.condition());
             if (applicable.length > 0) {
-                const event = randomFromArray(applicable);
-                event.effect();
+                randomFromArray(applicable).effect();
                 gameState.stats.eventsExperienced++;
             }
         }
@@ -2052,7 +2213,7 @@
 
             if (gameState.health <= 0) {
                 gameOver = true;
-                reason = 'Tu salud llegó a 0. El estrés y el descuido acabaron contigo.';
+                reason = 'Tu salud llegó a 0. El estrés y el descuido te pasaron factura.';
             } else if (gameState.happiness <= 0) {
                 gameOver = true;
                 reason = 'Tu felicidad llegó a 0. La depresión te consumió.';
@@ -2060,7 +2221,6 @@
                 gameOver = true;
                 reason = 'Tus deudas son impagables. Caíste en bancarrota.';
             } else if (gameState.age >= 65) {
-                // Check victoria
                 if (gameState.money >= 1000000) {
                     showVictory();
                     return;
@@ -2070,54 +2230,45 @@
                 }
             }
 
-            if (gameOver) {
-                showGameOver(reason);
-            }
+            if (gameOver) showGameOver(reason);
         }
 
         function showGameOver(reason) {
             document.getElementById('gameOverReason').textContent = reason;
-
-            const stats = `
+            document.getElementById('gameOverStats').innerHTML = `
                 <h3>📊 Estadísticas de tu vida</h3>
                 <p><strong>Edad alcanzada:</strong> ${gameState.age} años</p>
-                <p><strong>Máximo dinero:</strong> ${formatMoney(Math.max(gameState.money, gameState.stats.totalEarned - gameState.stats.totalSpent))}</p>
                 <p><strong>Total ganado:</strong> ${formatMoney(gameState.stats.totalEarned)}</p>
                 <p><strong>Trabajos que tuviste:</strong> ${gameState.stats.jobsHad}</p>
-                <p><strong>Meses trabajados:</strong> ${gameState.stats.monthsWorked}</p>
+                <p><strong>Entrevistas pasadas:</strong> ${gameState.stats.interviewsPassed}</p>
+                <p><strong>Entrevistas fallidas:</strong> ${gameState.stats.interviewsFailed}</p>
                 <p><strong>Educación final:</strong> ${gameState.education}</p>
             `;
 
-            document.getElementById('gameOverStats').innerHTML = stats;
-
-            // Costo de continuar
             const continueCost = 50 + (gameState.age * 2);
             document.getElementById('continueCost').textContent = `💎 ${continueCost} Créditos`;
             document.getElementById('continueBtn').disabled = gameState.credits < continueCost;
-            document.getElementById('continueBtn').onclick = () => continueGame(continueCost);
+            document.getElementById('continueBtn').onclick = () => {
+                if (gameState.credits >= continueCost) {
+                    gameState.credits -= continueCost;
+                    gameState.age -= 2;
+                    gameState.year -= 2;
+                    gameState.health = 50;
+                    gameState.happiness = 50;
+                    gameState.energy = 50;
+                    gameState.stress = 30;
+                    gameState.money = Math.max(gameState.money, 500);
+                    addLog('Recibiste una segunda oportunidad... ✨', 'special');
+                    showScreen('gameScreen');
+                    updateUI();
+                }
+            };
 
             showScreen('gameOverScreen');
         }
 
-        function continueGame(cost) {
-            if (gameState.credits >= cost) {
-                gameState.credits -= cost;
-                gameState.age -= 2;
-                gameState.year -= 2;
-                gameState.health = 50;
-                gameState.happiness = 50;
-                gameState.energy = 50;
-                gameState.stress = 30;
-                gameState.money = Math.max(gameState.money, 500);
-
-                addLog('Recibiste una segunda oportunidad...', 'special');
-                showScreen('gameScreen');
-                updateUI();
-            }
-        }
-
         function showVictory() {
-            const stats = `
+            document.getElementById('victoryStats').innerHTML = `
                 <div class="game-over-stats">
                     <h3>🎉 ¡Lo lograste!</h3>
                     <p>Patrimonio final: ${formatMoney(gameState.money)}</p>
@@ -2126,14 +2277,12 @@
                     <p>Empezaste con: ${formatMoney(gameState.character.startMoney)}</p>
                 </div>
             `;
-
-            document.getElementById('victoryStats').innerHTML = stats;
             showScreen('victoryScreen');
         }
 
         function showStats() {
-            const stats = `
-                <h3>📊 Estadísticas</h3>
+            document.getElementById('modalTitle').textContent = '📊 Estadísticas';
+            document.getElementById('modalBody').innerHTML = `
                 <p><strong>Personaje:</strong> ${gameState.character.name}</p>
                 <p><strong>Dificultad:</strong> ${gameState.character.difficulty.name}</p>
                 <p><strong>Edad:</strong> ${gameState.age} años</p>
@@ -2141,17 +2290,20 @@
                 <p><strong>Total ganado:</strong> ${formatMoney(gameState.stats.totalEarned)}</p>
                 <p><strong>Total gastado:</strong> ${formatMoney(gameState.stats.totalSpent)}</p>
                 <p><strong>Trabajos:</strong> ${gameState.stats.jobsHad}</p>
+                <p><strong>Entrevistas pasadas:</strong> ${gameState.stats.interviewsPassed}</p>
+                <p><strong>Entrevistas fallidas:</strong> ${gameState.stats.interviewsFailed}</p>
                 <p><strong>Créditos:</strong> 💎 ${gameState.credits}</p>
             `;
-
-            openModal('📊 Estadísticas', stats, []);
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
         }
 
         // ==================== GUARDADO ====================
 
         function saveGame() {
             localStorage.setItem('vidaPeruSave', JSON.stringify(gameState));
-            addLog('Partida guardada', 'neutral');
+            addLog('💾 Partida guardada', 'info');
+            showNotification('Partida guardada correctamente', 'success');
         }
 
         function loadGame() {
@@ -2161,15 +2313,14 @@
                 updateUI();
                 showScreen('gameScreen');
                 document.getElementById('creditsDisplay').style.display = 'block';
-                addLog('Partida cargada', 'neutral');
+                addLog('📂 Partida cargada', 'info');
+                showNotification('Partida cargada correctamente', 'success');
             } else {
-                alert('No hay partida guardada');
+                showNotification('No hay partida guardada', 'error');
             }
         }
 
         // ==================== INICIALIZACIÓN ====================
-
-        // Mostrar pantalla inicial
         showScreen('titleScreen');
     </script>
 </body>
