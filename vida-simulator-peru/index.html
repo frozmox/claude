@@ -2902,6 +2902,17 @@
                 riskPerMonth: 25,
                 prisonTime: [180, 300]
             },
+            trabajo_sexual: {
+                name: "Trabajo sexual", salary: [1500, 4000], education: "ninguno", stress: 60, energy: -30,
+                category: "ilegal", illegal: true,
+                requirements: { minAppearance: 40 },
+                description: "⚠️ ILEGAL: Prostitución. Riesgos de salud y legales. Más común en mujeres.",
+                availableFrom: 0,
+                riskPerMonth: 12,
+                prisonTime: [3, 12],
+                healthRisk: 15,  // Riesgo de enfermedades
+                genderBonus: { mujer: 1.5, trans: 1.2 }  // Multiplicador de salario por género
+            },
 
             // ========== SEGUROS - CARRERA COMPLETA ==========
             asesor_seguros_jr: {
@@ -4348,9 +4359,28 @@
 
         function openActivitiesMenu(openCategory = null) {
             const ps = gameState.physicalStats;
+            const inPrison = gameState.prisonMonths > 0;
+
+            // Actividades permitidas en prisión
+            const prisonActivities = ['rest', 'meditate', 'study_self', 'entertainment'];
+
+            let html = '';
+
+            // Mostrar advertencia si está en prisión
+            if (inPrison) {
+                html += `
+                    <div style="background: rgba(244,67,54,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #f44336;">
+                        <div style="font-size: 1.2em; font-weight: bold;">🔒 Estás en Prisión</div>
+                        <div style="color: #aaa; margin-top: 5px;">Te quedan ${gameState.prisonMonths} meses. Solo puedes hacer actividades limitadas.</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-small" onclick="closeModal(); openShopMenu();">💎 Ir a Tienda (Fianza)</button>
+                        </div>
+                    </div>
+                `;
+            }
 
             // Header compacto con stats relevantes
-            let html = `
+            html += `
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; font-size: 0.85em;">
                     <div style="background: rgba(244,67,54,0.2); padding: 8px; border-radius: 8px; text-align: center;">
                         💪 ${ps.strength} | 🏃 ${ps.endurance}
@@ -4364,14 +4394,19 @@
                 </div>
             `;
 
-            if (gameState.gymMembership) {
+            if (gameState.gymMembership && !inPrison) {
                 html += `<div style="background: rgba(76,175,80,0.2); padding: 8px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-size: 0.85em;">🏋️ Membresía Gym: ${gameState.gymMonthsLeft} meses restantes</div>`;
             }
 
             // Si hay categoría abierta, mostrar actividades de esa categoría
             if (openCategory && ACTIVITY_CATEGORIES[openCategory]) {
                 const cat = ACTIVITY_CATEGORIES[openCategory];
-                const activities = getActivitiesList().filter(a => a.category === openCategory && !a.hidden);
+                let activities = getActivitiesList().filter(a => a.category === openCategory && !a.hidden);
+
+                // Filtrar actividades si está en prisión
+                if (inPrison) {
+                    activities = activities.filter(a => prisonActivities.includes(a.id));
+                }
 
                 html += `
                     <div style="margin-bottom: 15px;">
@@ -4381,6 +4416,10 @@
                     </div>
                     <h3 style="color: ${cat.color}; margin-bottom: 15px;">${cat.name}</h3>
                 `;
+
+                if (activities.length === 0) {
+                    html += `<p style="color: #888; text-align: center; padding: 20px;">🔒 No hay actividades disponibles en prisión para esta categoría.</p>`;
+                }
 
                 for (const act of activities) {
                     const canAfford = gameState.money >= act.cost;
@@ -4440,11 +4479,17 @@
                 }
             } else {
                 // Mostrar categorías como cards
-                html += `<p style="margin-bottom: 15px; color: #aaa;">Selecciona una categoría:</p>`;
+                html += `<p style="margin-bottom: 15px; color: #aaa;">${inPrison ? 'Actividades limitadas en prisión:' : 'Selecciona una categoría:'}</p>`;
 
                 for (const [catId, cat] of Object.entries(ACTIVITY_CATEGORIES)) {
-                    const activities = getActivitiesList().filter(a => a.category === catId && !a.hidden);
+                    let activities = getActivitiesList().filter(a => a.category === catId && !a.hidden);
+                    if (inPrison) {
+                        activities = activities.filter(a => prisonActivities.includes(a.id));
+                    }
                     const count = activities.length;
+
+                    // No mostrar categorías sin actividades disponibles
+                    if (count === 0) continue;
 
                     html += `
                         <div class="category-card" onclick="openActivitiesMenu('${catId}')"
@@ -5729,6 +5774,15 @@
 
         // ==================== ÁRBOL DE HABILIDADES ====================
 
+        function getSkillUpgradeCost(skillId) {
+            const skill = SKILL_TREE[skillId];
+            if (!skill) return 0;
+            const currentLevel = gameState.unlockedSkills[skillId] || 0;
+            if (currentLevel === 0) return skill.unlockCost || 0;
+            // Subir de nivel cuesta la mitad del costo base, mínimo 10 puntos
+            return Math.max(10, Math.floor((skill.unlockCost || 20) / 2));
+        }
+
         function canUnlockSkill(skillId) {
             const skill = SKILL_TREE[skillId];
             if (!skill) return false;
@@ -5746,10 +5800,9 @@
                 }
             }
 
-            // Verificar puntos de habilidad (para nuevas habilidades)
-            if (currentLevel === 0 && skill.unlockCost > 0) {
-                if (gameState.skillPoints < skill.unlockCost) return false;
-            }
+            // Verificar puntos de habilidad
+            const cost = getSkillUpgradeCost(skillId);
+            if (cost > 0 && gameState.skillPoints < cost) return false;
 
             return true;
         }
@@ -5757,15 +5810,20 @@
         function unlockSkill(skillId) {
             const skill = SKILL_TREE[skillId];
             if (!canUnlockSkill(skillId)) {
-                showNotification('No puedes desbloquear esta habilidad aún', 'error');
+                showNotification('No tienes puntos suficientes o no cumples requisitos', 'error');
                 return;
             }
 
             const currentLevel = gameState.unlockedSkills[skillId] || 0;
+            const cost = getSkillUpgradeCost(skillId);
 
-            // Primera vez desbloqueando
-            if (currentLevel === 0 && skill.unlockCost > 0) {
-                gameState.skillPoints -= skill.unlockCost;
+            // Restar puntos
+            if (cost > 0) {
+                gameState.skillPoints -= cost;
+            }
+
+            // Si es primera vez, sumar al contador
+            if (currentLevel === 0) {
                 gameState.totalSkillsUnlocked++;
             }
 
@@ -5929,14 +5987,17 @@
             const isUnlocked = currentLevel > 0;
 
             let actionHtml = '';
+            const upgradeCost = getSkillUpgradeCost(skillId);
             if (isMaxed) {
                 actionHtml = `<span style="color: #4CAF50; font-size: 0.85em;">✓ MAX</span>`;
             } else if (isUnlocked) {
                 actionHtml = canUnlock ?
-                    `<button class="btn btn-small" onclick="unlockSkill('${skillId}')">Subir</button>` :
-                    `<span style="color: #888;">${currentLevel}/${skill.maxLevel}</span>`;
+                    `<button class="btn btn-small" onclick="unlockSkill('${skillId}')">${upgradeCost} pts</button>` :
+                    `<span style="color: #f44336; font-size: 0.8em;">${upgradeCost} pts</span>`;
             } else if (canUnlock) {
                 actionHtml = `<button class="btn btn-small btn-success" onclick="unlockSkill('${skillId}')">${skill.unlockCost} pts</button>`;
+            } else {
+                actionHtml = `<span style="color: #888; font-size: 0.8em;">${skill.unlockCost} pts</span>`;
             }
 
             return `
