@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vida Perú - Simulador de Vida</title>
+    <title>Sufre Peruano - Simulador de Vida</title>
     <style>
         * {
             margin: 0;
@@ -48,6 +48,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            transition: opacity 0.3s ease;
         }
 
         .sidebar-header .subtitle {
@@ -1549,8 +1550,9 @@
         <!-- Pantalla de Inicio -->
         <div id="titleScreen" class="screen active">
             <div class="title-screen">
-                <h1>🇵🇪 VIDA PERÚ</h1>
+                <h1>🇵🇪 SUFRE PERUANO</h1>
                 <p class="subtitle">Simulador de Vida Realista</p>
+                <p style="color: #888; font-size: 0.8em; margin-top: 5px;">Versión 1.0.0</p>
 
                 <div class="quote">
                     "No elegimos dónde nacemos, ni cómo nacemos.<br>
@@ -1561,8 +1563,10 @@
                 <button class="btn btn-secondary" onclick="loadGame()">📂 Cargar Partida</button>
 
                 <p style="margin-top: 40px; color: #666; font-size: 0.9em;">
-                    Un juego sobre las realidades de la vida en Perú.<br>
-                    Cada partida es diferente. ¿Podrás alcanzar tus metas?
+                    Experimenta la cruda realidad de nacer en Perú.<br>
+                    Sin importar tu origen, tendrás que luchar por salir adelante.<br>
+                    Trabaja, estudia, ahorra y sobrevive en un país donde<br>
+                    el sistema está en tu contra. ¿Podrás romper el ciclo?
                 </p>
             </div>
         </div>
@@ -1584,7 +1588,7 @@
                 <!-- Sidebar -->
                 <aside class="sidebar" id="gameSidebar">
                     <div class="sidebar-header">
-                        <h1>🇵🇪 VIDA PERÚ</h1>
+                        <h1 id="peruPhrase">🇵🇪 SUFRE PERUANO</h1>
                         <div class="subtitle">Simulador de Vida</div>
                     </div>
 
@@ -1847,6 +1851,48 @@
     </div>
 
     <script>
+        // ==================== CONFIGURACIÓN DEL JUEGO ====================
+        const GAME_VERSION = "1.0.0";
+
+        // Frases peruanas típicas que rotan en el header
+        const PERUVIAN_PHRASES = [
+            "🇵🇪 ¡Que tal causa!",
+            "🇵🇪 ¡Asu mare!",
+            "🇵🇪 ¡Ya pe, cómo así!",
+            "🇵🇪 ¡Habla pues!",
+            "🇵🇪 ¡Al toque!",
+            "🇵🇪 ¡Qué roche!",
+            "🇵🇪 ¡Estoy misio!",
+            "🇵🇪 ¡Pilas, pe!",
+            "🇵🇪 ¡Buenazo!",
+            "🇵🇪 ¡Chévere!",
+            "🇵🇪 ¡Qué palta!",
+            "🇵🇪 ¡Ya fue!",
+            "🇵🇪 ¡Manyas?",
+            "🇵🇪 ¡Puro floro!",
+            "🇵🇪 ¡Está chamba!",
+            "🇵🇪 ¡Qué chongo!",
+            "🇵🇪 ¡Recontra bueno!",
+            "🇵🇪 ¡No seas maleta!",
+            "🇵🇪 ¡Está papaya!",
+            "🇵🇪 ¡Fresquéate!"
+        ];
+
+        let currentPhraseIndex = 0;
+
+        // Rotar frases cada 5 segundos
+        setInterval(() => {
+            const phraseElement = document.getElementById('peruPhrase');
+            if (phraseElement && document.getElementById('gameScreen')?.classList.contains('active')) {
+                currentPhraseIndex = (currentPhraseIndex + 1) % PERUVIAN_PHRASES.length;
+                phraseElement.style.opacity = '0';
+                setTimeout(() => {
+                    phraseElement.textContent = PERUVIAN_PHRASES[currentPhraseIndex];
+                    phraseElement.style.opacity = '1';
+                }, 300);
+            }
+        }, 5000);
+
         // ==================== DATOS DEL JUEGO ====================
 
         const LOCATIONS = {
@@ -6531,16 +6577,225 @@
 
             const business = gameState.businesses[index];
             const businessData = BUSINESSES[business.id];
+            const maxEmployees = businessData.employeesMax + (business.level || 0);
 
-            if (business.employees >= businessData.employeesMax) {
+            if (business.employees >= maxEmployees) {
                 showNotification('No puedes contratar más empleados', 'error');
                 return;
             }
 
+            const hireCost = 500; // Costo de contratación
+            if (gameState.money < hireCost) {
+                showNotification(`Necesitas ${formatMoney(hireCost)} para contratar`, 'error');
+                return;
+            }
+
+            gameState.money -= hireCost;
             business.employees++;
-            addLog(`👤 Contrataste un empleado para ${business.name}`, 'positive');
+            addLog(`👤 Contrataste un empleado para ${business.name} (-${formatMoney(hireCost)})`, 'positive');
             showNotification('Empleado contratado', 'success');
-            openBusinessMenu();
+            openBusinessDetail(index);
+        }
+
+        function fireEmployee(index) {
+            if (index < 0 || index >= gameState.businesses.length) return;
+
+            const business = gameState.businesses[index];
+
+            if (business.employees <= 0) {
+                showNotification('No tienes empleados para despedir', 'error');
+                return;
+            }
+
+            const severancePay = 300; // Liquidación
+            if (gameState.money < severancePay) {
+                showNotification(`Necesitas ${formatMoney(severancePay)} para la liquidación`, 'error');
+                return;
+            }
+
+            gameState.money -= severancePay;
+            business.employees--;
+            addLog(`👤 Despediste un empleado de ${business.name} (-${formatMoney(severancePay)} liquidación)`, 'warning');
+            showNotification('Empleado despedido', 'warning');
+            openBusinessDetail(index);
+        }
+
+        function upgradeBusiness(index) {
+            if (index < 0 || index >= gameState.businesses.length) return;
+
+            const business = gameState.businesses[index];
+            const businessData = BUSINESSES[business.id];
+            const currentLevel = business.level || 0;
+
+            if (currentLevel >= 3) {
+                showNotification('Este negocio ya está al máximo nivel', 'error');
+                return;
+            }
+
+            const upgradeCost = Math.floor(businessData.investmentCost * (0.5 + currentLevel * 0.3));
+            if (gameState.money < upgradeCost) {
+                showNotification(`Necesitas ${formatMoney(upgradeCost)} para mejorar`, 'error');
+                return;
+            }
+
+            gameState.money -= upgradeCost;
+            gameState.stats.totalSpent += upgradeCost;
+            business.level = currentLevel + 1;
+            business.reputation = Math.min(100, business.reputation + 10);
+
+            addLog(`⬆️ Mejoraste ${business.name} a nivel ${business.level + 1}! (-${formatMoney(upgradeCost)})`, 'special');
+            showNotification(`¡${business.name} ahora es nivel ${business.level + 1}!`, 'success');
+            openBusinessDetail(index);
+        }
+
+        function reinvestInBusiness(index) {
+            if (index < 0 || index >= gameState.businesses.length) return;
+
+            const business = gameState.businesses[index];
+            const reinvestAmount = 1000;
+
+            if (gameState.money < reinvestAmount) {
+                showNotification(`Necesitas ${formatMoney(reinvestAmount)} para reinvertir`, 'error');
+                return;
+            }
+
+            gameState.money -= reinvestAmount;
+            business.reputation = Math.min(100, business.reputation + 5);
+            business.marketing = (business.marketing || 0) + 1;
+
+            addLog(`📣 Reinvertiste ${formatMoney(reinvestAmount)} en marketing de ${business.name}`, 'positive');
+            showNotification('¡Marketing mejorado! +5% reputación', 'success');
+            openBusinessDetail(index);
+        }
+
+        function openBusinessDetail(index) {
+            if (index < 0 || index >= gameState.businesses.length) {
+                openBusinessMenu();
+                return;
+            }
+
+            const business = gameState.businesses[index];
+            const data = BUSINESSES[business.id];
+            const level = business.level || 0;
+            const levelNames = ['Básico', 'Mejorado', 'Avanzado', 'Premium'];
+            const maxEmployees = data.employeesMax + level;
+            const levelBonus = 1 + (level * 0.15);
+            const employeeBonus = 1 + (business.employees * 0.2);
+            const reputationBonus = business.reputation / 100;
+            const marketingBonus = 1 + ((business.marketing || 0) * 0.05);
+
+            const baseRevenueMin = Math.floor(data.monthlyRevenue[0] * levelBonus * employeeBonus * reputationBonus * marketingBonus);
+            const baseRevenueMax = Math.floor(data.monthlyRevenue[1] * levelBonus * employeeBonus * reputationBonus * marketingBonus);
+            const monthlyExpenses = data.monthlyExpenses + (business.employees * 1000);
+            const upgradeCost = Math.floor(data.investmentCost * (0.5 + level * 0.3));
+
+            const profitMin = baseRevenueMin - monthlyExpenses;
+            const profitMax = baseRevenueMax - monthlyExpenses;
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 3em;">${data.icon}</div>
+                    <div style="font-size: 1.5em; font-weight: bold; margin-top: 10px;">${business.name}</div>
+                    <div style="color: #888;">${data.description}</div>
+                    <div style="margin-top: 10px;">
+                        <span style="background: linear-gradient(135deg, #4CAF50, #2196F3); padding: 3px 12px; border-radius: 15px; font-size: 0.85em;">
+                            ⭐ Nivel ${level + 1}: ${levelNames[level]}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Estadísticas principales -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+                    <div style="background: rgba(76,175,80,0.1); padding: 12px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.5em; color: #4CAF50;">📈</div>
+                        <div style="font-size: 0.85em; color: #888;">Ingresos estimados</div>
+                        <div style="font-weight: bold; color: #4CAF50;">${formatMoney(baseRevenueMin)} - ${formatMoney(baseRevenueMax)}</div>
+                    </div>
+                    <div style="background: rgba(244,67,54,0.1); padding: 12px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.5em; color: #f44336;">📉</div>
+                        <div style="font-size: 0.85em; color: #888;">Gastos mensuales</div>
+                        <div style="font-weight: bold; color: #f44336;">${formatMoney(monthlyExpenses)}</div>
+                    </div>
+                    <div style="background: rgba(33,150,243,0.1); padding: 12px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.5em; color: #2196F3;">💰</div>
+                        <div style="font-size: 0.85em; color: #888;">Ganancia neta est.</div>
+                        <div style="font-weight: bold; color: ${profitMin > 0 ? '#4CAF50' : '#f44336'};">${formatMoney(profitMin)} - ${formatMoney(profitMax)}</div>
+                    </div>
+                    <div style="background: rgba(156,39,176,0.1); padding: 12px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1.5em; color: #9c27b0;">🏆</div>
+                        <div style="font-size: 0.85em; color: #888;">Total histórico</div>
+                        <div style="font-weight: bold; color: ${business.totalRevenue > 0 ? '#4CAF50' : '#f44336'};">${formatMoney(business.totalRevenue)}</div>
+                    </div>
+                </div>
+
+                <!-- Barra de reputación -->
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>⭐ Reputación</span>
+                        <span style="color: ${business.reputation >= 70 ? '#4CAF50' : business.reputation >= 40 ? '#ff9800' : '#f44336'};">${business.reputation}%</span>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.5); height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="width: ${business.reputation}%; height: 100%; background: linear-gradient(90deg, #f44336, #ff9800, #4CAF50); transition: width 0.3s;"></div>
+                    </div>
+                    <div style="font-size: 0.75em; color: #888; margin-top: 5px;">Afecta directamente los ingresos</div>
+                </div>
+
+                <!-- Empleados -->
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span>👥 Empleados: ${business.employees}/${maxEmployees}</span>
+                        <span style="color: #888; font-size: 0.85em;">+20% ingresos c/u | S/1000/mes c/u</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        ${business.employees < maxEmployees ? `
+                            <button class="btn btn-small btn-success" onclick="hireEmployee(${index})" style="flex: 1;">
+                                ➕ Contratar (S/500)
+                            </button>
+                        ` : ''}
+                        ${business.employees > 0 ? `
+                            <button class="btn btn-small btn-danger" onclick="fireEmployee(${index})" style="flex: 1;">
+                                ➖ Despedir (S/300)
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Acciones de inversión -->
+                <div style="background: rgba(33,150,243,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="font-weight: bold; margin-bottom: 10px;">💼 Gestión de Inversión</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        ${level < 3 ? `
+                            <button class="btn btn-small" onclick="upgradeBusiness(${index})">
+                                ⬆️ Mejorar (${formatMoney(upgradeCost)})
+                            </button>
+                        ` : `
+                            <button class="btn btn-small" disabled>✅ Nivel máximo</button>
+                        `}
+                        <button class="btn btn-small" onclick="reinvestInBusiness(${index})">
+                            📣 Marketing (S/1000)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Información adicional -->
+                <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; font-size: 0.85em;">
+                    <div style="color: #888; margin-bottom: 5px;">📊 Estadísticas del negocio</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; color: #aaa;">
+                        <div>📅 Meses operando: ${business.monthsOwned}</div>
+                        <div>📣 Campañas marketing: ${business.marketing || 0}</div>
+                        <div>💵 Último mes: ${formatMoney(business.lastRevenue)}</div>
+                        <div>⚠️ Riesgo: ${Math.round(data.riskFactor * 100)}%</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = `${data.icon} Gestión: ${business.name}`;
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = `
+                <button class="btn" onclick="openBusinessMenu()">← Volver</button>
+                <button class="btn btn-danger" onclick="if(confirm('¿Seguro que quieres cerrar este negocio? Solo recuperarás 30% de la inversión.')) closeBusiness(${index})">Cerrar negocio</button>
+            `;
+            document.getElementById('gameModal').classList.add('active');
         }
 
         function openBusinessMenu() {
@@ -6567,28 +6822,37 @@
 
                 gameState.businesses.forEach((business, index) => {
                     const data = BUSINESSES[business.id];
-                    const revenueRange = `${formatMoney(data.monthlyRevenue[0])} - ${formatMoney(data.monthlyRevenue[1])}`;
+                    const level = business.level || 0;
+                    const levelNames = ['Básico', 'Mejorado', 'Avanzado', 'Premium'];
+                    const levelColors = ['#888', '#4CAF50', '#2196F3', '#9c27b0'];
+                    const profitClass = business.lastRevenue >= 0 ? '#4CAF50' : '#f44336';
 
                     html += `
-                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 3px solid #4CAF50;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 3px solid ${levelColors[level]}; cursor: pointer; transition: transform 0.2s;"
+                             onclick="openBusinessDetail(${index})"
+                             onmouseover="this.style.transform='scale(1.02)'"
+                             onmouseout="this.style.transform='scale(1)'">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <div>
-                                    <div style="font-size: 1.2em; margin-bottom: 5px;">${data.icon} ${business.name}</div>
-                                    <div style="color: #aaa; font-size: 0.85em;">
-                                        📅 ${business.monthsOwned} meses | 👥 ${business.employees}/${data.employeesMax} empleados
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                        <span style="font-size: 1.5em;">${data.icon}</span>
+                                        <div>
+                                            <div style="font-weight: bold;">${business.name}</div>
+                                            <div style="font-size: 0.75em; color: ${levelColors[level]};">⭐ Nivel ${level + 1}: ${levelNames[level]}</div>
+                                        </div>
                                     </div>
-                                    <div style="color: #4CAF50; font-size: 0.9em; margin-top: 5px;">
-                                        💰 Último mes: ${formatMoney(business.lastRevenue)} | Total: ${formatMoney(business.totalRevenue)}
+                                    <div style="display: flex; gap: 15px; font-size: 0.85em; color: #aaa; margin-top: 8px;">
+                                        <span>📅 ${business.monthsOwned} meses</span>
+                                        <span>👥 ${business.employees} empleados</span>
+                                        <span>⭐ ${business.reputation}%</span>
                                     </div>
-                                    <div style="color: #888; font-size: 0.8em; margin-top: 3px;">
-                                        Gastos: ${formatMoney(data.monthlyExpenses + (business.employees * 1000))}/mes
+                                    <div style="display: flex; gap: 15px; font-size: 0.9em; margin-top: 5px;">
+                                        <span style="color: ${profitClass};">💰 Último mes: ${formatMoney(business.lastRevenue)}</span>
+                                        <span style="color: #888;">Total: ${formatMoney(business.totalRevenue)}</span>
                                     </div>
                                 </div>
-                                <div style="display: flex; flex-direction: column; gap: 5px;">
-                                    ${business.employees < data.employeesMax ? `
-                                        <button class="btn btn-small" onclick="hireEmployee(${index})">+👤 S/1000</button>
-                                    ` : ''}
-                                    <button class="btn btn-small btn-danger" onclick="if(confirm('¿Cerrar negocio?')) closeBusiness(${index})">Cerrar</button>
+                                <div style="display: flex; align-items: center; color: #888; font-size: 1.5em;">
+                                    →
                                 </div>
                             </div>
                         </div>
@@ -6666,20 +6930,30 @@
                 // Calcular ingresos base
                 const baseRevenue = randomRange(data.monthlyRevenue[0], data.monthlyRevenue[1]);
 
+                // Bonus por nivel de negocio (15% por nivel)
+                const level = business.level || 0;
+                const levelBonus = 1 + (level * 0.15);
+
                 // Bonus por empleados (20% por empleado)
                 const employeeBonus = 1 + (business.employees * 0.2);
 
                 // Bonus por reputación
                 const reputationBonus = business.reputation / 100;
 
-                // Calcular ingresos finales
-                let revenue = Math.floor(baseRevenue * employeeBonus * reputationBonus);
+                // Bonus por marketing (5% por campaña, máximo 50%)
+                const marketingBonus = 1 + Math.min(0.5, (business.marketing || 0) * 0.05);
+
+                // Calcular ingresos finales con todos los bonus
+                let revenue = Math.floor(baseRevenue * levelBonus * employeeBonus * reputationBonus * marketingBonus);
 
                 // Calcular gastos (base + empleados)
                 const expenses = data.monthlyExpenses + (business.employees * 1000);
 
+                // Reducir riesgo con el nivel (menos problemas en negocios mejorados)
+                const adjustedRiskFactor = data.riskFactor * (1 - level * 0.1);
+
                 // Evento de riesgo (robo, incidente, etc.)
-                if (Math.random() < data.riskFactor) {
+                if (Math.random() < adjustedRiskFactor) {
                     const incident = Math.random();
                     if (incident < 0.3) {
                         revenue = Math.floor(revenue * 0.5);
@@ -6696,6 +6970,11 @@
 
                 // Mejorar reputación con el tiempo (pequeño incremento)
                 business.reputation = Math.min(100, business.reputation + 1);
+
+                // Decaimiento del marketing (se reduce cada mes)
+                if (business.marketing && business.marketing > 0 && Math.random() < 0.3) {
+                    business.marketing = Math.max(0, business.marketing - 1);
+                }
 
                 const netProfit = revenue - expenses;
                 business.lastRevenue = netProfit;
@@ -8264,30 +8543,25 @@
                     </button>
                 </div>
 
-                <div style="color: #888; text-align: center; margin: 15px 0;">─ o juega mini-juegos ─</div>
-            `;
+                <div style="color: #888; text-align: center; margin: 15px 0;">─ o trabaja freelance ─</div>
 
-            // Mini-juegos
-            for (const [gameId, game] of Object.entries(MINI_GAMES)) {
-                const canPlay = gameState.energy >= game.energyCost;
-                html += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; opacity: ${canPlay ? '1' : '0.5'};">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <span style="font-size: 2em;">${game.icon}</span>
-                            <div>
-                                <div style="font-weight: bold;">${game.name}</div>
-                                <div style="color: #aaa; font-size: 0.85em;">${game.description}</div>
-                                <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
-                                    💵 S/ ${game.reward[0]}-${game.reward[1]} | ⚡ -${game.energyCost}
-                                </div>
+                <!-- Botón para ir a Freelance -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: linear-gradient(135deg, rgba(33,150,243,0.2), rgba(156,39,176,0.2)); border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(33,150,243,0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2em;">💼</span>
+                        <div>
+                            <div style="font-weight: bold;">Trabajos Freelance</div>
+                            <div style="color: #aaa; font-size: 0.85em;">Responde preguntas de tu especialidad y aprende</div>
+                            <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
+                                💵 S/ 60-300 | 8 categorías disponibles
                             </div>
                         </div>
-                        <button class="btn ${canPlay ? 'btn-success' : ''}" onclick="startMiniGame('${gameId}')" ${canPlay ? '' : 'disabled'}>
-                            Jugar
-                        </button>
                     </div>
-                `;
-            }
+                    <button class="btn btn-success" onclick="openFreelanceMenu()">
+                        Ver trabajos
+                    </button>
+                </div>
+            `;
 
             if (gameState.energy < 15) {
                 html += `<div style="color: #f44336; text-align: center; margin-top: 15px;">⚡ Necesitas más energía</div>`;
@@ -8417,328 +8691,582 @@
             document.getElementById('gameModal').classList.add('active');
         }
 
-        // ==================== SISTEMA DE MINI-JUEGOS ====================
+        // ==================== SISTEMA DE FREELANCE / TRIVIA POR INDUSTRIA ====================
 
-        const MINI_GAMES = {
+        const FREELANCE_CATEGORIES = {
+            programacion: {
+                name: "Programación",
+                icon: "💻",
+                description: "Responde preguntas de código y tecnología",
+                subcategories: {
+                    javascript: { name: "JavaScript", icon: "🟨" },
+                    python: { name: "Python", icon: "🐍" },
+                    general: { name: "General", icon: "🖥️" }
+                },
+                energyCost: 25,
+                baseReward: [100, 300]
+            },
+            finanzas: {
+                name: "Finanzas y Banca",
+                icon: "🏦",
+                description: "Preguntas sobre banca, inversiones y finanzas",
+                subcategories: {
+                    banca: { name: "Banca", icon: "💳" },
+                    inversiones: { name: "Inversiones", icon: "📈" },
+                    contabilidad: { name: "Contabilidad", icon: "📊" }
+                },
+                energyCost: 20,
+                baseReward: [80, 250]
+            },
+            seguros: {
+                name: "Seguros",
+                icon: "🛡️",
+                description: "Conocimientos sobre pólizas y coberturas",
+                subcategories: {
+                    vida: { name: "Seguros de Vida", icon: "❤️" },
+                    autos: { name: "Seguros Vehiculares", icon: "🚗" },
+                    general: { name: "General", icon: "📋" }
+                },
+                energyCost: 20,
+                baseReward: [70, 200]
+            },
+            construccion: {
+                name: "Construcción",
+                icon: "🏗️",
+                description: "Ingeniería civil, materiales y construcción",
+                subcategories: {
+                    materiales: { name: "Materiales", icon: "🧱" },
+                    estructuras: { name: "Estructuras", icon: "🏢" },
+                    seguridad: { name: "Seguridad", icon: "⚠️" }
+                },
+                energyCost: 25,
+                baseReward: [90, 280]
+            },
+            ciencias_sociales: {
+                name: "Ciencias Sociales",
+                icon: "📚",
+                description: "Historia, geografía y cultura general",
+                subcategories: {
+                    historia_peru: { name: "Historia del Perú", icon: "🇵🇪" },
+                    geografia: { name: "Geografía", icon: "🌍" },
+                    cultura: { name: "Cultura General", icon: "🎭" }
+                },
+                energyCost: 15,
+                baseReward: [60, 180]
+            },
             matematicas: {
-                name: "Matemáticas Rápidas",
-                description: "Resuelve operaciones para ganar dinero",
+                name: "Matemáticas Aplicadas",
                 icon: "🔢",
-                reward: [50, 150],
-                energyCost: 25,
-                rounds: 5,
-                timePerRound: 10
+                description: "Cálculos y problemas matemáticos",
+                subcategories: {
+                    basico: { name: "Básico", icon: "➕" },
+                    financiero: { name: "Financiero", icon: "💰" },
+                    estadistica: { name: "Estadística", icon: "📉" }
+                },
+                energyCost: 20,
+                baseReward: [70, 220]
             },
-            memoria: {
-                name: "Memoria",
-                description: "Recuerda la secuencia de números",
-                icon: "🧠",
-                reward: [80, 200],
-                energyCost: 30,
-                rounds: 4,
-                timePerRound: 15
+            salud: {
+                name: "Salud",
+                icon: "🏥",
+                description: "Medicina básica y primeros auxilios",
+                subcategories: {
+                    primeros_auxilios: { name: "Primeros Auxilios", icon: "🩹" },
+                    nutricion: { name: "Nutrición", icon: "🥗" },
+                    general: { name: "General", icon: "💊" }
+                },
+                energyCost: 20,
+                baseReward: [75, 230]
             },
-            typing: {
-                name: "Velocidad de Escritura",
-                description: "Escribe las palabras correctamente",
-                icon: "⌨️",
-                reward: [60, 180],
-                energyCost: 25,
-                rounds: 5,
-                timePerRound: 8
+            marketing: {
+                name: "Marketing y Ventas",
+                icon: "📣",
+                description: "Estrategias de venta y marketing digital",
+                subcategories: {
+                    digital: { name: "Marketing Digital", icon: "📱" },
+                    ventas: { name: "Técnicas de Venta", icon: "🤝" },
+                    redes: { name: "Redes Sociales", icon: "📲" }
+                },
+                energyCost: 20,
+                baseReward: [80, 240]
             }
         };
 
-        let currentMiniGame = null;
-        let miniGameState = {};
+        // Base de preguntas por categoría (expandible)
+        const TRIVIA_QUESTIONS = {
+            programacion: {
+                javascript: [
+                    { q: "¿Qué método agrega un elemento al final de un array?", options: ["push()", "pop()", "shift()", "unshift()"], answer: 0, difficulty: 1 },
+                    { q: "¿Qué significa DOM?", options: ["Document Object Model", "Data Object Manager", "Digital Online Media", "Document Oriented Module"], answer: 0, difficulty: 1 },
+                    { q: "¿Cuál es el resultado de typeof null?", options: ["null", "undefined", "object", "boolean"], answer: 2, difficulty: 2 },
+                    { q: "¿Qué es una closure en JavaScript?", options: ["Un error de sintaxis", "Una función que recuerda su entorno léxico", "Un tipo de loop", "Un método de array"], answer: 1, difficulty: 3 },
+                    { q: "¿Qué operador compara valor Y tipo?", options: ["==", "===", "!=", "="], answer: 1, difficulty: 1 },
+                    { q: "¿Cómo se declara una constante?", options: ["var", "let", "const", "constant"], answer: 2, difficulty: 1 },
+                    { q: "¿Qué retorna JSON.parse()?", options: ["Un string", "Un objeto JavaScript", "Un array siempre", "Un número"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es async/await?", options: ["Sintaxis para callbacks", "Manejo de código asíncrono", "Un tipo de variable", "Una librería"], answer: 1, difficulty: 2 }
+                ],
+                python: [
+                    { q: "¿Cómo se define una función en Python?", options: ["function nombre():", "def nombre():", "fn nombre():", "func nombre():"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es una lista en Python?", options: ["Inmutable", "Mutable y ordenada", "Solo números", "Solo strings"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué hace pip?", options: ["Compila código", "Gestiona paquetes", "Ejecuta tests", "Formatea código"], answer: 1, difficulty: 1 },
+                    { q: "¿Cuál es la diferencia entre lista y tupla?", options: ["No hay diferencia", "La tupla es mutable", "La lista es inmutable", "La tupla es inmutable"], answer: 3, difficulty: 2 },
+                    { q: "¿Qué hace len()?", options: ["Limpia memoria", "Retorna la longitud", "Crea una lista", "Convierte a string"], answer: 1, difficulty: 1 },
+                    { q: "¿Cómo se escribe un comentario?", options: ["// comentario", "# comentario", "/* comentario */", "-- comentario"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es un diccionario en Python?", options: ["Lista ordenada", "Pares clave-valor", "Solo números", "Texto"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué framework web es popular en Python?", options: ["React", "Angular", "Django", "Vue"], answer: 2, difficulty: 2 }
+                ],
+                general: [
+                    { q: "¿Qué significa API?", options: ["Application Programming Interface", "Advanced Protocol Internet", "Automated Program Integration", "Application Process Input"], answer: 0, difficulty: 1 },
+                    { q: "¿Qué es Git?", options: ["Un lenguaje", "Control de versiones", "Base de datos", "Sistema operativo"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es SQL?", options: ["Lenguaje de programación", "Lenguaje de consultas de BD", "Sistema operativo", "Protocolo de red"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es HTTP?", options: ["Protocolo de transferencia", "Lenguaje de marcado", "Base de datos", "Sistema de archivos"], answer: 0, difficulty: 1 },
+                    { q: "¿Qué significa IDE?", options: ["Internet Data Exchange", "Integrated Development Environment", "Internal Debug Engine", "Input Device External"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es debugging?", options: ["Escribir código", "Encontrar y corregir errores", "Compilar", "Documentar"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es una base de datos relacional?", options: ["Usa tablas relacionadas", "Solo guarda imágenes", "No usa SQL", "Es para redes sociales"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué es frontend vs backend?", options: ["Son lo mismo", "Cliente vs servidor", "Hardware vs software", "Red vs local"], answer: 1, difficulty: 2 }
+                ]
+            },
+            finanzas: {
+                banca: [
+                    { q: "¿Qué es la tasa de interés?", options: ["Comisión del banco", "Costo del dinero prestado", "Impuesto estatal", "Seguro obligatorio"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es un CDT/Plazo Fijo?", options: ["Crédito a largo plazo", "Depósito con tasa fija por tiempo", "Tarjeta de crédito", "Cuenta corriente"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es la TEA?", options: ["Tasa Efectiva Anual", "Tarifa Extra Aplicada", "Total de Egresos Anuales", "Tasa de Evaluación Actual"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué es un crédito hipotecario?", options: ["Crédito personal", "Préstamo para comprar inmueble", "Tarjeta de crédito", "Préstamo vehicular"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué significa amortización?", options: ["Pagar solo intereses", "Pago gradual del capital", "Refinanciar deuda", "Cancelar cuenta"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es el encaje bancario?", options: ["Comisión", "Reserva obligatoria de bancos", "Tipo de préstamo", "Seguro de depósitos"], answer: 1, difficulty: 3 },
+                    { q: "¿Qué es la SBS en Perú?", options: ["Superintendencia de Banca y Seguros", "Sistema Bancario Seguro", "Servicio Básico de Seguros", "Sociedad de Bienes"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué es morosidad?", options: ["Pago adelantado", "Retraso en pagos", "Tipo de interés", "Comisión bancaria"], answer: 1, difficulty: 1 }
+                ],
+                inversiones: [
+                    { q: "¿Qué es la BVL?", options: ["Banco de Valores Lima", "Bolsa de Valores de Lima", "Bono de Valor Local", "Base de Valores Líquidos"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es un dividendo?", options: ["Deuda de la empresa", "Ganancia distribuida a accionistas", "Impuesto", "Comisión"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es diversificar?", options: ["Invertir todo en uno", "Distribuir inversiones", "Vender acciones", "Pedir préstamos"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es un ETF?", options: ["Fondo que cotiza en bolsa", "Empresa de Trading", "Evaluación de Fondos", "Estrategia de Finanzas"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué es renta fija?", options: ["Inversión con retorno variable", "Inversión con retorno predecible", "Sueldo fijo", "Alquiler"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es el riesgo de mercado?", options: ["Robo en tienda", "Pérdida por cambios del mercado", "Falla de sistemas", "Error contable"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es liquidez?", options: ["Deuda", "Facilidad de convertir a efectivo", "Tipo de inversión", "Ganancia"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué son los bonos del tesoro?", options: ["Deuda del gobierno", "Acciones de empresas", "Criptomonedas", "Fondos mutuos"], answer: 0, difficulty: 2 }
+                ],
+                contabilidad: [
+                    { q: "¿Qué es un activo?", options: ["Lo que se debe", "Lo que se posee", "Un gasto", "Una pérdida"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es un pasivo?", options: ["Ganancia", "Deuda u obligación", "Inversión", "Activo fijo"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el balance general?", options: ["Estado de activos y pasivos", "Lista de ventas", "Registro de empleados", "Plan de marketing"], answer: 0, difficulty: 1 },
+                    { q: "¿Qué es depreciación?", options: ["Aumento de valor", "Pérdida de valor por uso/tiempo", "Tipo de interés", "Comisión"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es el IGV en Perú?", options: ["Impuesto General a las Ventas", "Índice General de Valor", "Ingreso Gravable Variable", "Interés Generado Anual"], answer: 0, difficulty: 1 },
+                    { q: "¿Qué es flujo de caja?", options: ["Tipo de préstamo", "Entrada y salida de dinero", "Balance anual", "Ganancia neta"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es patrimonio neto?", options: ["Deudas totales", "Activos menos pasivos", "Ventas mensuales", "Capital inicial"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es una factura?", options: ["Contrato de trabajo", "Comprobante de venta", "Recibo de sueldo", "Estado de cuenta"], answer: 1, difficulty: 1 }
+                ]
+            },
+            seguros: {
+                vida: [
+                    { q: "¿Qué es un beneficiario?", options: ["El asegurado", "Quien recibe el pago del seguro", "El vendedor", "El médico"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es la prima de un seguro?", options: ["El beneficio", "El pago periódico", "La cobertura", "El deducible"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es un seguro temporal?", options: ["Cobertura por tiempo limitado", "Seguro permanente", "Seguro de autos", "Seguro de viaje"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué cubre un seguro de vida?", options: ["Solo accidentes", "Fallecimiento del asegurado", "Solo enfermedades", "Daños a terceros"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es valor de rescate?", options: ["Precio de la póliza", "Dinero acumulado que se puede retirar", "Costo del seguro", "Prima mensual"], answer: 1, difficulty: 3 },
+                    { q: "¿Qué es período de carencia?", options: ["Tiempo sin cobertura inicial", "Tiempo de pago", "Duración del seguro", "Renovación"], answer: 0, difficulty: 2 }
+                ],
+                autos: [
+                    { q: "¿Qué es el SOAT?", options: ["Seguro obligatorio de accidentes", "Servicio de Orientación", "Sistema de Ahorro", "Seguro Opcional"], answer: 0, difficulty: 1 },
+                    { q: "¿Qué es la franquicia/deducible?", options: ["Lo que paga la aseguradora", "Lo que paga el asegurado primero", "El valor del auto", "La prima mensual"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué cubre un seguro contra todo riesgo?", options: ["Solo choques", "Robo, choque, daños propios y a terceros", "Solo daños a terceros", "Solo robo"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es responsabilidad civil?", options: ["Cobertura por daños a terceros", "Seguro del conductor", "Mantenimiento del auto", "Multas de tránsito"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué es un siniestro?", options: ["El vehículo asegurado", "Un evento que activa el seguro", "La póliza", "El pago mensual"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué significa cobertura amplia?", options: ["Solo responsabilidad civil", "Incluye daños propios y a terceros", "Solo robos", "Sin deducible"], answer: 1, difficulty: 2 }
+                ],
+                general: [
+                    { q: "¿Qué es una póliza?", options: ["Contrato de seguro", "Tipo de prima", "Beneficiario", "Agente de seguros"], answer: 0, difficulty: 1 },
+                    { q: "¿Qué es exclusión de cobertura?", options: ["Beneficio adicional", "Lo que el seguro NO cubre", "Precio especial", "Renovación"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es un reclamo/claim?", options: ["Venta de póliza", "Solicitud de pago al seguro", "Cancelación", "Renovación"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es copago?", options: ["Pago total del seguro", "Porcentaje que paga el asegurado", "Prima mensual", "Beneficio"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es un ajustador de seguros?", options: ["Vendedor", "Quien evalúa los siniestros", "Beneficiario", "Contador"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es renovación automática?", options: ["Cancelar póliza", "Continuar cobertura sin trámite", "Nuevo contrato", "Cambio de prima"], answer: 1, difficulty: 1 }
+                ]
+            },
+            construccion: {
+                materiales: [
+                    { q: "¿Qué es el concreto armado?", options: ["Solo cemento", "Concreto con acero de refuerzo", "Madera tratada", "Ladrillo especial"], answer: 1, difficulty: 1 },
+                    { q: "¿Para qué sirve el fierro corrugado?", options: ["Decoración", "Refuerzo estructural", "Aislamiento", "Impermeabilización"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el cemento Portland?", options: ["Una marca", "Tipo común de cemento", "Pegamento especial", "Pintura"], answer: 1, difficulty: 2 },
+                    { q: "¿Cuál es la proporción común para mezcla de concreto?", options: ["1:1:1", "1:2:3 (cemento:arena:piedra)", "2:1:1", "Solo cemento y agua"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es el drywall?", options: ["Tipo de ladrillo", "Panel de yeso para paredes", "Cemento especial", "Piso flotante"], answer: 1, difficulty: 1 },
+                    { q: "¿Para qué se usa la piedra chancada?", options: ["Decoración", "Agregado grueso para concreto", "Aislante térmico", "Impermeabilizante"], answer: 1, difficulty: 2 }
+                ],
+                estructuras: [
+                    { q: "¿Qué es una columna?", options: ["Elemento horizontal", "Elemento vertical que soporta carga", "Tipo de ventana", "Cimiento"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es una viga?", options: ["Elemento horizontal estructural", "Tipo de techo", "Pared", "Cimiento"], answer: 0, difficulty: 1 },
+                    { q: "¿Qué es la cimentación?", options: ["El techo", "Base que transfiere carga al suelo", "Las paredes", "El acabado"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es una losa aligerada?", options: ["Techo liviano con ladrillos huecos", "Piso de madera", "Pared delgada", "Cimiento especial"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué son los estribos en construcción?", options: ["Adornos", "Refuerzo transversal en columnas", "Tipo de ladrillo", "Herramienta"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es el acero de refuerzo?", options: ["Decoración", "Barras que dan resistencia al concreto", "Pintura especial", "Tipo de cemento"], answer: 1, difficulty: 1 }
+                ],
+                seguridad: [
+                    { q: "¿Qué EPP significa?", options: ["Equipo de Protección Personal", "Elemento de Producción", "Estructura de Pared", "Estándar de Proyecto"], answer: 0, difficulty: 1 },
+                    { q: "¿Por qué es importante el casco en obra?", options: ["Por estética", "Protege de caídas de objetos", "Es decorativo", "No es importante"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es señalización de obra?", options: ["Publicidad", "Avisos de seguridad y peligros", "Decoración", "Logo de empresa"], answer: 1, difficulty: 1 },
+                    { q: "¿Cuándo se usa arnés de seguridad?", options: ["Siempre", "En trabajos en altura", "Nunca", "Solo en oficina"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es una charla de 5 minutos?", options: ["Reunión social", "Capacitación diaria de seguridad", "Descanso", "Almuerzo"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué hacer ante un accidente en obra?", options: ["Ignorar", "Reportar y dar primeros auxilios", "Esconder", "Continuar trabajando"], answer: 1, difficulty: 1 }
+                ]
+            },
+            ciencias_sociales: {
+                historia_peru: [
+                    { q: "¿Quién proclamó la independencia del Perú?", options: ["Simón Bolívar", "José de San Martín", "Túpac Amaru", "Francisco Pizarro"], answer: 1, difficulty: 1 },
+                    { q: "¿En qué año se proclamó la independencia?", options: ["1810", "1821", "1824", "1830"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué imperio dominó Perú antes de los españoles?", options: ["Maya", "Azteca", "Inca", "Olmeca"], answer: 2, difficulty: 1 },
+                    { q: "¿Cuál fue la capital del imperio Inca?", options: ["Lima", "Arequipa", "Cusco", "Trujillo"], answer: 2, difficulty: 1 },
+                    { q: "¿Qué fue la Guerra del Pacífico?", options: ["Guerra civil", "Conflicto con Chile y Bolivia", "Independencia", "Guerra mundial"], answer: 1, difficulty: 2 },
+                    { q: "¿Quién fue Túpac Amaru II?", options: ["Conquistador", "Líder de rebelión indígena", "Presidente", "Escritor"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué civilización construyó las Líneas de Nazca?", options: ["Inca", "Nazca", "Moche", "Chavín"], answer: 1, difficulty: 2 },
+                    { q: "¿Cuándo terminó el Virreinato del Perú?", options: ["1800", "1821", "1824", "1850"], answer: 2, difficulty: 2 }
+                ],
+                geografia: [
+                    { q: "¿Cuántas regiones naturales tiene Perú?", options: ["2", "3", "4", "5"], answer: 1, difficulty: 1 },
+                    { q: "¿Cuál es el río más largo del Perú?", options: ["Rímac", "Amazonas", "Marañón", "Ucayali"], answer: 1, difficulty: 1 },
+                    { q: "¿En qué región está Machu Picchu?", options: ["Lima", "Cusco", "Arequipa", "Puno"], answer: 1, difficulty: 1 },
+                    { q: "¿Cuál es el lago más alto del mundo navegable?", options: ["Junín", "Titicaca", "Poopó", "Chinchaycocha"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué cordillera atraviesa Perú?", options: ["Alpes", "Himalaya", "Andes", "Rocosas"], answer: 2, difficulty: 1 },
+                    { q: "¿Cuál es la capital del Perú?", options: ["Cusco", "Arequipa", "Lima", "Trujillo"], answer: 2, difficulty: 1 },
+                    { q: "¿Qué océano baña las costas peruanas?", options: ["Atlántico", "Índico", "Pacífico", "Ártico"], answer: 2, difficulty: 1 },
+                    { q: "¿Cuál es la montaña más alta del Perú?", options: ["Misti", "Huascarán", "Coropuna", "Ausangate"], answer: 1, difficulty: 2 }
+                ],
+                cultura: [
+                    { q: "¿Cuál es el plato bandera del Perú?", options: ["Tacos", "Ceviche", "Paella", "Sushi"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es la marinera?", options: ["Pescadora", "Baile típico", "Comida", "Instrumento"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el Inti Raymi?", options: ["Comida", "Fiesta del Sol", "Río", "Ciudad"], answer: 1, difficulty: 2 },
+                    { q: "¿Quién escribió 'Tradiciones Peruanas'?", options: ["César Vallejo", "Ricardo Palma", "Mario Vargas Llosa", "José María Arguedas"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es el pisco?", options: ["Comida", "Bebida destilada de uva", "Baile", "Instrumento"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué peruano ganó el Nobel de Literatura?", options: ["César Vallejo", "Mario Vargas Llosa", "Ricardo Palma", "Ciro Alegría"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es la pachamanca?", options: ["Baile", "Cocción bajo tierra", "Bebida", "Instrumento"], answer: 1, difficulty: 2 },
+                    { q: "¿Cuándo es el Día de la Independencia?", options: ["28 de julio", "28 de agosto", "4 de julio", "12 de octubre"], answer: 0, difficulty: 1 }
+                ]
+            },
+            matematicas: {
+                basico: [
+                    { q: "¿Cuánto es 15% de 200?", options: ["15", "20", "30", "40"], answer: 2, difficulty: 1 },
+                    { q: "Si algo cuesta S/80 con 20% de descuento, ¿cuánto pagas?", options: ["S/60", "S/64", "S/70", "S/72"], answer: 1, difficulty: 2 },
+                    { q: "¿Cuánto es 3/4 expresado en porcentaje?", options: ["25%", "50%", "75%", "80%"], answer: 2, difficulty: 1 },
+                    { q: "Si ganas S/1500 y gastas el 60%, ¿cuánto ahorras?", options: ["S/400", "S/500", "S/600", "S/900"], answer: 2, difficulty: 2 },
+                    { q: "¿Cuánto es 0.25 x 100?", options: ["2.5", "25", "250", "0.25"], answer: 1, difficulty: 1 },
+                    { q: "Si 3 productos cuestan S/45, ¿cuánto cuesta 1?", options: ["S/10", "S/12", "S/15", "S/18"], answer: 2, difficulty: 1 }
+                ],
+                financiero: [
+                    { q: "Si inviertes S/1000 al 10% anual, ¿cuánto tienes después de 1 año?", options: ["S/1010", "S/1050", "S/1100", "S/1200"], answer: 2, difficulty: 1 },
+                    { q: "¿Qué es mejor: 5% mensual o 60% anual?", options: ["5% mensual", "60% anual", "Son iguales", "Depende"], answer: 0, difficulty: 2 },
+                    { q: "Si pagas S/500/mes por 12 meses, ¿cuánto pagas en total?", options: ["S/5000", "S/5500", "S/6000", "S/6500"], answer: 2, difficulty: 1 },
+                    { q: "Si tu sueldo sube 10% de S/2000, ¿cuánto ganas ahora?", options: ["S/2100", "S/2200", "S/2250", "S/2300"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el interés compuesto?", options: ["Interés sobre el capital inicial", "Interés sobre capital + intereses acumulados", "Sin interés", "Interés fijo"], answer: 1, difficulty: 2 },
+                    { q: "Si la inflación es 5% y tu sueldo no sube, ¿qué pasa?", options: ["Ganas más", "Tu poder adquisitivo baja", "Nada cambia", "Ganas igual"], answer: 1, difficulty: 2 }
+                ],
+                estadistica: [
+                    { q: "¿Qué es el promedio/media?", options: ["El valor más alto", "Suma de valores dividido entre cantidad", "El valor del medio", "El más frecuente"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es la mediana?", options: ["El promedio", "El valor central ordenado", "El más frecuente", "El rango"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es la moda?", options: ["El promedio", "El valor central", "El más frecuente", "El menor"], answer: 2, difficulty: 1 },
+                    { q: "Si lanzas una moneda, ¿cuál es la probabilidad de cara?", options: ["25%", "50%", "75%", "100%"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es un gráfico de barras?", options: ["Solo para números", "Representa datos con barras proporcionales", "Solo para texto", "Un tipo de tabla"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué significa correlación positiva?", options: ["Una variable sube, la otra baja", "Ambas variables aumentan juntas", "No hay relación", "Variables iguales"], answer: 1, difficulty: 2 }
+                ]
+            },
+            salud: {
+                primeros_auxilios: [
+                    { q: "¿Qué hacer primero en un accidente?", options: ["Mover al herido", "Evaluar la seguridad de la escena", "Llamar ambulancia", "Dar agua"], answer: 1, difficulty: 1 },
+                    { q: "¿Cuál es el número de emergencias en Perú?", options: ["911", "105", "116", "100"], answer: 2, difficulty: 1 },
+                    { q: "¿Cómo se hace RCP básico?", options: ["Solo respiración", "Compresiones torácicas y respiración", "Solo compresiones", "Masaje de espalda"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué hacer ante una quemadura leve?", options: ["Poner hielo directo", "Agua fría corriente", "Aceite", "Algodón"], answer: 1, difficulty: 1 },
+                    { q: "¿Cómo se detiene un sangrado?", options: ["Lavar con agua", "Presión directa con tela limpia", "Poner alcohol", "No hacer nada"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué posición para alguien inconsciente que respira?", options: ["Boca arriba", "Posición lateral de seguridad", "Sentado", "De pie"], answer: 1, difficulty: 2 }
+                ],
+                nutricion: [
+                    { q: "¿Cuántos vasos de agua se recomiendan al día?", options: ["2-3", "4-5", "6-8", "10-12"], answer: 2, difficulty: 1 },
+                    { q: "¿Qué nutriente dan las carnes principalmente?", options: ["Carbohidratos", "Proteínas", "Vitamina C", "Fibra"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué alimentos tienen más fibra?", options: ["Carnes", "Frutas y verduras", "Lácteos", "Aceites"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el índice glucémico?", options: ["Cantidad de grasa", "Velocidad de absorción de azúcar", "Calorías totales", "Proteína"], answer: 1, difficulty: 2 },
+                    { q: "¿Cuántas comidas se recomiendan al día?", options: ["1-2", "3-5", "6-8", "Solo cuando hay hambre"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué vitamina aporta el sol?", options: ["Vitamina A", "Vitamina C", "Vitamina D", "Vitamina E"], answer: 2, difficulty: 1 }
+                ],
+                general: [
+                    { q: "¿Cuántas horas de sueño necesita un adulto?", options: ["4-5 horas", "6-8 horas", "9-10 horas", "12 horas"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es la presión arterial normal?", options: ["100/60", "120/80", "140/90", "160/100"], answer: 1, difficulty: 2 },
+                    { q: "¿Cada cuánto se recomienda un chequeo médico?", options: ["Cada mes", "Una vez al año", "Cada 5 años", "Solo si estás enfermo"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el IMC?", options: ["Índice de Masa Corporal", "Indicador Médico Común", "Informe de Medicina", "Impuesto Médico"], answer: 0, difficulty: 1 },
+                    { q: "¿Cuántos minutos de ejercicio se recomiendan diarios?", options: ["10 minutos", "30 minutos", "2 horas", "5 minutos"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el estrés crónico?", options: ["Estrés momentáneo", "Estrés prolongado que afecta la salud", "Sin estrés", "Estrés positivo"], answer: 1, difficulty: 2 }
+                ]
+            },
+            marketing: {
+                digital: [
+                    { q: "¿Qué es SEO?", options: ["Red social", "Optimización para buscadores", "Tipo de publicidad", "Email marketing"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el CTR?", options: ["Tasa de clics", "Costo total", "Tipo de anuncio", "Red de contenido"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué es una landing page?", options: ["Página de inicio", "Página diseñada para conversión", "Blog", "Tienda online"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es Google Ads?", options: ["Red social", "Plataforma de publicidad de Google", "Buscador", "Email"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es el remarketing?", options: ["Vender de nuevo", "Mostrar anuncios a visitantes previos", "Email masivo", "Descuentos"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es la tasa de conversión?", options: ["Número de visitas", "Porcentaje de visitantes que realizan acción deseada", "Costo por clic", "Impresiones"], answer: 1, difficulty: 2 }
+                ],
+                ventas: [
+                    { q: "¿Qué es un embudo de ventas?", options: ["Herramienta física", "Proceso de conversión de prospectos", "Tipo de producto", "Descuento"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es un lead?", options: ["Cliente actual", "Posible cliente interesado", "Competidor", "Empleado"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es cross-selling?", options: ["Vender menos", "Ofrecer productos complementarios", "Bajar precios", "Cerrar tienda"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué es upselling?", options: ["Ofrecer versión superior del producto", "Vender barato", "Dar descuentos", "Cerrar venta"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué es el cierre de venta?", options: ["Cerrar tienda", "Momento de lograr la compra", "Devolver producto", "Dar muestra"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es objeción en ventas?", options: ["Aceptación", "Duda o resistencia del cliente", "Compra inmediata", "Descuento"], answer: 1, difficulty: 1 }
+                ],
+                redes: [
+                    { q: "¿Cuál es la red social más usada en el mundo?", options: ["Twitter", "Facebook", "TikTok", "LinkedIn"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es un influencer?", options: ["Programador", "Persona con audiencia que influye en opiniones", "Vendedor", "Empresario"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué es engagement?", options: ["Compromiso/interacción con contenido", "Seguidores", "Publicaciones", "Vistas"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué red es mejor para B2B?", options: ["TikTok", "Instagram", "LinkedIn", "Snapchat"], answer: 2, difficulty: 2 },
+                    { q: "¿Qué es contenido viral?", options: ["Contenido con virus", "Contenido que se comparte masivamente", "Publicidad pagada", "Email"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué significa KPI?", options: ["Indicador clave de rendimiento", "Tipo de post", "Red social", "Hashtag"], answer: 0, difficulty: 2 }
+                ]
+            }
+        };
+
+        let currentFreelance = null;
+        let freelanceState = {};
 
         function openMiniGamesMenu() {
+            openFreelanceMenu();
+        }
+
+        function openFreelanceMenu() {
             if (gameState.prisonMonths > 0) {
-                showNotification('No puedes hacer mini-juegos en prisión', 'error');
+                showNotification('No puedes trabajar freelance en prisión', 'error');
                 return;
             }
 
             let html = `
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 2em;">🎮</div>
-                    <div style="font-size: 1.1em; margin-top: 10px;">Gana dinero extra con mini-juegos</div>
-                    <div style="color: #888; font-size: 0.85em;">Cada juego consume energía</div>
+                    <div style="font-size: 2em;">💼</div>
+                    <div style="font-size: 1.2em; margin-top: 10px; font-weight: bold;">Trabajos Freelance</div>
+                    <div style="color: #888; font-size: 0.85em;">Responde preguntas de tu especialidad y gana dinero</div>
+                    <div style="color: #4CAF50; font-size: 0.8em; margin-top: 5px;">💡 Busca las respuestas en internet para aprender</div>
                 </div>
             `;
 
-            for (const [gameId, game] of Object.entries(MINI_GAMES)) {
-                const canPlay = gameState.energy >= game.energyCost;
+            for (const [catId, category] of Object.entries(FREELANCE_CATEGORIES)) {
+                const canPlay = gameState.energy >= category.energyCost;
                 html += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; opacity: ${canPlay ? '1' : '0.5'};">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <span style="font-size: 2em;">${game.icon}</span>
-                            <div>
-                                <div style="font-weight: bold;">${game.name}</div>
-                                <div style="color: #aaa; font-size: 0.85em;">${game.description}</div>
-                                <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
-                                    💵 S/ ${game.reward[0]}-${game.reward[1]} | ⚡ -${game.energyCost}
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; overflow: hidden; opacity: ${canPlay ? '1' : '0.5'};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; cursor: pointer;" onclick="toggleFreelanceCategory('${catId}')">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="font-size: 2em;">${category.icon}</span>
+                                <div>
+                                    <div style="font-weight: bold;">${category.name}</div>
+                                    <div style="color: #aaa; font-size: 0.85em;">${category.description}</div>
+                                    <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
+                                        💵 S/ ${category.baseReward[0]}-${category.baseReward[1]} | ⚡ -${category.energyCost}
+                                    </div>
                                 </div>
                             </div>
+                            <span style="font-size: 1.5em;" id="arrow-${catId}">▼</span>
                         </div>
-                        <button class="btn ${canPlay ? 'btn-success' : ''}" onclick="startMiniGame('${gameId}')" ${canPlay ? '' : 'disabled'}>
-                            Jugar
-                        </button>
+                        <div id="subcats-${catId}" style="display: none; padding: 0 15px 15px 15px; background: rgba(0,0,0,0.2);">
+                            <div style="color: #888; font-size: 0.85em; margin-bottom: 10px;">Selecciona una especialidad:</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${Object.entries(category.subcategories).map(([subId, sub]) => `
+                                    <button class="btn ${canPlay ? '' : ''}" onclick="startFreelanceJob('${catId}', '${subId}')" ${canPlay ? '' : 'disabled'}
+                                            style="padding: 8px 15px; font-size: 0.9em;">
+                                        ${sub.icon} ${sub.name}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
                     </div>
                 `;
             }
 
             if (gameState.energy < 15) {
-                html += `<div style="color: #f44336; text-align: center; margin-top: 15px;">⚡ Necesitas más energía para jugar</div>`;
+                html += `<div style="color: #f44336; text-align: center; margin-top: 15px;">⚡ Necesitas más energía para trabajar</div>`;
             }
 
-            document.getElementById('modalTitle').textContent = '🎮 Mini-juegos';
+            document.getElementById('modalTitle').textContent = '💼 Trabajos Freelance';
             document.getElementById('modalBody').innerHTML = html;
             document.getElementById('modalOptions').innerHTML = '';
             document.getElementById('gameModal').classList.add('active');
         }
 
-        function startMiniGame(gameId) {
-            const game = MINI_GAMES[gameId];
-            if (!game || gameState.energy < game.energyCost) return;
-
-            currentMiniGame = gameId;
-            miniGameState = {
-                round: 0,
-                score: 0,
-                maxRounds: game.rounds,
-                startTime: Date.now()
-            };
-
-            gameState.energy -= game.energyCost;
-            updateUI();
-
-            if (gameId === 'matematicas') {
-                playMathGame();
-            } else if (gameId === 'memoria') {
-                playMemoryGame();
-            } else if (gameId === 'typing') {
-                playTypingGame();
+        function toggleFreelanceCategory(catId) {
+            const subcats = document.getElementById(`subcats-${catId}`);
+            const arrow = document.getElementById(`arrow-${catId}`);
+            if (subcats.style.display === 'none') {
+                subcats.style.display = 'block';
+                arrow.textContent = '▲';
+            } else {
+                subcats.style.display = 'none';
+                arrow.textContent = '▼';
             }
         }
 
-        function playMathGame() {
-            miniGameState.round++;
-            if (miniGameState.round > miniGameState.maxRounds) {
-                endMiniGame();
+        function startFreelanceJob(categoryId, subcategoryId) {
+            const category = FREELANCE_CATEGORIES[categoryId];
+            if (!category || gameState.energy < category.energyCost) return;
+
+            currentFreelance = { categoryId, subcategoryId, category };
+            freelanceState = {
+                round: 0,
+                score: 0,
+                maxRounds: 5,
+                questionsUsed: [],
+                startTime: Date.now()
+            };
+
+            gameState.energy -= category.energyCost;
+            updateUI();
+
+            playFreelanceRound();
+        }
+
+        function playFreelanceRound() {
+            freelanceState.round++;
+            if (freelanceState.round > freelanceState.maxRounds) {
+                endFreelanceJob();
                 return;
             }
 
-            const ops = ['+', '-', '×'];
-            const op = ops[Math.floor(Math.random() * ops.length)];
-            let a, b, answer;
+            const { categoryId, subcategoryId, category } = currentFreelance;
+            const questions = TRIVIA_QUESTIONS[categoryId]?.[subcategoryId] || [];
 
-            if (op === '+') {
-                a = Math.floor(Math.random() * 50) + 10;
-                b = Math.floor(Math.random() * 50) + 10;
-                answer = a + b;
-            } else if (op === '-') {
-                a = Math.floor(Math.random() * 50) + 30;
-                b = Math.floor(Math.random() * 30) + 1;
-                answer = a - b;
-            } else {
-                a = Math.floor(Math.random() * 12) + 2;
-                b = Math.floor(Math.random() * 12) + 2;
-                answer = a * b;
+            // Seleccionar pregunta no usada
+            const availableQuestions = questions.filter((_, i) => !freelanceState.questionsUsed.includes(i));
+            if (availableQuestions.length === 0) {
+                endFreelanceJob();
+                return;
             }
 
-            miniGameState.currentAnswer = answer;
-            miniGameState.roundStart = Date.now();
+            const questionIndex = questions.indexOf(availableQuestions[Math.floor(Math.random() * availableQuestions.length)]);
+            freelanceState.questionsUsed.push(questionIndex);
+            const question = questions[questionIndex];
+
+            freelanceState.currentQuestion = question;
+            freelanceState.roundStart = Date.now();
+
+            const difficultyLabels = ['', '⭐ Fácil', '⭐⭐ Medio', '⭐⭐⭐ Difícil'];
+            const difficultyColors = ['', '#4CAF50', '#ff9800', '#f44336'];
+            const timeLimit = 20 + (question.difficulty * 10); // 30, 40, 50 segundos según dificultad
+            freelanceState.timeLimit = timeLimit;
 
             const html = `
                 <div style="text-align: center;">
-                    <div style="color: #888; margin-bottom: 10px;">Ronda ${miniGameState.round}/${miniGameState.maxRounds}</div>
-                    <div style="font-size: 3em; margin: 30px 0;">${a} ${op} ${b} = ?</div>
-                    <input type="number" id="mathAnswer" style="font-size: 1.5em; padding: 10px 20px; width: 150px; text-align: center; border-radius: 10px; border: 2px solid #4CAF50; background: rgba(0,0,0,0.3); color: white;"
-                           onkeypress="if(event.key==='Enter') checkMathAnswer()">
-                    <div style="margin-top: 20px;">
-                        <button class="btn btn-success" onclick="checkMathAnswer()">Responder</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div style="color: #888;">Pregunta ${freelanceState.round}/${freelanceState.maxRounds}</div>
+                        <div style="color: ${difficultyColors[question.difficulty]}; font-size: 0.85em;">${difficultyLabels[question.difficulty]}</div>
                     </div>
-                    <div id="mathTimer" style="margin-top: 15px; color: #ff9800;">⏱️ 10 segundos</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 15px;">
+                        <span style="font-size: 1.5em;">${category.icon}</span>
+                        <span style="color: #aaa;">${category.subcategories[subcategoryId].name}</span>
+                    </div>
+                    <div style="font-size: 1.2em; margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; line-height: 1.5;">
+                        ${question.q}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0;">
+                        ${question.options.map((opt, i) => `
+                            <button class="btn" onclick="answerFreelance(${i})" style="padding: 12px; font-size: 0.95em; text-align: left;">
+                                <span style="color: #4CAF50; font-weight: bold;">${String.fromCharCode(65 + i)}.</span> ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="freelanceTimer" style="color: #ff9800; font-size: 1.1em;">⏱️ ${timeLimit} segundos</div>
+                    <div style="margin-top: 10px; color: #888; font-size: 0.8em;">
+                        💡 ¿No sabes? Busca en Google y aprende algo nuevo
+                    </div>
                 </div>
             `;
 
-            document.getElementById('modalTitle').textContent = '🔢 Matemáticas Rápidas';
+            document.getElementById('modalTitle').textContent = `💼 ${category.name}`;
             document.getElementById('modalBody').innerHTML = html;
             document.getElementById('modalOptions').innerHTML = '';
-            document.getElementById('mathAnswer').focus();
 
             // Timer
-            miniGameState.timer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - miniGameState.roundStart) / 1000);
-                const remaining = 10 - elapsed;
-                const timerEl = document.getElementById('mathTimer');
+            freelanceState.timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - freelanceState.roundStart) / 1000);
+                const remaining = freelanceState.timeLimit - elapsed;
+                const timerEl = document.getElementById('freelanceTimer');
                 if (timerEl) {
                     timerEl.textContent = `⏱️ ${remaining} segundos`;
-                    if (remaining <= 3) timerEl.style.color = '#f44336';
+                    if (remaining <= 10) timerEl.style.color = '#f44336';
                 }
                 if (remaining <= 0) {
-                    clearInterval(miniGameState.timer);
-                    playMathGame();
+                    clearInterval(freelanceState.timer);
+                    showNotification('⏰ Tiempo agotado', 'error');
+                    setTimeout(playFreelanceRound, 1000);
                 }
             }, 1000);
         }
 
-        function checkMathAnswer() {
-            clearInterval(miniGameState.timer);
-            const userAnswer = parseInt(document.getElementById('mathAnswer').value);
-            if (userAnswer === miniGameState.currentAnswer) {
-                miniGameState.score++;
-                showNotification('¡Correcto!', 'success');
+        function answerFreelance(answerIndex) {
+            clearInterval(freelanceState.timer);
+            const question = freelanceState.currentQuestion;
+            const correct = answerIndex === question.answer;
+
+            if (correct) {
+                freelanceState.score += question.difficulty; // Más puntos por dificultad
+                showNotification('✅ ¡Correcto!', 'success');
             } else {
-                showNotification(`Incorrecto. Era ${miniGameState.currentAnswer}`, 'error');
+                const correctAnswer = question.options[question.answer];
+                showNotification(`❌ Incorrecto. Era: ${correctAnswer}`, 'error');
             }
-            setTimeout(playMathGame, 500);
+
+            setTimeout(playFreelanceRound, 1200);
         }
 
-        function playMemoryGame() {
-            miniGameState.round++;
-            if (miniGameState.round > miniGameState.maxRounds) {
-                endMiniGame();
-                return;
+        function endFreelanceJob() {
+            const { category } = currentFreelance;
+            const maxPossibleScore = freelanceState.maxRounds * 2; // Asumiendo dificultad promedio 2
+            const scoreRatio = Math.min(1, freelanceState.score / maxPossibleScore);
+            const baseReward = category.baseReward[0] + (category.baseReward[1] - category.baseReward[0]) * scoreRatio;
+
+            // Bonus por dificultad promedio de preguntas contestadas
+            const difficultyBonus = 1 + (freelanceState.score / freelanceState.maxRounds) * 0.3;
+            const reward = Math.floor(baseReward * difficultyBonus);
+
+            gameState.money += reward;
+            gameState.stats.totalEarned += reward;
+
+            // Track freelance jobs for progression
+            if (!gameState.freelanceJobs) gameState.freelanceJobs = {};
+            if (!gameState.freelanceJobs[currentFreelance.categoryId]) {
+                gameState.freelanceJobs[currentFreelance.categoryId] = { completed: 0, totalEarned: 0 };
             }
+            gameState.freelanceJobs[currentFreelance.categoryId].completed++;
+            gameState.freelanceJobs[currentFreelance.categoryId].totalEarned += reward;
 
-            // Generar secuencia de números
-            const length = 3 + miniGameState.round;
-            const sequence = Array.from({length}, () => Math.floor(Math.random() * 10));
-            miniGameState.currentAnswer = sequence.join('');
+            const correctAnswers = Math.round(scoreRatio * freelanceState.maxRounds);
+            const performance = scoreRatio >= 0.8 ? '🏆 Excelente' : scoreRatio >= 0.5 ? '👍 Bien' : '📚 A estudiar';
+            const performanceEmoji = scoreRatio >= 0.8 ? '🏆' : scoreRatio >= 0.5 ? '👍' : '📚';
 
-            let html = `
+            const html = `
                 <div style="text-align: center;">
-                    <div style="color: #888; margin-bottom: 10px;">Ronda ${miniGameState.round}/${miniGameState.maxRounds}</div>
-                    <div style="font-size: 1em; color: #ff9800; margin-bottom: 20px;">Memoriza estos números:</div>
-                    <div id="memoryDisplay" style="font-size: 3em; letter-spacing: 15px; margin: 30px 0;">${sequence.join(' ')}</div>
-                    <div id="memoryInput" style="display: none;">
-                        <input type="text" id="memoryAnswer" style="font-size: 1.5em; padding: 10px 20px; width: 200px; text-align: center; border-radius: 10px; border: 2px solid #4CAF50; background: rgba(0,0,0,0.3); color: white; letter-spacing: 5px;"
-                               onkeypress="if(event.key==='Enter') checkMemoryAnswer()">
-                        <div style="margin-top: 20px;">
-                            <button class="btn btn-success" onclick="checkMemoryAnswer()">Responder</button>
+                    <div style="font-size: 4em; margin-bottom: 20px;">${performanceEmoji}</div>
+                    <div style="font-size: 1.5em; font-weight: bold; margin-bottom: 10px; color: ${scoreRatio >= 0.5 ? '#4CAF50' : '#ff9800'};">
+                        ${performance}
+                    </div>
+                    <div style="font-size: 1.1em; margin-bottom: 20px; color: #aaa;">
+                        Trabajo: ${category.name}<br>
+                        Aciertos: ${correctAnswers}/${freelanceState.maxRounds}
+                    </div>
+                    <div style="font-size: 2.5em; color: #4CAF50; font-weight: bold; margin: 20px 0;">
+                        +${formatMoney(reward)}
+                    </div>
+                    <div style="padding: 15px; background: rgba(33,150,243,0.1); border-radius: 10px; margin-top: 20px;">
+                        <div style="color: #888; font-size: 0.85em;">
+                            💡 Cada trabajo freelance te enseña algo nuevo.<br>
+                            Busca las respuestas que no supiste para mejorar.
                         </div>
                     </div>
                 </div>
             `;
 
-            document.getElementById('modalTitle').textContent = '🧠 Memoria';
-            document.getElementById('modalBody').innerHTML = html;
-            document.getElementById('modalOptions').innerHTML = '';
-
-            // Ocultar después de unos segundos
-            setTimeout(() => {
-                const display = document.getElementById('memoryDisplay');
-                const input = document.getElementById('memoryInput');
-                if (display && input) {
-                    display.textContent = '¿Cuál era la secuencia?';
-                    display.style.fontSize = '1.5em';
-                    input.style.display = 'block';
-                    document.getElementById('memoryAnswer').focus();
-                }
-            }, 2000 + (miniGameState.round * 500));
-        }
-
-        function checkMemoryAnswer() {
-            const userAnswer = document.getElementById('memoryAnswer').value.replace(/\s/g, '');
-            if (userAnswer === miniGameState.currentAnswer) {
-                miniGameState.score++;
-                showNotification('¡Correcto!', 'success');
-            } else {
-                showNotification(`Incorrecto. Era ${miniGameState.currentAnswer}`, 'error');
-            }
-            setTimeout(playMemoryGame, 500);
-        }
-
-        function playTypingGame() {
-            miniGameState.round++;
-            if (miniGameState.round > miniGameState.maxRounds) {
-                endMiniGame();
-                return;
-            }
-
-            const words = ['trabajo', 'dinero', 'familia', 'empresa', 'cliente', 'oficina', 'computadora', 'telefono', 'proyecto', 'reunion', 'contrato', 'factura', 'empleado', 'gerente', 'sueldo', 'banco', 'ahorro', 'negocio', 'mercado', 'tienda'];
-            const word = words[Math.floor(Math.random() * words.length)];
-            miniGameState.currentAnswer = word;
-            miniGameState.roundStart = Date.now();
-
-            const html = `
-                <div style="text-align: center;">
-                    <div style="color: #888; margin-bottom: 10px;">Ronda ${miniGameState.round}/${miniGameState.maxRounds}</div>
-                    <div style="font-size: 1em; color: #ff9800; margin-bottom: 20px;">Escribe esta palabra:</div>
-                    <div style="font-size: 2.5em; margin: 30px 0; color: #4CAF50;">${word}</div>
-                    <input type="text" id="typingAnswer" style="font-size: 1.5em; padding: 10px 20px; width: 250px; text-align: center; border-radius: 10px; border: 2px solid #4CAF50; background: rgba(0,0,0,0.3); color: white;"
-                           onkeypress="if(event.key==='Enter') checkTypingAnswer()" autocomplete="off">
-                    <div id="typingTimer" style="margin-top: 15px; color: #ff9800;">⏱️ 8 segundos</div>
-                </div>
-            `;
-
-            document.getElementById('modalTitle').textContent = '⌨️ Velocidad de Escritura';
-            document.getElementById('modalBody').innerHTML = html;
-            document.getElementById('modalOptions').innerHTML = '';
-            document.getElementById('typingAnswer').focus();
-
-            miniGameState.timer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - miniGameState.roundStart) / 1000);
-                const remaining = 8 - elapsed;
-                const timerEl = document.getElementById('typingTimer');
-                if (timerEl) {
-                    timerEl.textContent = `⏱️ ${remaining} segundos`;
-                    if (remaining <= 3) timerEl.style.color = '#f44336';
-                }
-                if (remaining <= 0) {
-                    clearInterval(miniGameState.timer);
-                    playTypingGame();
-                }
-            }, 1000);
-        }
-
-        function checkTypingAnswer() {
-            clearInterval(miniGameState.timer);
-            const userAnswer = document.getElementById('typingAnswer').value.toLowerCase().trim();
-            if (userAnswer === miniGameState.currentAnswer) {
-                miniGameState.score++;
-                showNotification('¡Correcto!', 'success');
-            } else {
-                showNotification('Incorrecto', 'error');
-            }
-            setTimeout(playTypingGame, 500);
-        }
-
-        function endMiniGame() {
-            const game = MINI_GAMES[currentMiniGame];
-            const accuracy = miniGameState.score / miniGameState.maxRounds;
-            const baseReward = game.reward[0] + (game.reward[1] - game.reward[0]) * accuracy;
-            const reward = Math.floor(baseReward);
-
-            gameState.money += reward;
-            gameState.stats.totalEarned += reward;
-
-            const html = `
-                <div style="text-align: center;">
-                    <div style="font-size: 4em; margin-bottom: 20px;">${accuracy >= 0.8 ? '🏆' : accuracy >= 0.5 ? '👍' : '😅'}</div>
-                    <div style="font-size: 1.5em; font-weight: bold; margin-bottom: 10px;">
-                        ${accuracy >= 0.8 ? '¡Excelente!' : accuracy >= 0.5 ? '¡Bien hecho!' : 'Sigue practicando'}
-                    </div>
-                    <div style="font-size: 1.2em; margin-bottom: 20px;">
-                        Aciertos: ${miniGameState.score}/${miniGameState.maxRounds}
-                    </div>
-                    <div style="font-size: 2em; color: #4CAF50; font-weight: bold;">
-                        +${formatMoney(reward)}
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('modalTitle').textContent = '🎮 Resultado';
+            document.getElementById('modalTitle').textContent = '💼 Trabajo Completado';
             document.getElementById('modalBody').innerHTML = html;
             document.getElementById('modalOptions').innerHTML = `
-                <button class="btn" onclick="openMiniGamesMenu()">Jugar otro</button>
+                <button class="btn" onclick="openFreelanceMenu()">Otro trabajo</button>
                 <button class="btn btn-success" onclick="closeModal()">Cerrar</button>
             `;
 
-            addLog(`🎮 Mini-juego: +${formatMoney(reward)}`, 'positive');
+            addLog(`💼 Freelance (${category.name}): +${formatMoney(reward)}`, 'positive');
             updateUI();
-            currentMiniGame = null;
+            currentFreelance = null;
         }
 
         // ==================== SISTEMA DE GUARDADO ====================
