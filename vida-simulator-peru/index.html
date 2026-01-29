@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sufre Peruano - Simulador de Vida</title>
+    <title>Perulandia - Simulador de Vida</title>
     <style>
         * {
             margin: 0;
@@ -1632,7 +1632,7 @@
         <!-- Pantalla de Inicio -->
         <div id="titleScreen" class="screen active">
             <div class="title-screen">
-                <h1>🇵🇪 SUFRE PERUANO</h1>
+                <h1>🇵🇪 PERULANDIA</h1>
                 <p class="subtitle">Simulador de Vida Realista</p>
                 <p style="color: #888; font-size: 0.8em; margin-top: 5px;">v1.1.0</p>
 
@@ -1752,7 +1752,7 @@
                 <!-- Sidebar -->
                 <aside class="sidebar" id="gameSidebar">
                     <div class="sidebar-header">
-                        <h1 id="peruPhrase">🇵🇪 SUFRE PERUANO</h1>
+                        <h1 id="peruPhrase">🇵🇪 PERULANDIA</h1>
                         <div class="subtitle">Simulador de Vida</div>
                     </div>
 
@@ -5240,7 +5240,7 @@
                 // FÍSICO
                 { id: 'gym_session', icon: '🏋️', name: gameState.gymMembership ? 'Entrenar (Membresía)' : 'Ir al gimnasio',
                   category: 'fisico', cost: gameState.gymMembership ? 0 : 25,
-                  tooltip: `💪 Fuerza +2 | 🏃 Resistencia +2 | ❤️ Salud +5 | 🧘 Estrés -10. Fitness actual: ${Math.round((gameState.personalStats.strength + gameState.personalStats.endurance) / 2)}%${gameState.gymMembership ? ' (Membresía activa)' : ''}`,
+                  tooltip: `💪 Fuerza +2 | 🏃 Resistencia +2 | ❤️ Salud +5 | 🧘 Estrés -10. Fitness actual: ${Math.round((gameState.physicalStats.strength + gameState.physicalStats.endurance) / 2)}%${gameState.gymMembership ? ' (Membresía activa)' : ''}`,
                   effects: { health: 5, energy: -30 }, bonusStrength: 2, bonusEndurance: 2 },
                 { id: 'gym_membership', icon: '💳', name: 'Membresía Gym (3 meses)', category: 'fisico', cost: 150,
                   tooltip: '¡3 meses de entrenamiento gratis! Mejora: Fuerza, Resistencia, Salud, reduce Estrés. Accede a mejores trabajos físicos.',
@@ -6582,10 +6582,18 @@
                                 <p><strong>Personalidad:</strong> ${gameState.relationships.romantic.personality}</p>
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-                                <button class="btn btn-small btn-success" onclick="doRomanceAction('date')">💑 Salir en cita</button>
-                                <button class="btn btn-small btn-secondary" onclick="doRomanceAction('gift')">🎁 Dar regalo</button>
-                                <button class="btn btn-small btn-warning" onclick="doRomanceAction('talk')">💬 Conversar</button>
-                                <button class="btn btn-small btn-danger" onclick="doRomanceAction('breakup')">💔 Terminar</button>
+                                <button class="btn btn-small btn-success" onclick="doRomanceAction('date')" title="Cita romántica: +10 Relación, +15 Felicidad, -10 Estrés">
+                                    💑 Cita <span style="font-size: 0.75em; opacity: 0.8;">(S/100)</span>
+                                </button>
+                                <button class="btn btn-small btn-secondary" onclick="doRomanceAction('gift')" title="Regalar algo especial: +15 Relación">
+                                    🎁 Regalo <span style="font-size: 0.75em; opacity: 0.8;">(S/150)</span>
+                                </button>
+                                <button class="btn btn-small btn-warning" onclick="doRomanceAction('talk')" title="Hablar y conectar: +5 Relación, -5 Estrés">
+                                    💬 Conversar <span style="font-size: 0.75em; opacity: 0.8;">(Gratis)</span>
+                                </button>
+                                <button class="btn btn-small btn-danger" onclick="doRomanceAction('breakup')" title="Terminar la relación">
+                                    💔 Terminar
+                                </button>
                             </div>
                         ` : `
                             <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
@@ -7705,14 +7713,34 @@
                 </div>
 
                 <!-- Información adicional -->
-                <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; font-size: 0.85em;">
+                <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; font-size: 0.85em; margin-bottom: 15px;">
                     <div style="color: #888; margin-bottom: 5px;">📊 Estadísticas del negocio</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; color: #aaa;">
                         <div>📅 Meses operando: ${business.monthsOwned}</div>
                         <div>📣 Campañas marketing: ${business.marketing || 0}</div>
                         <div>💵 Último mes: ${formatMoney(business.lastRevenue)}</div>
                         <div>⚠️ Riesgo: ${Math.round(data.riskFactor * 100)}%</div>
+                        <div>💸 Impuestos pagados: ${formatMoney(business.taxesPaid || 0)}</div>
+                        <div>📋 Multas pagadas: ${formatMoney(business.finesPaid || 0)}</div>
                     </div>
+                </div>
+
+                <!-- Opción ilegal -->
+                <div style="background: rgba(244,67,54,0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(244,67,54,0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: bold; color: #f44336;">💀 Zona de Riesgo</div>
+                            <div style="font-size: 0.8em; color: #888;">Actividades ilegales con alto riesgo</div>
+                        </div>
+                        <button class="btn btn-small btn-danger" onclick="attemptBusinessFraud(${index})">
+                            💰 Evadir Impuestos
+                        </button>
+                    </div>
+                    ${(business.fraudAttempts || 0) > 0 ? `
+                        <div style="font-size: 0.75em; color: #ff9800; margin-top: 8px;">
+                            ⚠️ Ya has intentado fraude ${business.fraudAttempts} vez(es). El riesgo de ser atrapado aumenta.
+                        </div>
+                    ` : ''}
                 </div>
             `;
 
@@ -7879,9 +7907,33 @@
         function processBusinesses() {
             let totalIncome = 0;
 
-            gameState.businesses.forEach(business => {
+            // Inicializar historial de fraudes si no existe
+            if (!gameState.businessFraudHistory) {
+                gameState.businessFraudHistory = [];
+            }
+
+            gameState.businesses.forEach((business, businessIndex) => {
                 const data = BUSINESSES[business.id];
                 business.monthsOwned++;
+
+                // Inicializar campos si no existen
+                if (!business.taxesPaid) business.taxesPaid = 0;
+                if (!business.finesPaid) business.finesPaid = 0;
+                if (!business.fraudAttempts) business.fraudAttempts = 0;
+                if (!business.isClosed) business.isClosed = false;
+
+                // Si el negocio está clausurado, no genera ingresos
+                if (business.isClosed) {
+                    if (business.closedMonthsLeft > 0) {
+                        business.closedMonthsLeft--;
+                        addLog(`🚫 ${business.name}: Clausurado. ${business.closedMonthsLeft} meses restantes.`, 'warning');
+                        if (business.closedMonthsLeft <= 0) {
+                            business.isClosed = false;
+                            addLog(`✅ ${business.name}: Reabierto después de clausura.`, 'positive');
+                        }
+                    }
+                    return; // Saltar este negocio
+                }
 
                 // Calcular ingresos base
                 const baseRevenue = randomRange(data.monthlyRevenue[0], data.monthlyRevenue[1]);
@@ -7903,24 +7955,98 @@
                 let revenue = Math.floor(baseRevenue * levelBonus * employeeBonus * reputationBonus * marketingBonus);
 
                 // Calcular gastos (base + empleados)
-                const expenses = data.monthlyExpenses + (business.employees * 1000);
+                let expenses = data.monthlyExpenses + (business.employees * 1000);
+
+                // ========== IMPUESTOS MENSUALES (IGV/SUNAT) ==========
+                const taxRate = 0.18; // 18% IGV
+                const monthlyTax = Math.floor(revenue * taxRate * 0.3); // Solo sobre el 30% de ingresos
+                expenses += monthlyTax;
+                business.taxesPaid += monthlyTax;
 
                 // Reducir riesgo con el nivel (menos problemas en negocios mejorados)
                 const adjustedRiskFactor = data.riskFactor * (1 - level * 0.1);
 
-                // Evento de riesgo (robo, incidente, etc.)
-                if (Math.random() < adjustedRiskFactor) {
+                // ========== EVENTOS ALEATORIOS DE NEGOCIO ==========
+                const eventRoll = Math.random();
+
+                // 1. MULTA DE SUNAT (8% probabilidad)
+                if (eventRoll < 0.08) {
+                    const fineAmount = randomRange(500, 3000);
+                    gameState.money -= fineAmount;
+                    business.finesPaid += fineAmount;
+                    addLog(`📋 ${business.name}: Multa de SUNAT por irregularidades. -${formatMoney(fineAmount)}`, 'negative');
+                }
+                // 2. MULTA MUNICIPAL (6% probabilidad)
+                else if (eventRoll < 0.14) {
+                    const fineAmount = randomRange(200, 1000);
+                    gameState.money -= fineAmount;
+                    business.finesPaid += fineAmount;
+                    addLog(`🏛️ ${business.name}: Multa municipal (licencia/higiene). -${formatMoney(fineAmount)}`, 'warning');
+                }
+                // 3. ROBO (5% probabilidad)
+                else if (eventRoll < 0.19) {
+                    const stolenAmount = randomRange(500, 5000);
+                    gameState.money -= stolenAmount;
+                    addLog(`🔓 ${business.name}: ¡Robo! Perdiste ${formatMoney(stolenAmount)} en mercadería/dinero.`, 'negative');
+                    // Opción: Contratar seguro
+                }
+                // 4. INSPECCIÓN (4% probabilidad)
+                else if (eventRoll < 0.23) {
+                    const inspectionResult = Math.random();
+                    if (inspectionResult < 0.4) {
+                        // Pasó la inspección
+                        business.reputation = Math.min(100, business.reputation + 5);
+                        addLog(`✅ ${business.name}: Pasó inspección de SUNAT/Municipal. +5 reputación.`, 'positive');
+                    } else if (inspectionResult < 0.7) {
+                        // Multa leve
+                        const fineAmount = randomRange(300, 800);
+                        gameState.money -= fineAmount;
+                        addLog(`⚠️ ${business.name}: Inspección con observaciones. Multa: ${formatMoney(fineAmount)}`, 'warning');
+                    } else {
+                        // Clausura temporal
+                        business.isClosed = true;
+                        business.closedMonthsLeft = randomRange(1, 3);
+                        addLog(`🚫 ${business.name}: ¡CLAUSURADO! por ${business.closedMonthsLeft} meses. Incumplimientos graves.`, 'negative');
+                        return; // No procesar más este negocio
+                    }
+                }
+                // 5. PROBLEMAS DE OPERACIÓN (basado en riskFactor)
+                else if (Math.random() < adjustedRiskFactor) {
                     const incident = Math.random();
                     if (incident < 0.3) {
                         revenue = Math.floor(revenue * 0.5);
-                        addLog(`⚠️ ${business.name}: Problemas este mes. Ingresos reducidos.`, 'warning');
+                        addLog(`⚠️ ${business.name}: Problemas operativos. Ingresos reducidos.`, 'warning');
                     } else if (incident < 0.5) {
                         const loss = randomRange(500, 2000);
-                        gameState.money -= loss;
-                        addLog(`🔧 ${business.name}: Reparaciones urgentes. -${formatMoney(loss)}`, 'negative');
+                        expenses += loss;
+                        addLog(`🔧 ${business.name}: Reparaciones urgentes. +${formatMoney(loss)} gastos`, 'warning');
+                    } else if (incident < 0.7) {
+                        // Empleado roba
+                        if (business.employees > 0) {
+                            const stolen = randomRange(200, 1000);
+                            gameState.money -= stolen;
+                            addLog(`👤 ${business.name}: Un empleado robó ${formatMoney(stolen)}. Fue despedido.`, 'negative');
+                            business.employees = Math.max(0, business.employees - 1);
+                        }
                     } else {
                         business.reputation = Math.max(20, business.reputation - 10);
-                        addLog(`📉 ${business.name}: Cliente insatisfecho. Reputación baja.`, 'warning');
+                        addLog(`📉 ${business.name}: Cliente insatisfecho. -10 reputación.`, 'warning');
+                    }
+                }
+
+                // 6. EVENTO POSITIVO (8% probabilidad)
+                if (Math.random() < 0.08) {
+                    const positiveEvent = Math.random();
+                    if (positiveEvent < 0.4) {
+                        const bonusRevenue = Math.floor(revenue * 0.3);
+                        revenue += bonusRevenue;
+                        addLog(`🌟 ${business.name}: ¡Mes excepcional! +${formatMoney(bonusRevenue)} extra`, 'special');
+                    } else if (positiveEvent < 0.7) {
+                        business.reputation = Math.min(100, business.reputation + 8);
+                        addLog(`⭐ ${business.name}: Reseña viral en redes sociales. +8 reputación.`, 'positive');
+                    } else {
+                        addLog(`📰 ${business.name}: Apareció en un artículo del diario. Más clientes.`, 'positive');
+                        revenue = Math.floor(revenue * 1.2);
                     }
                 }
 
@@ -7951,6 +8077,151 @@
             }
 
             return totalIncome;
+        }
+
+        // ========== SISTEMA DE FRAUDE EMPRESARIAL ==========
+        function attemptBusinessFraud(businessIndex) {
+            const business = gameState.businesses[businessIndex];
+            if (!business) return;
+
+            const data = BUSINESSES[business.id];
+            business.fraudAttempts = (business.fraudAttempts || 0) + 1;
+
+            // Calcular ganancia potencial del fraude
+            const fraudGain = Math.floor(data.monthlyRevenue[1] * (1 + Math.random()));
+
+            // Probabilidad de ser atrapado (aumenta con cada intento)
+            const catchProbability = 0.15 + (business.fraudAttempts * 0.1);
+
+            const html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2.5em;">💰</div>
+                    <div style="font-size: 1.2em; font-weight: bold; margin-top: 10px;">Evadir Impuestos / Fraude</div>
+                    <div style="color: #f44336; margin-top: 5px;">⚠️ Actividad Ilegal</div>
+                </div>
+
+                <div style="background: rgba(244,67,54,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="font-weight: bold; margin-bottom: 10px;">Riesgos:</div>
+                    <ul style="margin-left: 20px; color: #aaa; font-size: 0.9em;">
+                        <li>Multa: ${formatMoney(fraudGain * 3)} (3x la ganancia)</li>
+                        <li>Clausura del negocio: 3-6 meses</li>
+                        <li>Prisión: 6-24 meses</li>
+                        <li>Pérdida de reputación: -30 puntos</li>
+                    </ul>
+                    <div style="margin-top: 10px; color: #ff9800;">
+                        Probabilidad de ser atrapado: <strong>${Math.round(catchProbability * 100)}%</strong>
+                        ${business.fraudAttempts > 1 ? `<br><small>(+10% por cada intento previo)</small>` : ''}
+                    </div>
+                </div>
+
+                <div style="background: rgba(76,175,80,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <div style="font-weight: bold; margin-bottom: 10px;">Ganancia potencial:</div>
+                    <div style="font-size: 1.5em; color: #4CAF50; text-align: center;">${formatMoney(fraudGain)}</div>
+                    <div style="color: #888; text-align: center; font-size: 0.85em;">Dinero no declarado + facturas falsas</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="btn btn-danger" onclick="executeFraud(${businessIndex}, ${fraudGain}, ${catchProbability})">
+                        💀 Intentar Fraude
+                    </button>
+                    <button class="btn btn-secondary" onclick="openBusinessDetail(${businessIndex})">
+                        Cancelar
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = `⚠️ ${business.name}`;
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function executeFraud(businessIndex, fraudGain, catchProbability) {
+            const business = gameState.businesses[businessIndex];
+            if (!business) return;
+
+            const caught = Math.random() < catchProbability;
+
+            if (caught) {
+                // ¡Atrapado!
+                const fineAmount = fraudGain * 3;
+                const prisonMonths = randomRange(6, 24);
+                const closureMonths = randomRange(3, 6);
+
+                gameState.money -= fineAmount;
+                gameState.prisonMonths += prisonMonths;
+                business.isClosed = true;
+                business.closedMonthsLeft = closureMonths;
+                business.reputation = Math.max(10, business.reputation - 30);
+
+                // Guardar en historial
+                if (!gameState.businessFraudHistory) gameState.businessFraudHistory = [];
+                gameState.businessFraudHistory.push({
+                    business: business.name,
+                    year: gameState.year,
+                    caught: true,
+                    fine: fineAmount,
+                    prison: prisonMonths
+                });
+
+                addLog(`🚨 ¡ATRAPADO! Fraude en ${business.name}. Multa: ${formatMoney(fineAmount)}, Prisión: ${prisonMonths} meses`, 'negative');
+
+                const html = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 3em;">🚨</div>
+                        <div style="font-size: 1.5em; font-weight: bold; color: #f44336; margin: 15px 0;">¡ATRAPADO!</div>
+                        <p style="color: #aaa; margin-bottom: 20px;">SUNAT y la policía descubrieron tu fraude fiscal.</p>
+
+                        <div style="background: rgba(244,67,54,0.2); padding: 15px; border-radius: 10px; text-align: left; margin-bottom: 15px;">
+                            <div style="margin-bottom: 8px;">💸 Multa: <strong style="color: #f44336;">${formatMoney(fineAmount)}</strong></div>
+                            <div style="margin-bottom: 8px;">🔒 Prisión: <strong style="color: #f44336;">${prisonMonths} meses</strong></div>
+                            <div style="margin-bottom: 8px;">🚫 Clausura: <strong style="color: #ff9800;">${closureMonths} meses</strong></div>
+                            <div>📉 Reputación: <strong style="color: #ff9800;">-30 puntos</strong></div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('modalTitle').textContent = '⚖️ Justicia';
+                document.getElementById('modalBody').innerHTML = html;
+                document.getElementById('modalOptions').innerHTML = '<button class="btn" onclick="closeModal(); updateUI();">Aceptar</button>';
+            } else {
+                // ¡Éxito!
+                gameState.money += fraudGain;
+
+                // Guardar en historial
+                if (!gameState.businessFraudHistory) gameState.businessFraudHistory = [];
+                gameState.businessFraudHistory.push({
+                    business: business.name,
+                    year: gameState.year,
+                    caught: false,
+                    gain: fraudGain
+                });
+
+                addLog(`💰 Fraude exitoso en ${business.name}. +${formatMoney(fraudGain)} (dinero negro)`, 'special');
+
+                const html = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 3em;">💰</div>
+                        <div style="font-size: 1.5em; font-weight: bold; color: #4CAF50; margin: 15px 0;">¡Éxito!</div>
+                        <p style="color: #aaa; margin-bottom: 20px;">El fraude pasó desapercibido... por ahora.</p>
+
+                        <div style="background: rgba(76,175,80,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                            <div style="font-size: 1.8em; color: #4CAF50;">+${formatMoney(fraudGain)}</div>
+                            <div style="color: #888; font-size: 0.85em;">Dinero no declarado</div>
+                        </div>
+
+                        <div style="background: rgba(255,152,0,0.2); padding: 10px; border-radius: 8px; font-size: 0.85em; color: #ff9800;">
+                            ⚠️ Cada fraude aumenta la probabilidad de ser atrapado en el futuro.
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('modalTitle').textContent = '💰 Fraude';
+                document.getElementById('modalBody').innerHTML = html;
+                document.getElementById('modalOptions').innerHTML = '<button class="btn btn-success" onclick="closeModal(); updateUI();">Continuar</button>';
+            }
+
+            updateUI();
         }
 
         // ==================== EVENTOS ANUALES ====================
@@ -8559,7 +8830,7 @@
                     <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                         <div style="font-weight: bold; margin-bottom: 10px;">📋 Eventos del mes</div>
                         <div style="max-height: 100px; overflow-y: auto;">
-                            ${recentEvents.map(e => `<div style="font-size: 0.85em; color: #aaa; margin-bottom: 5px;">${e.text}</div>`).join('')}
+                            ${recentEvents.map(e => `<div style="font-size: 0.85em; color: #aaa; margin-bottom: 5px;">• ${e.message || e.text || 'Sin descripción'}</div>`).join('')}
                         </div>
                     </div>
                 ` : ''}
@@ -10342,17 +10613,43 @@
         }
 
         function loadGame() {
-            const save = localStorage.getItem('vidaPeruSave');
-            if (save) {
-                gameState = JSON.parse(save);
-                updateUI();
-                showScreen('gameScreen');
-                document.getElementById('creditsDisplay').style.display = 'block';
-                addLog('📂 Partida cargada', 'info');
-                showNotification('Partida cargada correctamente', 'success');
-            } else {
-                showNotification('No hay partida guardada', 'error');
+            // Mostrar modal para ingresar código de guardado
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2.5em;">📂</div>
+                    <div style="font-size: 1.1em; margin-top: 10px;">Cargar Partida</div>
+                    <div style="color: #888; font-size: 0.85em;">Ingresa el código de guardado para continuar tu partida</div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; color: #aaa;">Código de guardado:</label>
+                    <textarea id="loadCodeInput" placeholder="Pega aquí tu código de guardado..." style="width: 100%; height: 120px; background: rgba(0,0,0,0.4); border: 1px solid #333; border-radius: 8px; color: #fff; padding: 12px; font-family: monospace; font-size: 0.85em; resize: none;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-success" style="flex: 1;" onclick="loadFromCodeInput()">📥 Cargar Partida</button>
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeLoadModal()">Cancelar</button>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '📂 Cargar Partida';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function loadFromCodeInput() {
+            const code = document.getElementById('loadCodeInput').value.trim();
+            if (!code) {
+                showNotification('Por favor ingresa un código de guardado', 'error');
+                return;
             }
+            if (loadFromCode(code)) {
+                closeModal();
+            }
+        }
+
+        function closeLoadModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            showScreen('titleScreen');
         }
 
         // Generar código de guardado (como videojuegos clásicos)
