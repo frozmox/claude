@@ -397,6 +397,36 @@
             .header-stats {
                 display: none;
             }
+            /* Botón flotante PASAR MES en móvil */
+            .mobile-pass-month {
+                display: flex !important;
+            }
+        }
+
+        /* Botón flotante para móvil */
+        .mobile-pass-month {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-size: 1em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.5);
+            z-index: 999;
+            cursor: pointer;
+            border: none;
+            animation: pulse 2s infinite;
+        }
+        .mobile-pass-month:active {
+            transform: scale(0.95);
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 4px 15px rgba(255,107,107,0.5); }
+            50% { box-shadow: 0 4px 25px rgba(255,107,107,0.8); }
         }
 
         /* ========== ORIGINAL STYLES (adapted) ========== */
@@ -1625,10 +1655,6 @@
                                 <span class="icon">💎</span>
                                 <span class="label">Tienda</span>
                             </div>
-                            <div class="nav-item" onclick="openMiniGamesMenu()">
-                                <span class="icon">🎮</span>
-                                <span class="label">Mini-juegos</span>
-                            </div>
                             <div class="nav-item" onclick="openAdvisorMenu()">
                                 <span class="icon">🤖</span>
                                 <span class="label">Consejero</span>
@@ -1647,6 +1673,11 @@
                         </button>
                     </div>
                 </aside>
+
+                <!-- Botón flotante PASAR MES para móvil -->
+                <button class="mobile-pass-month" onclick="passMonth()">
+                    ⏭️ PASAR MES
+                </button>
 
                 <!-- Main Content -->
                 <main class="main-content">
@@ -1890,7 +1921,7 @@
                     description: 'Tu familia organiza una reunión. ¿Irás?',
                     trigger: { monthsPlayed: 6, chance: 0.15 },
                     choices: [
-                        { text: 'Ir y disfrutar', effect: { happiness: 10, credits: 5, money: -50 }, log: '🏠 Pasaste un buen momento con tu familia.' },
+                        { text: 'Ir y disfrutar', effect: { happiness: 10, credits: 2, money: -50 }, log: '🏠 Pasaste un buen momento con tu familia.' },
                         { text: 'No tengo tiempo', effect: { happiness: -5 }, log: '😔 Tu familia se sintió decepcionada.' }
                     ]
                 },
@@ -1911,7 +1942,7 @@
                     description: 'Tu madre necesita dinero para medicinas.',
                     trigger: { monthsPlayed: 12, chance: 0.12 },
                     choices: [
-                        { text: 'Ayudarla (S/ 500)', effect: { money: -500, happiness: 5, credits: 10 }, condition: (gs) => gs.money >= 500, log: '❤️ Ayudaste a tu madre. Ella está agradecida.' },
+                        { text: 'Ayudarla (S/ 500)', effect: { money: -500, happiness: 5, credits: 4 }, condition: (gs) => gs.money >= 500, log: '❤️ Ayudaste a tu madre. Ella está agradecida.' },
                         { text: 'No puedo ayudar', effect: { happiness: -15, stress: 10 }, log: '😢 Te sientes culpable por no poder ayudar.' }
                     ]
                 },
@@ -1943,7 +1974,7 @@
                     description: 'Tu abuelo necesita cuidados especiales.',
                     trigger: { monthsPlayed: 24, chance: 0.20 },
                     choices: [
-                        { text: 'Cuidarlo personalmente', effect: { energy: -20, happiness: 10, credits: 15 }, log: '🏥 Cuidaste a tu abuelo. Él valora tu sacrificio.' },
+                        { text: 'Cuidarlo personalmente', effect: { energy: -20, happiness: 10, credits: 6 }, log: '🏥 Cuidaste a tu abuelo. Él valora tu sacrificio.' },
                         { text: 'Pagar una enfermera (S/ 800)', effect: { money: -800 }, condition: (gs) => gs.money >= 800, log: '👩‍⚕️ Contrataste ayuda profesional para tu abuelo.' },
                         { text: 'No puedo hacer nada', effect: { happiness: -20, stress: 15 }, log: '😢 Te sientes impotente ante la situación.' }
                     ]
@@ -1967,7 +1998,7 @@
                     description: 'Un programa gratuito de apoyo psicológico está disponible.',
                     trigger: { monthsPlayed: 12, oneTime: true, chance: 0.30 },
                     choices: [
-                        { text: 'Asistir a terapia', effect: { happiness: 20, stress: -15, credits: 20 }, log: '🧠 La terapia te ayudó a procesar tu pasado.' },
+                        { text: 'Asistir a terapia', effect: { happiness: 20, stress: -15, credits: 8 }, log: '🧠 La terapia te ayudó a procesar tu pasado.' },
                         { text: 'No lo necesito', effect: {}, log: '🤷 Decidiste no asistir.' }
                     ]
                 },
@@ -1977,7 +2008,7 @@
                     description: 'Tienes la oportunidad de alejarte de tu familia tóxica.',
                     trigger: { monthsPlayed: 24, oneTime: true, chance: 0.25, condition: (gs) => gs.money >= 2000 },
                     choices: [
-                        { text: 'Independizarte', effect: { money: -2000, happiness: 30, stress: -20, credits: 30 }, log: '🦋 Finalmente te independizaste. Es un nuevo comienzo.' },
+                        { text: 'Independizarte', effect: { money: -2000, happiness: 30, stress: -20, credits: 12 }, log: '🦋 Finalmente te independizaste. Es un nuevo comienzo.' },
                         { text: 'Aún no estoy listo', effect: {}, log: '⏳ Decidiste esperar.' }
                     ]
                 }
@@ -1989,7 +2020,7 @@
                     description: 'Encontraste una foto antigua de tus padres.',
                     trigger: { monthsPlayed: 6, oneTime: true, chance: 0.40 },
                     choices: [
-                        { text: 'Guardarla con cariño', effect: { happiness: -5, credits: 10 }, log: '📷 La foto te trae recuerdos agridulces. Te hace más fuerte.' },
+                        { text: 'Guardarla con cariño', effect: { happiness: -5, credits: 4 }, log: '📷 La foto te trae recuerdos agridulces. Te hace más fuerte.' },
                         { text: 'Seguir adelante', effect: { happiness: 5 }, log: '💪 Decides enfocarte en el futuro.' }
                     ]
                 },
@@ -1999,8 +2030,8 @@
                     description: 'Una persona mayor quiere ser tu mentor.',
                     trigger: { monthsPlayed: 12, oneTime: true, chance: 0.25 },
                     choices: [
-                        { text: 'Aceptar la guía', effect: { skillPoints: 30, credits: 25, happiness: 15 }, log: '🌟 Tu mentor te enseña valiosas lecciones de vida.' },
-                        { text: 'Puedo solo', effect: { credits: 5 }, log: '🚶 Prefieres tu independencia.' }
+                        { text: 'Aceptar la guía', effect: { skillPoints: 30, credits: 10, happiness: 15 }, log: '🌟 Tu mentor te enseña valiosas lecciones de vida.' },
+                        { text: 'Puedo solo', effect: { credits: 2 }, log: '🚶 Prefieres tu independencia.' }
                     ]
                 },
                 {
@@ -2009,7 +2040,7 @@
                     description: 'Descubriste que tienes un hermano biológico.',
                     trigger: { monthsPlayed: 36, oneTime: true, chance: 0.20 },
                     choices: [
-                        { text: 'Buscarlo', effect: { money: -200, happiness: 25, credits: 20 }, log: '👨‍👧 Encontraste a tu hermano. Ya no estás solo.' },
+                        { text: 'Buscarlo', effect: { money: -200, happiness: 25, credits: 8 }, log: '👨‍👧 Encontraste a tu hermano. Ya no estás solo.' },
                         { text: 'Dejarlo pasar', effect: { happiness: -10 }, log: '😔 Prefieres no abrir viejas heridas.' }
                     ]
                 }
@@ -2021,7 +2052,7 @@
                     description: 'Tu familia en Venezuela necesita dinero.',
                     trigger: { monthsPlayed: 3, chance: 0.25 },
                     choices: [
-                        { text: 'Enviar S/ 300', effect: { money: -300, happiness: 10, credits: 5 }, condition: (gs) => gs.money >= 300, log: '💸 Enviaste dinero a tu familia. Se sienten aliviados.' },
+                        { text: 'Enviar S/ 300', effect: { money: -300, happiness: 10, credits: 2 }, condition: (gs) => gs.money >= 300, log: '💸 Enviaste dinero a tu familia. Se sienten aliviados.' },
                         { text: 'No puedo ahora', effect: { happiness: -10, stress: 10 }, log: '😢 Te sientes mal por no poder ayudar.' }
                     ]
                 },
@@ -2031,7 +2062,7 @@
                     description: 'Alguien te discriminó por ser extranjero.',
                     trigger: { monthsPlayed: 2, chance: 0.18 },
                     choices: [
-                        { text: 'Responder con calma', effect: { stress: 5, credits: 5 }, log: '🙏 Mantuviste la calma ante la ignorancia.' },
+                        { text: 'Responder con calma', effect: { stress: 5, credits: 2 }, log: '🙏 Mantuviste la calma ante la ignorancia.' },
                         { text: 'Confrontar', effect: { stress: 15, happiness: -5 }, log: '😠 La confrontación te dejó agotado.' },
                         { text: 'Ignorar', effect: { happiness: -5 }, log: '😞 Es difícil ignorar estos comentarios.' }
                     ]
@@ -2042,7 +2073,7 @@
                     description: 'Puedes regularizar tu situación migratoria.',
                     trigger: { monthsPlayed: 24, oneTime: true, chance: 0.35 },
                     choices: [
-                        { text: 'Hacer el trámite (S/ 500)', effect: { money: -500, happiness: 25, credits: 30 }, condition: (gs) => gs.money >= 500, log: '📄 ¡Obtuviste tu carnet de extranjería! Más oportunidades te esperan.' },
+                        { text: 'Hacer el trámite (S/ 500)', effect: { money: -500, happiness: 25, credits: 12 }, condition: (gs) => gs.money >= 500, log: '📄 ¡Obtuviste tu carnet de extranjería! Más oportunidades te esperan.' },
                         { text: 'Esperar', effect: {}, log: '⏳ Decides esperar por ahora.' }
                     ]
                 },
@@ -2052,7 +2083,7 @@
                     description: 'Tu familia quiere reunirse contigo en Perú.',
                     trigger: { monthsPlayed: 36, oneTime: true, chance: 0.30, condition: (gs) => gs.money >= 3000 },
                     choices: [
-                        { text: 'Ayudarlos a venir (S/ 3000)', effect: { money: -3000, happiness: 40, credits: 50 }, log: '👨‍👩‍👧 Tu familia está contigo. Juntos son más fuertes.' },
+                        { text: 'Ayudarlos a venir (S/ 3000)', effect: { money: -3000, happiness: 40, credits: 20 }, log: '👨‍👩‍👧 Tu familia está contigo. Juntos son más fuertes.' },
                         { text: 'Aún no es momento', effect: { happiness: -5 }, log: '⏳ Aún no tienes las condiciones.' }
                     ]
                 }
@@ -2308,7 +2339,7 @@
                 icon: "💼",
                 category: "trabajo",
                 check: (gs) => gs.jobMonths >= 3,
-                rewards: { money: 500, credits: 20 },
+                rewards: { money: 500, credits: 8 },
                 oneTime: false,
                 cooldown: 3
             },
@@ -2318,7 +2349,7 @@
                 icon: "🎉",
                 category: "trabajo",
                 check: (gs) => gs.stats.jobsHad >= 1,
-                rewards: { credits: 30, skillPoints: 20 },
+                rewards: { credits: 12, skillPoints: 20 },
                 oneTime: true
             },
             // Desafíos de ahorro
@@ -2328,7 +2359,7 @@
                 icon: "💰",
                 category: "finanzas",
                 check: (gs) => gs.money >= 1000,
-                rewards: { credits: 15 },
+                rewards: { credits: 5 },
                 oneTime: true
             },
             save_10000: {
@@ -2337,7 +2368,7 @@
                 icon: "💵",
                 category: "finanzas",
                 check: (gs) => gs.money >= 10000,
-                rewards: { credits: 40, skillPoints: 30 },
+                rewards: { credits: 15, skillPoints: 30 },
                 oneTime: true
             },
             save_50000: {
@@ -2346,7 +2377,7 @@
                 icon: "🏦",
                 category: "finanzas",
                 check: (gs) => gs.money >= 50000,
-                rewards: { credits: 100, skillPoints: 50 },
+                rewards: { credits: 40, skillPoints: 50 },
                 oneTime: true
             },
             // Desafíos de educación
@@ -2356,7 +2387,7 @@
                 icon: "🛠️",
                 category: "educacion",
                 check: (gs) => ['tecnico', 'universidad', 'maestria'].includes(gs.education),
-                rewards: { credits: 50, skillPoints: 40 },
+                rewards: { credits: 20, skillPoints: 40 },
                 oneTime: true
             },
             finish_university: {
@@ -2365,7 +2396,7 @@
                 icon: "🎓",
                 category: "educacion",
                 check: (gs) => ['universidad', 'maestria'].includes(gs.education),
-                rewards: { credits: 100, skillPoints: 80 },
+                rewards: { credits: 40, skillPoints: 80 },
                 oneTime: true
             },
             // Desafíos de habilidades
@@ -2384,7 +2415,7 @@
                 icon: "🌳",
                 category: "habilidades",
                 check: (gs) => gs.totalSkillsUnlocked >= 10,
-                rewards: { skillPoints: 60, credits: 30 },
+                rewards: { skillPoints: 60, credits: 12 },
                 oneTime: true
             },
             // Desafíos de bienestar
@@ -2405,7 +2436,7 @@
                 icon: "💕",
                 category: "social",
                 check: (gs) => gs.relationships?.romantic != null,
-                rewards: { credits: 15 },
+                rewards: { credits: 5 },
                 oneTime: true
             },
             make_friends: {
@@ -2414,7 +2445,7 @@
                 icon: "👥",
                 category: "social",
                 check: (gs) => (gs.relationships?.friends?.length || 0) >= 3,
-                rewards: { credits: 20, skillPoints: 10 },
+                rewards: { credits: 8, skillPoints: 10 },
                 oneTime: true
             },
             get_married: {
@@ -2423,7 +2454,7 @@
                 icon: "💒",
                 category: "social",
                 check: (gs) => gs.relationships?.romantic?.relationshipType === 'Casados',
-                rewards: { credits: 50 },
+                rewards: { credits: 20 },
                 oneTime: true
             },
             // Desafíos de vivienda
@@ -2433,7 +2464,7 @@
                 icon: "🚪",
                 category: "vivienda",
                 check: (gs) => ['cuarto_solo', 'minidepa', 'depto_1d', 'depto_2d', 'casa'].includes(gs.housing),
-                rewards: { credits: 20 },
+                rewards: { credits: 8 },
                 oneTime: true
             },
             own_apartment: {
@@ -2442,7 +2473,7 @@
                 icon: "🏢",
                 category: "vivienda",
                 check: (gs) => ['minidepa', 'depto_1d', 'depto_2d'].includes(gs.housing),
-                rewards: { credits: 40 },
+                rewards: { credits: 15 },
                 oneTime: true
             },
             // Desafíos de supervivencia
@@ -2452,7 +2483,7 @@
                 icon: "📅",
                 category: "supervivencia",
                 check: (gs) => gs.age >= 19,
-                rewards: { credits: 30, skillPoints: 20 },
+                rewards: { credits: 10, skillPoints: 20 },
                 oneTime: true
             },
             survive_5_years: {
@@ -2461,7 +2492,7 @@
                 icon: "🏆",
                 category: "supervivencia",
                 check: (gs) => gs.age >= 23,
-                rewards: { credits: 100, skillPoints: 50 },
+                rewards: { credits: 35, skillPoints: 50 },
                 oneTime: true
             }
         };
@@ -2912,14 +2943,15 @@
             },
             trabajo_sexual: {
                 name: "Trabajo sexual", salary: [1500, 4000], education: "ninguno", stress: 60, energy: -30,
-                category: "ilegal", illegal: true,
+                category: "informal",
                 requirements: { minAppearance: 40 },
-                description: "⚠️ ILEGAL: Prostitución. Riesgos de salud y legales. Más común en mujeres.",
+                description: "⚠️ RIESGOSO: Riesgos de salud (ITS/VIH) y violencia. Más común en mujeres.",
                 availableFrom: 0,
-                riskPerMonth: 12,
-                prisonTime: [3, 12],
-                healthRisk: 15,  // Riesgo de enfermedades
-                genderBonus: { mujer: 1.5, trans: 1.2 }  // Multiplicador de salario por género
+                sexWork: true,  // Marcador especial para procesamiento
+                healthRiskPerMonth: 15,   // % de contraer ITS/ETS
+                hivRiskPerMonth: 3,       // % de contraer VIH
+                violenceRiskPerMonth: 10, // % de ser agredido/asaltado
+                genderBonus: { mujer: 1.5, trans: 1.2 }
             },
 
             // ========== SEGUROS - CARRERA COMPLETA ==========
@@ -3078,6 +3110,54 @@
                     { text: "Teniendo mi propio negocio", score: 5, response: "Interesante... aunque esperamos que te quedes." },
                     { text: "En otro país", score: -10, response: "Hmm, entonces esto sería temporal..." }
                   ]
+                },
+                { question: "¿Por qué dejaste tu trabajo anterior?",
+                  options: [
+                    { text: "Busco mejores oportunidades de crecimiento", score: 15, response: "Comprensible, aquí las hay." },
+                    { text: "No me llevaba bien con mi jefe", score: -10, response: "Esperemos que aquí sea diferente..." },
+                    { text: "La empresa cerró / hubo recortes", score: 10, response: "Entiendo, situaciones difíciles." },
+                    { text: "Era mi primer trabajo, aún no tengo experiencia", score: 5, response: "Todos empezamos en algún momento." }
+                  ]
+                },
+                { question: "¿Cuál es tu mayor debilidad?",
+                  options: [
+                    { text: "A veces soy muy perfeccionista", score: 10, response: "Eso puede ser bueno si lo controlas." },
+                    { text: "Me cuesta decir que no", score: 5, response: "Hay que aprender a poner límites." },
+                    { text: "Soy muy impaciente", score: -5, response: "Eso puede ser un problema aquí." },
+                    { text: "No tengo debilidades", score: -15, response: "Todos tenemos áreas de mejora..." }
+                  ]
+                },
+                { question: "¿Cómo manejas el estrés laboral?",
+                  options: [
+                    { text: "Organizo mis tareas y priorizo", score: 15, response: "Excelente estrategia." },
+                    { text: "Hago ejercicio y descanso bien", score: 10, response: "Buenas prácticas de autocuidado." },
+                    { text: "A veces me estreso mucho", score: -5, response: "Aquí hay bastante presión..." },
+                    { text: "No me estreso fácilmente", score: 5, response: "Veremos si eso se mantiene." }
+                  ]
+                },
+                { question: "¿Qué sabes de nuestra empresa?",
+                  options: [
+                    { text: "Investigué y conozco su historia y valores", score: 20, response: "Se nota que vienes preparado/a." },
+                    { text: "Sé que son una empresa importante", score: 5, response: "Deberías investigar más." },
+                    { text: "Honestamente, no mucho", score: -15, response: "Eso no habla bien de tu interés..." },
+                    { text: "Vi su página web ayer", score: 0, response: "Al menos algo investigaste." }
+                  ]
+                },
+                { question: "¿Estás dispuesto/a a trabajar horas extra si es necesario?",
+                  options: [
+                    { text: "Sí, cuando el trabajo lo requiera", score: 15, response: "Eso es lo que esperamos." },
+                    { text: "Depende de la compensación", score: 5, response: "Se pagan las horas extra, sí." },
+                    { text: "Preferiría no hacerlo", score: -10, response: "Aquí a veces es necesario..." },
+                    { text: "Solo si me avisan con anticipación", score: 0, response: "No siempre es posible avisar." }
+                  ]
+                },
+                { question: "¿Qué esperas ganar en este puesto?",
+                  options: [
+                    { text: "Según lo que ofrece el mercado", score: 10, response: "Razonable." },
+                    { text: "El sueldo publicado me parece bien", score: 15, response: "Perfecto, estamos alineados." },
+                    { text: "Lo máximo posible", score: -5, response: "Todos quisiéramos eso..." },
+                    { text: "No he pensado en eso todavía", score: -10, response: "Deberías tener claro tu valor." }
+                  ]
                 }
             ],
             physical: [
@@ -3088,6 +3168,22 @@
                     { text: "¿Qué tan pesado?", score: 0, response: "Entre 20 y 50 kilos regularmente." },
                     { text: "Honestamente, no mucho", score: -20, response: "Este trabajo no es para ti entonces." }
                   ]
+                },
+                { question: "¿Has tenido lesiones de espalda o articulaciones?",
+                  options: [
+                    { text: "No, estoy completamente sano/a", score: 15, response: "Excelente." },
+                    { text: "Tuve algo menor pero ya estoy bien", score: 5, response: "Tendremos cuidado." },
+                    { text: "Sí, tengo algunos problemas", score: -15, response: "Este trabajo podría empeorarlos." },
+                    { text: "Prefiero no responder", score: -10, response: "Necesitamos saber por tu seguridad." }
+                  ]
+                },
+                { question: "¿Puedes trabajar bajo el sol o en frío intenso?",
+                  options: [
+                    { text: "Sí, sin problema", score: 15, response: "Bien, porque hay días duros." },
+                    { text: "Me adapto a lo que sea necesario", score: 10, response: "Buena actitud." },
+                    { text: "Prefiero ambientes cerrados", score: -10, response: "Eso no siempre es posible aquí." },
+                    { text: "Depende de cuánto tiempo", score: 0, response: "A veces son jornadas largas." }
+                  ]
                 }
             ],
             customer_service: [
@@ -3097,6 +3193,66 @@
                     { text: "Le digo que no me grite", score: -10, response: "Entendemos, pero hay que ser diplomáticos." },
                     { text: "Llamo al supervisor", score: 10, response: "Bien, aunque esperamos que puedas manejarlo." },
                     { text: "Lo ignoro", score: -15, response: "No podemos ignorar a los clientes." }
+                  ]
+                },
+                { question: "¿Cómo manejas a un cliente que quiere un reembolso injustificado?",
+                  options: [
+                    { text: "Explico la política amablemente", score: 15, response: "Correcto, siempre con respeto." },
+                    { text: "Le doy el reembolso para evitar problemas", score: -10, response: "No podemos regalar dinero..." },
+                    { text: "Llamo al gerente inmediatamente", score: 5, response: "A veces es necesario, pero intenta resolverlo tú." },
+                    { text: "Le digo que no se puede y punto", score: -5, response: "Hay que ser más diplomático." }
+                  ]
+                },
+                { question: "¿Qué harías si ves a un compañero tratando mal a un cliente?",
+                  options: [
+                    { text: "Intervengo diplomáticamente para ayudar", score: 15, response: "El trabajo en equipo es importante." },
+                    { text: "Lo reporto después a mi supervisor", score: 10, response: "Está bien, pero el cliente ya sufrió." },
+                    { text: "No me meto, no es mi problema", score: -15, response: "Todos somos responsables de la imagen." },
+                    { text: "Le llamo la atención frente al cliente", score: -5, response: "Mejor hacerlo en privado." }
+                  ]
+                },
+                { question: "Un cliente te pide un descuento que no está autorizado. ¿Qué haces?",
+                  options: [
+                    { text: "Explico que no tengo autoridad pero ofrezco alternativas", score: 20, response: "Perfecto, siempre hay opciones." },
+                    { text: "Le doy el descuento para cerrar la venta", score: -15, response: "No puedes hacer eso sin autorización." },
+                    { text: "Le digo directamente que no", score: 5, response: "Correcto, pero con más tacto." },
+                    { text: "Consulto con mi supervisor", score: 10, response: "Bien, aunque deberías conocer las políticas." }
+                  ]
+                }
+            ],
+            tech: [
+                { question: "¿Cómo te mantienes actualizado en tecnología?",
+                  options: [
+                    { text: "Leo blogs, hago cursos y practico constantemente", score: 20, response: "Excelente, eso es esencial aquí." },
+                    { text: "Aprendo cuando surge la necesidad", score: 5, response: "Deberías ser más proactivo." },
+                    { text: "Mi experiencia anterior es suficiente", score: -10, response: "La tecnología cambia muy rápido..." },
+                    { text: "Mis compañeros me enseñan", score: 0, response: "Está bien, pero debes ser autodidacta también." }
+                  ]
+                },
+                { question: "¿Cómo manejas un proyecto con deadline ajustado?",
+                  options: [
+                    { text: "Priorizo, delego y comunico avances claramente", score: 20, response: "Eso es exactamente lo que buscamos." },
+                    { text: "Trabajo horas extra hasta terminarlo", score: 5, response: "El esfuerzo está bien, pero no es sostenible." },
+                    { text: "Pido más tiempo si es necesario", score: 0, response: "A veces no es posible." },
+                    { text: "Me estreso mucho pero lo saco", score: -5, response: "El estrés afecta la calidad." }
+                  ]
+                }
+            ],
+            sales: [
+                { question: "¿Cómo manejas el rechazo de un cliente?",
+                  options: [
+                    { text: "Lo veo como oportunidad de aprender y mejorar", score: 20, response: "Actitud ganadora." },
+                    { text: "Me afecta pero sigo adelante", score: 5, response: "Hay que desarrollar piel gruesa." },
+                    { text: "Insisto hasta convencerlo", score: -5, response: "Cuidado con ser demasiado insistente." },
+                    { text: "Paso al siguiente cliente", score: 10, response: "Práctico, pero también aprende del rechazo." }
+                  ]
+                },
+                { question: "¿Cuál ha sido tu mayor logro en ventas?",
+                  options: [
+                    { text: "Superé mi meta mensual por más del 50%", score: 15, response: "Impresionante, queremos eso aquí." },
+                    { text: "Fidelicé varios clientes importantes", score: 15, response: "La retención es clave." },
+                    { text: "Aún estoy construyendo mi experiencia", score: 0, response: "Todos empezamos en algún momento." },
+                    { text: "No tengo experiencia en ventas", score: -10, response: "Este puesto requiere experiencia..." }
                   ]
                 }
             ]
@@ -3114,7 +3270,7 @@
         let gameState = {
             character: null,
             money: 0,
-            credits: 50,
+            credits: 15,
             health: 100,
             happiness: 100,
             energy: 100,
@@ -3212,6 +3368,22 @@
 
         function formatMoney(amount) {
             return "S/ " + Math.floor(amount).toLocaleString('es-PE');
+        }
+
+        function translateSkill(skill) {
+            const translations = {
+                cooking: 'Cocina',
+                sales: 'Ventas',
+                computing: 'Computación',
+                english: 'Inglés',
+                driving: 'Manejo',
+                technical: 'Técnico',
+                strength: 'Fuerza',
+                endurance: 'Resistencia',
+                charisma: 'Carisma',
+                appearance: 'Apariencia'
+            };
+            return translations[skill] || skill;
         }
 
         function showNotification(message, type = 'info') {
@@ -3567,15 +3739,28 @@
 
         function calculateMonthlyExpenses() {
             let total = 0;
-            const housing = HOUSING[gameState.housing];
-            total += housing.cost;
-            if (housing.contribution) total += housing.contribution;
-            total += 350; // Comida
-            total += 150; // Transporte
-            total += 100; // Servicios
+            const inPrison = gameState.prisonMonths > 0;
+
+            // En prisión: el estado paga vivienda, comida y transporte
+            if (!inPrison) {
+                const housing = HOUSING[gameState.housing];
+                total += housing.cost;
+                if (housing.contribution) total += housing.contribution;
+                total += 350; // Comida
+                total += 150; // Transporte
+                total += 100; // Servicios
+            }
+
+            // Estos gastos siguen aplicando (familia, salud)
             total += gameState.character.healthConditionData.monthlyCost;
             total += gameState.character.familySituationData.monthlyObligation;
-            if (gameState.studying) total += EDUCATION_OPTIONS[gameState.studying].costPerMonth;
+            if (gameState.studying && !inPrison) total += EDUCATION_OPTIONS[gameState.studying].costPerMonth;
+
+            // Aplicar inflación acumulada
+            const inflation = gameState.worldEvents?.inflation || 0;
+            const inflationMultiplier = 1 + (inflation / 100);
+            total = Math.floor(total * inflationMultiplier);
+
             return total;
         }
 
@@ -4006,6 +4191,10 @@
         // Aceptar trabajo ilegal (sin entrevista)
         function acceptIllegalJob(jobId) {
             const job = JOBS[jobId];
+            const previousJob = gameState.job;
+            if (previousJob && JOBS[previousJob]) {
+                addLog(`📤 Dejaste tu trabajo de ${JOBS[previousJob].name}`, 'neutral');
+            }
             gameState.job = jobId;
             gameState.jobMonths = 0;
             gameState.promotionNotified = false;
@@ -4028,7 +4217,9 @@
             // Seleccionar preguntas relevantes
             let questions = [...INTERVIEW_QUESTIONS.general];
             if (job.physical) questions = questions.concat(INTERVIEW_QUESTIONS.physical);
-            if (job.category === 'atencion') questions = questions.concat(INTERVIEW_QUESTIONS.customer_service);
+            if (job.category === 'atencion' || job.category === 'retail') questions = questions.concat(INTERVIEW_QUESTIONS.customer_service);
+            if (job.category === 'tech' || job.requirements?.minSkillComputing) questions = questions.concat(INTERVIEW_QUESTIONS.tech);
+            if (job.category === 'ventas' || job.category === 'seguros' || job.requirements?.minSkillSales) questions = questions.concat(INTERVIEW_QUESTIONS.sales);
 
             // Tomar 3 preguntas aleatorias
             const selectedQuestions = [];
@@ -4125,6 +4316,12 @@
             let html = `<div class="activity-result">`;
 
             if (success) {
+                // Notificar si dejó trabajo anterior
+                const previousJob = gameState.job;
+                if (previousJob && JOBS[previousJob]) {
+                    addLog(`📤 Renunciaste a ${JOBS[previousJob].name} para tomar el nuevo puesto.`, 'neutral');
+                }
+
                 gameState.job = state.jobId;
                 gameState.jobMonths = 0;
                 gameState.promotionNotified = false;
@@ -4135,6 +4332,7 @@
                 html += `
                     <div class="icon">🎉</div>
                     <h3 style="color: #4CAF50;">¡FELICIDADES!</h3>
+                    ${previousJob && JOBS[previousJob] ? `<p style="color: #888; margin-bottom: 10px;">Dejaste tu trabajo anterior: ${JOBS[previousJob].name}</p>` : ''}
                     <p>Has sido contratado/a como <strong>${job.name}</strong></p>
                     <p style="margin-top: 10px;">Empiezas el próximo mes.</p>
                 `;
@@ -4223,7 +4421,7 @@
             if (career.requirements) {
                 for (const [skill, value] of Object.entries(career.requirements)) {
                     if ((gameState.skills[skill] || 0) < value) {
-                        showNotification(`Tu nivel de ${skill} es insuficiente`, 'error');
+                        showNotification(`Tu nivel de ${translateSkill(skill)} es insuficiente`, 'error');
                         return;
                     }
                 }
@@ -4314,7 +4512,7 @@
                 { id: 'gym_session', icon: '🏋️', name: gameState.gymMembership ? 'Entrenar (Membresía)' : 'Ir al gimnasio',
                   category: 'fisico', cost: gameState.gymMembership ? 0 : 25,
                   tooltip: `Mejora fuerza (+2) y resistencia (+2). ${gameState.gymMembership ? 'Membresía activa.' : ''}`,
-                  effects: { health: 5, energy: -20 }, bonusStrength: 2, bonusEndurance: 2 },
+                  effects: { health: 5, energy: -30 }, bonusStrength: 2, bonusEndurance: 2 },
                 { id: 'gym_membership', icon: '💳', name: 'Membresía Gym (3 meses)', category: 'fisico', cost: 150,
                   tooltip: 'Entrena gratis por 3 meses. ¡Ahorra dinero!',
                   effects: {}, special: 'gym_membership', hidden: gameState.gymMembership },
@@ -4342,26 +4540,26 @@
                 // HABILIDADES
                 { id: 'study_self', icon: '📖', name: 'Estudiar solo', category: 'habilidades', cost: 0,
                   tooltip: `Autodidacta. Computación +2. Tu nivel: ${sk.computing}%`,
-                  effects: { energy: -10 }, bonusSkillComputing: 2 },
+                  effects: { energy: -15 }, bonusSkillComputing: 2 },
                 { id: 'course_computing', icon: '💻', name: 'Curso Computación', category: 'habilidades', cost: 120,
                   tooltip: `CIBERTEC/IDAT. Computación +5. Tu nivel: ${sk.computing}%`,
-                  effects: { energy: -10 }, bonusSkillComputing: 5 },
+                  effects: { energy: -15 }, bonusSkillComputing: 5 },
                 { id: 'course_english', icon: '🇬🇧', name: 'Clase de Inglés', category: 'habilidades', cost: 150,
                   tooltip: `ICPNA/Británico. Inglés +5. Tu nivel: ${sk.english}%`,
-                  effects: { energy: -10 }, bonusSkillEnglish: 5 },
+                  effects: { energy: -15 }, bonusSkillEnglish: 5 },
                 { id: 'course_driving', icon: '🚗', name: 'Clase de Manejo', category: 'habilidades', cost: 100,
                   tooltip: `Academia de manejo. Manejo +8. Tu nivel: ${sk.driving}%`,
-                  effects: { energy: -15 }, bonusSkillDriving: 8 },
+                  effects: { energy: -20 }, bonusSkillDriving: 8 },
 
                 // SOCIAL
                 { id: 'friends', icon: '🍺', name: 'Salir con amigos', category: 'social', cost: 120,
                   tooltip: 'Socializar mejora carisma (+1).',
-                  effects: { happiness: 20, energy: -10, stress: -10 }, bonusCharisma: 1 },
+                  effects: { happiness: 20, energy: -15, stress: -10 }, bonusCharisma: 1 },
 
                 // TRABAJO
                 { id: 'side_hustle', icon: '💰', name: 'Cachuelo', category: 'trabajo', cost: 0,
                   tooltip: 'Trabajo informal. Gana S/ 50-150.',
-                  effects: { energy: -25, stress: 10 }, special: 'money' }
+                  effects: { energy: -30, stress: 10 }, special: 'money' }
             ];
         }
 
@@ -4687,6 +4885,11 @@
 
                 // ========== TRABAJO INFORMAL ==========
                 case 'side_hustle':
+                    // Mostrar menú de opciones de cachuelo
+                    openCachueloMenu();
+                    return; // No mostrar resultado, el menú lo maneja
+
+                case 'side_hustle_physical':
                     const baseEarnings = randomRange(50, 150);
                     const strengthBonus = Math.floor(ps.strength / 20) * 10;
                     const earnings = baseEarnings + strengthBonus;
@@ -6271,7 +6474,7 @@
                 for (const [skill, value] of Object.entries(business.requirements)) {
                     const currentValue = gameState.skills[skill] || gameState.physicalStats[skill] || 0;
                     if (currentValue < value) {
-                        return { can: false, reason: `${skill} insuficiente (${Math.floor(currentValue)}/${value})` };
+                        return { can: false, reason: `${translateSkill(skill)} insuficiente (${Math.floor(currentValue)}/${value})` };
                     }
                 }
             }
@@ -6408,7 +6611,7 @@
                 comercio: { name: 'Comercio', icon: '📦' }
             };
 
-            html += `<div style="max-height: 300px; overflow-y: auto;">`;
+            html += `<div>`;
 
             for (const [catId, catInfo] of Object.entries(categories)) {
                 const businessesInCat = Object.entries(BUSINESSES).filter(([id, b]) => b.category === catId);
@@ -6515,6 +6718,119 @@
             return totalIncome;
         }
 
+        // ==================== EVENTOS ANUALES ====================
+
+        function processYearlyEvents() {
+            const events = [];
+
+            // Inicializar worldEvents si no existe
+            if (!gameState.worldEvents) {
+                gameState.worldEvents = {
+                    inflation: 0,        // % de inflación acumulada
+                    crisisPolitica: false,
+                    crisisMundial: false,
+                    inseguridad: 50      // 0-100
+                };
+            }
+
+            // 1. INFLACIÓN (siempre sube un poco)
+            const inflationIncrease = 2 + Math.random() * 4; // 2-6% anual
+            gameState.worldEvents.inflation += inflationIncrease;
+            events.push(`📈 Inflación anual: +${inflationIncrease.toFixed(1)}% (Total: ${gameState.worldEvents.inflation.toFixed(1)}%)`);
+
+            // 2. CÁNCER (5% de probabilidad, sin importar condición)
+            if (!gameState.hasCancer && Math.random() < 0.05) {
+                const cancers = ['pulmón', 'estómago', 'próstata', 'mama', 'colon'];
+                const cancer = cancers[Math.floor(Math.random() * cancers.length)];
+                gameState.hasCancer = cancer;
+                gameState.health -= 30;
+                gameState.happiness -= 40;
+                gameState.character.healthConditionData = {
+                    ...gameState.character.healthConditionData,
+                    name: `Cáncer de ${cancer}`,
+                    monthlyCost: (gameState.character.healthConditionData.monthlyCost || 0) + 800,
+                    energyPenalty: (gameState.character.healthConditionData.energyPenalty || 0) - 25
+                };
+                addLog(`🏥 DIAGNÓSTICO: Cáncer de ${cancer}. Tu vida cambiará significativamente.`, 'negative');
+                showNotification(`Diagnóstico: Cáncer de ${cancer}`, 'error');
+                events.push(`🏥 Diagnóstico de cáncer`);
+            }
+
+            // 3. CRISIS POLÍTICA (15% de probabilidad)
+            if (Math.random() < 0.15) {
+                if (!gameState.worldEvents.crisisPolitica) {
+                    gameState.worldEvents.crisisPolitica = true;
+                    gameState.worldEvents.inseguridad = Math.min(100, gameState.worldEvents.inseguridad + 20);
+                    events.push(`🏛️ Crisis política: Aumenta la inseguridad y los precios`);
+                    addLog(`🏛️ Crisis política en el país. Tiempos difíciles.`, 'warning');
+                }
+            } else if (gameState.worldEvents.crisisPolitica && Math.random() < 0.3) {
+                gameState.worldEvents.crisisPolitica = false;
+                events.push(`🏛️ La crisis política se estabiliza`);
+            }
+
+            // 4. CRISIS MUNDIAL (10% de probabilidad)
+            if (Math.random() < 0.10) {
+                if (!gameState.worldEvents.crisisMundial) {
+                    gameState.worldEvents.crisisMundial = true;
+                    gameState.worldEvents.inflation += 5;
+                    events.push(`🌍 Crisis mundial: Recesión económica global`);
+                    addLog(`🌍 Crisis económica mundial. Los precios suben.`, 'warning');
+                }
+            } else if (gameState.worldEvents.crisisMundial && Math.random() < 0.4) {
+                gameState.worldEvents.crisisMundial = false;
+                events.push(`🌍 La economía mundial se recupera`);
+            }
+
+            // 5. INSEGURIDAD (fluctúa)
+            const inseguridadChange = (Math.random() - 0.5) * 20;
+            gameState.worldEvents.inseguridad = Math.max(10, Math.min(100, gameState.worldEvents.inseguridad + inseguridadChange));
+            if (gameState.worldEvents.inseguridad > 70) {
+                events.push(`🚨 Alta inseguridad ciudadana (${Math.round(gameState.worldEvents.inseguridad)}%)`);
+            }
+
+            // Mostrar resumen anual
+            if (events.length > 0) {
+                showYearlyReport(events);
+            }
+        }
+
+        function showYearlyReport(events) {
+            const we = gameState.worldEvents;
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 3em;">📅</div>
+                    <div style="font-size: 1.3em; font-weight: bold;">Resumen del Año ${gameState.year}</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+                    <div style="background: rgba(255,152,0,0.2); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5em;">📈</div>
+                        <div style="font-size: 0.9em; color: #ff9800;">Inflación</div>
+                        <div style="font-weight: bold;">${we.inflation.toFixed(1)}%</div>
+                    </div>
+                    <div style="background: rgba(244,67,54,0.2); padding: 12px; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 1.5em;">🚨</div>
+                        <div style="font-size: 0.9em; color: #f44336;">Inseguridad</div>
+                        <div style="font-weight: bold;">${Math.round(we.inseguridad)}%</div>
+                    </div>
+                </div>
+
+                ${we.crisisPolitica ? '<div style="background: rgba(156,39,176,0.2); padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center;">🏛️ Crisis política activa</div>' : ''}
+                ${we.crisisMundial ? '<div style="background: rgba(33,150,243,0.2); padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center;">🌍 Recesión mundial</div>' : ''}
+
+                <div style="margin-top: 15px;">
+                    <h4 style="margin-bottom: 10px;">Eventos del año:</h4>
+                    ${events.map(e => `<div style="padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; margin-bottom: 5px; font-size: 0.9em;">${e}</div>`).join('')}
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '📅 Resumen Anual';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '<button class="btn btn-success" onclick="closeModal()">Continuar</button>';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
         // ==================== PASO DEL TIEMPO ====================
 
         function passMonth() {
@@ -6583,6 +6899,51 @@
                             addLog(`🚨 ¡LA POLICÍA TE ATRAPÓ! Condenado a ${prisonTime} meses de cárcel.`, 'negative');
                             showNotification(`¡Arrestado! ${prisonTime} meses de prisión.`, 'error');
                         }
+                    }
+                }
+
+                // ========== TRABAJO SEXUAL - RIESGOS DE SALUD Y VIOLENCIA ==========
+                if (job.sexWork) {
+                    // Riesgo de ITS/ETS
+                    if (Math.random() * 100 < job.healthRiskPerMonth) {
+                        const its = ['Clamidia', 'Gonorrea', 'Sífilis', 'Herpes', 'HPV'];
+                        const disease = its[Math.floor(Math.random() * its.length)];
+                        gameState.health -= 20;
+                        gameState.happiness -= 15;
+                        gameState.hasSTI = disease;
+                        addLog(`🏥 Contrajiste ${disease}. Necesitas tratamiento médico.`, 'negative');
+                        showNotification(`Contrajiste ${disease}`, 'error');
+                    }
+
+                    // Riesgo de VIH (más grave)
+                    if (!gameState.hasHIV && Math.random() * 100 < job.hivRiskPerMonth) {
+                        gameState.hasHIV = true;
+                        gameState.health -= 30;
+                        gameState.happiness -= 40;
+                        gameState.character.healthConditionData = {
+                            ...gameState.character.healthConditionData,
+                            name: "VIH+",
+                            monthlyCost: 400,
+                            energyPenalty: -15
+                        };
+                        addLog(`🚨 Has contraído VIH. Tu vida cambiará significativamente.`, 'negative');
+                        showNotification('Diagnóstico: VIH Positivo', 'error');
+                    }
+
+                    // Riesgo de violencia/asalto
+                    if (Math.random() * 100 < job.violenceRiskPerMonth) {
+                        const events = [
+                            { msg: 'Un cliente te golpeó', health: -25, money: 0 },
+                            { msg: 'Te asaltaron después del trabajo', health: -15, money: -300 },
+                            { msg: 'Sufriste agresión verbal severa', health: -5, happiness: -20, money: 0 },
+                            { msg: 'Un cliente se fue sin pagar y te amenazó', health: -10, money: -200 }
+                        ];
+                        const event = events[Math.floor(Math.random() * events.length)];
+                        gameState.health += event.health;
+                        gameState.money += event.money;
+                        if (event.happiness) gameState.happiness += event.happiness;
+                        addLog(`⚠️ ${event.msg}`, 'negative');
+                        showNotification(event.msg, 'error');
                     }
                 }
 
@@ -6845,6 +7206,9 @@
                 if (gameState.relationships && gameState.relationships.romantic) {
                     gameState.relationships.romantic.age++;
                 }
+
+                // ========== EVENTOS ANUALES ==========
+                processYearlyEvents();
             }
 
             // Evento aleatorio (50% de probabilidad)
@@ -7676,7 +8040,7 @@
                 description: "+50 energía",
                 tooltip: "Recupera energía instantáneamente. Útil cuando estás cansado y necesitas hacer actividades importantes.",
                 icon: "⚡",
-                cost: 10,
+                cost: 20,
                 category: "boost",
                 effect: (gs) => { gs.energy = Math.min(100, gs.energy + 50); }
             },
@@ -7685,7 +8049,7 @@
                 description: "+30 salud",
                 tooltip: "Mejora tu salud rápidamente. Ideal cuando tu salud está baja y no quieres arriesgarte.",
                 icon: "💊",
-                cost: 15,
+                cost: 25,
                 category: "boost",
                 effect: (gs) => { gs.health = Math.min(100, gs.health + 30); }
             },
@@ -7694,7 +8058,7 @@
                 description: "+25 felicidad, -15 estrés",
                 tooltip: "Mejora tu ánimo y reduce el estrés. La felicidad alta mejora tu rendimiento en entrevistas.",
                 icon: "🧖",
-                cost: 20,
+                cost: 35,
                 category: "boost",
                 effect: (gs) => { gs.happiness = Math.min(100, gs.happiness + 25); gs.stress = Math.max(0, gs.stress - 15); }
             },
@@ -7704,7 +8068,7 @@
                 description: "Recibe S/ 500",
                 tooltip: "Dinero rápido para emergencias. No afecta tu record laboral ni crediticio.",
                 icon: "🎁",
-                cost: 25,
+                cost: 40,
                 category: "dinero",
                 effect: (gs) => { gs.money += 500; }
             },
@@ -7713,7 +8077,7 @@
                 description: "Recibe S/ 2,000",
                 tooltip: "Una suma considerable de dinero. Puede sacarte de apuros financieros serios.",
                 icon: "💰",
-                cost: 80,
+                cost: 120,
                 category: "dinero",
                 effect: (gs) => { gs.money += 2000; }
             },
@@ -7723,7 +8087,7 @@
                 description: "+30 puntos de skill",
                 tooltip: "Puntos de habilidad que puedes gastar en el Árbol de Skills. Desbloquea nuevas habilidades y trabajos.",
                 icon: "📚",
-                cost: 40,
+                cost: 60,
                 category: "skills",
                 effect: (gs) => { gs.skillPoints += 30; }
             },
@@ -7733,7 +8097,7 @@
                 description: "+30% en próxima entrevista",
                 tooltip: "Un contacto te recomienda. Aumenta tu probabilidad de éxito en la próxima entrevista de trabajo.",
                 icon: "📋",
-                cost: 35,
+                cost: 50,
                 category: "trabajo",
                 effect: (gs) => { gs.interviewBonus = (gs.interviewBonus || 0) + 30; }
             },
@@ -7743,7 +8107,7 @@
                 description: "Sal de la cárcel inmediatamente",
                 tooltip: "Un abogado bien conectado te saca de prisión. Solo funciona si estás en la cárcel actualmente.",
                 icon: "⚖️",
-                cost: 60,
+                cost: 80,
                 category: "legal",
                 condition: (gs) => gs.prisonMonths > 0,
                 effect: (gs) => {
@@ -7756,7 +8120,7 @@
                 description: "Inmunidad a captura por 1 mes",
                 tooltip: "Contactos en la policía te protegen. Por 1 mes no serás capturado si haces actividades ilegales.",
                 icon: "🛡️",
-                cost: 45,
+                cost: 65,
                 category: "legal",
                 condition: (gs) => gs.prisonMonths === 0 && gs.job && JOBS[gs.job]?.illegal,
                 effect: (gs) => { gs.captureProtection = 1; }
@@ -7767,7 +8131,7 @@
                 description: "Revive automáticamente (1 vez)",
                 tooltip: "Si el juego termina (Game Over), esta compra te dará una segunda oportunidad. Se activa automáticamente.",
                 icon: "✨",
-                cost: 100,
+                cost: 150,
                 category: "especial",
                 condition: (gs) => !gs.hasSecondChance,
                 effect: (gs) => { gs.hasSecondChance = true; }
@@ -7869,6 +8233,70 @@
 
             updateUI();
             openShopMenu(); // Refrescar tienda
+        }
+
+        // ==================== MENÚ DE CACHUELOS ====================
+
+        function openCachueloMenu() {
+            const ps = gameState.physicalStats;
+            const canDoPhysical = gameState.energy >= 25;
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2em;">💰</div>
+                    <div style="font-size: 1.1em; margin-top: 10px;">Elige cómo ganar dinero extra</div>
+                </div>
+
+                <!-- Cachuelo físico -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; opacity: ${canDoPhysical ? '1' : '0.5'};">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2em;">🔨</span>
+                        <div>
+                            <div style="font-weight: bold;">Trabajo físico</div>
+                            <div style="color: #aaa; font-size: 0.85em;">Ayudar en mudanzas, cargar cosas, etc.</div>
+                            <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
+                                💵 S/ 50-150 + bonus fuerza | ⚡ -25
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn ${canDoPhysical ? 'btn-success' : ''}" onclick="doActivity('side_hustle_physical')" ${canDoPhysical ? '' : 'disabled'}>
+                        Hacer
+                    </button>
+                </div>
+
+                <div style="color: #888; text-align: center; margin: 15px 0;">─ o juega mini-juegos ─</div>
+            `;
+
+            // Mini-juegos
+            for (const [gameId, game] of Object.entries(MINI_GAMES)) {
+                const canPlay = gameState.energy >= game.energyCost;
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; opacity: ${canPlay ? '1' : '0.5'};">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 2em;">${game.icon}</span>
+                            <div>
+                                <div style="font-weight: bold;">${game.name}</div>
+                                <div style="color: #aaa; font-size: 0.85em;">${game.description}</div>
+                                <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
+                                    💵 S/ ${game.reward[0]}-${game.reward[1]} | ⚡ -${game.energyCost}
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn ${canPlay ? 'btn-success' : ''}" onclick="startMiniGame('${gameId}')" ${canPlay ? '' : 'disabled'}>
+                            Jugar
+                        </button>
+                    </div>
+                `;
+            }
+
+            if (gameState.energy < 15) {
+                html += `<div style="color: #f44336; text-align: center; margin-top: 15px;">⚡ Necesitas más energía</div>`;
+            }
+
+            document.getElementById('modalTitle').textContent = '💰 Cachuelos';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
         }
 
         // ==================== SISTEMA DE CONSEJERO ====================
@@ -7997,7 +8425,7 @@
                 description: "Resuelve operaciones para ganar dinero",
                 icon: "🔢",
                 reward: [50, 150],
-                energyCost: 15,
+                energyCost: 25,
                 rounds: 5,
                 timePerRound: 10
             },
@@ -8006,7 +8434,7 @@
                 description: "Recuerda la secuencia de números",
                 icon: "🧠",
                 reward: [80, 200],
-                energyCost: 20,
+                energyCost: 30,
                 rounds: 4,
                 timePerRound: 15
             },
@@ -8015,7 +8443,7 @@
                 description: "Escribe las palabras correctamente",
                 icon: "⌨️",
                 reward: [60, 180],
-                energyCost: 15,
+                energyCost: 25,
                 rounds: 5,
                 timePerRound: 8
             }
