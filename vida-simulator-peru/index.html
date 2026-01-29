@@ -1621,9 +1621,13 @@
 
                         <div class="nav-section">
                             <div class="nav-section-title">Sistema</div>
-                            <div class="nav-item" onclick="saveGame()">
+                            <div class="nav-item" onclick="openShopMenu()">
+                                <span class="icon">💎</span>
+                                <span class="label">Tienda</span>
+                            </div>
+                            <div class="nav-item" onclick="openSaveMenu()">
                                 <span class="icon">💾</span>
-                                <span class="label">Guardar</span>
+                                <span class="label">Guardar/Cargar</span>
                             </div>
                         </div>
                     </nav>
@@ -3768,87 +3772,44 @@
         function openJobMenu() {
             const postulationCost = 15;
 
-            let html = `
-                <p style="margin-bottom: 10px;">
-                    ${gameState.job ? `<strong>Trabajo actual:</strong> ${JOBS[gameState.job].name}` : '<strong>Estado:</strong> <span style="color: #f44336;">Desempleado</span>'}
-                </p>
-                ${gameState.criminalRecord ? '<p style="color: #f44336; margin-bottom: 10px;">⚠️ Tienes antecedentes penales. Muchos trabajos te serán negados.</p>' : ''}
-                <p style="color: #ff9800; margin-bottom: 15px; font-size: 0.9em;">📋 Postular: ${formatMoney(postulationCost)} (pasaje + comida)</p>
-            `;
+            let html = ``;
 
+            // Estado actual
             if (gameState.job) {
                 const currentJob = JOBS[gameState.job];
-                html += `<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 15px;">`;
-                html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span>📅 Tiempo en el puesto: <strong>${gameState.jobMonths} meses</strong></span>
-                    <button class="btn btn-danger btn-small" onclick="quitJob()">❌ Renunciar</button>
-                </div>`;
-
-                // Mostrar progreso de carrera si tiene careerPath
-                if (currentJob.careerPath) {
-                    const career = currentJob.careerPath;
-                    const nextJob = JOBS[career.nextPosition];
-                    const monthsProgress = Math.min(gameState.jobMonths, career.monthsRequired);
-                    const monthsPercent = (monthsProgress / career.monthsRequired) * 100;
-
-                    html += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">`;
-                    html += `<p style="margin-bottom: 8px;">📈 <strong>Siguiente puesto:</strong> ${nextJob.name}</p>`;
-                    html += `<p style="font-size: 0.85em; color: #4CAF50; margin-bottom: 8px;">💰 Salario: ${Array.isArray(nextJob.salary) ? formatMoney(nextJob.salary[0]) + ' - ' + formatMoney(nextJob.salary[1]) : formatMoney(nextJob.salary)}</p>`;
-
-                    // Barra de progreso de tiempo
-                    html += `<div style="margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8em; margin-bottom: 3px;">
-                            <span>⏱️ Experiencia requerida</span>
-                            <span>${monthsProgress}/${career.monthsRequired} meses</span>
+                const salary = Array.isArray(currentJob.salary) ? currentJob.salary[0] : currentJob.salary;
+                html += `
+                    <div style="background: rgba(76,175,80,0.15); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid #4CAF50;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: bold;">📌 ${currentJob.name}</div>
+                                <div style="color: #4CAF50; font-size: 0.9em;">${formatMoney(salary)}/mes • ${gameState.jobMonths} meses</div>
+                            </div>
+                            <button class="btn btn-danger btn-small" onclick="quitJob()">Renunciar</button>
                         </div>
-                        <div style="background: rgba(255,255,255,0.1); border-radius: 5px; height: 8px; overflow: hidden;">
-                            <div style="background: ${monthsPercent >= 100 ? '#4CAF50' : '#ff9800'}; height: 100%; width: ${monthsPercent}%;"></div>
-                        </div>
-                    </div>`;
-
-                    // Requisitos de habilidades
-                    if (career.requirements) {
-                        let allMet = true;
-                        html += `<div style="font-size: 0.85em; margin-bottom: 10px;">`;
-                        for (const [skill, value] of Object.entries(career.requirements)) {
-                            const current = gameState.skills[skill] || 0;
-                            const met = current >= value;
-                            if (!met) allMet = false;
-                            const skillNames = { sales: 'Ventas', computing: 'Computación', english: 'Inglés', driving: 'Manejo', cooking: 'Cocina', technical: 'Técnico' };
-                            html += `<div style="display: flex; justify-content: space-between; padding: 3px 0;">
-                                <span>${met ? '✅' : '❌'} ${skillNames[skill] || skill}</span>
-                                <span style="color: ${met ? '#4CAF50' : '#f44336'};">${Math.floor(current)}/${value}</span>
-                            </div>`;
-                        }
-                        html += `</div>`;
-
-                        // Botón de ascenso
-                        const canPromote = monthsPercent >= 100 && allMet;
-                        if (canPromote) {
-                            html += `<button class="btn btn-success" onclick="requestPromotion()" style="width: 100%;">🎉 ¡Solicitar Ascenso!</button>`;
-                        } else {
-                            html += `<p style="text-align: center; color: #aaa; font-size: 0.85em;">Completa los requisitos para ascender</p>`;
-                        }
-                    }
-                    html += `</div>`;
-                } else {
-                    html += `<p style="color: #aaa; font-size: 0.85em; margin-top: 5px;">Este trabajo no tiene línea de carrera definida.</p>`;
-                }
-                html += `</div>`;
+                        ${currentJob.careerPath ? `<div style="margin-top: 10px; font-size: 0.85em; color: #aaa;">📈 Próximo: ${JOBS[currentJob.careerPath.nextPosition]?.name || 'N/A'}</div>` : ''}
+                    </div>
+                `;
+            } else {
+                html += `<div style="text-align: center; color: #f44336; margin-bottom: 15px;">🔍 Sin empleo actual</div>`;
             }
 
-            // Tabs para filtrar trabajos
+            if (gameState.criminalRecord) {
+                html += `<div style="color: #f44336; font-size: 0.85em; margin-bottom: 10px;">⚠️ Antecedentes penales</div>`;
+            }
+
+            // Filtros compactos
             html += `
-                <div style="display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap;">
-                    <button class="btn btn-small" onclick="filterJobs('todos')">📋 Todos</button>
-                    <button class="btn btn-small btn-secondary" onclick="filterJobs('legales')">✅ Legales</button>
-                    <button class="btn btn-small btn-warning" onclick="filterJobs('ilegales')">⚠️ Ilegales</button>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button class="btn btn-small" onclick="filterJobs('todos')" style="flex: 1;">Todos</button>
+                    <button class="btn btn-small btn-secondary" onclick="filterJobs('legales')" style="flex: 1;">Legales</button>
+                    <button class="btn btn-small btn-warning" onclick="filterJobs('ilegales')" style="flex: 1;">Ilegales</button>
                 </div>
             `;
 
-            html += `<div id="jobsList" style="max-height: 400px; overflow-y: auto;">`;
+            // Lista compacta de trabajos (sin scroll interno)
+            html += `<div id="jobsList">`;
 
-            // Ordenar trabajos por probabilidad (mayor a menor)
             const jobIds = Object.keys(JOBS)
                 .filter(id => isJobAvailable(id))
                 .map(id => ({ id, probability: calculateHiringProbability(id) }))
@@ -3857,105 +3818,121 @@
 
             for (let jobId of jobIds) {
                 const job = JOBS[jobId];
-                let canApply = true;
-                let reasons = [];
-
-                // Check educación
-                if (job.education === 'tecnico' && !['tecnico', 'universidad', 'maestria'].includes(gameState.education)) {
-                    canApply = false;
-                    reasons.push('Requiere estudios técnicos');
-                }
-                if (job.education === 'universidad' && !['universidad', 'maestria'].includes(gameState.education)) {
-                    canApply = false;
-                    reasons.push('Requiere universidad');
-                }
-                if (job.education === 'medicina') {
-                    canApply = false;
-                    reasons.push('Requiere carrera de medicina');
-                }
-                if (job.experience && gameState.experience < job.experience * 12) {
-                    canApply = false;
-                    reasons.push(`Requiere ${job.experience} años exp.`);
-                }
-                if (job.physical && gameState.character.healthConditionData.jobLimit) {
-                    canApply = false;
-                    reasons.push('Tu condición no permite trabajo físico');
-                }
-                if (gameState.money < postulationCost) {
-                    canApply = false;
-                    reasons.push('Sin dinero para postular');
-                }
-
-                const salary = Array.isArray(job.salary) ? `${formatMoney(job.salary[0])} - ${formatMoney(job.salary[1])}` : formatMoney(job.salary);
-                const probability = calculateHiringProbability(jobId);
-                const probClass = probability >= 60 ? 'prob-high' : probability >= 35 ? 'prob-medium' : 'prob-low';
-                const reqStatus = getJobRequirementStatus(jobId);
-
-                // Tags
-                let tags = [];
-                if (job.illegal) tags.push('<span class="job-tag illegal">⚠️ ILEGAL</span>');
-                if (job.physical) tags.push('<span class="job-tag warning">💪 Físico</span>');
-                if (job.genderPreference === 'hombre') tags.push('<span class="job-tag">👨</span>');
-                if (job.genderPreference === 'mujer') tags.push('<span class="job-tag">👩</span>');
-                if (job.requirements?.requiresPresencia) tags.push('<span class="job-tag danger">✨</span>');
-                if (job.informal) tags.push('<span class="job-tag warning">📝</span>');
-
-                // Generar HTML de requisitos estilo LinkedIn
-                let reqHtml = '';
-                if (reqStatus.length > 0) {
-                    reqHtml = `<div class="job-requirements">`;
-                    reqStatus.forEach(req => {
-                        reqHtml += `<div class="req-item ${req.met ? 'met' : 'not-met'}">
-                            ${req.met ? '✅' : '❌'} ${req.name} <small>(Tú: ${req.value})</small>
-                        </div>`;
-                    });
-                    reqHtml += `</div>`;
-                }
-
-                // Tooltip con descripción
-                const tooltipContent = `
-                    <h4>${job.name}</h4>
-                    <p>${job.description || 'Sin descripción'}</p>
-                    <hr style="border-color: rgba(255,255,255,0.2); margin: 8px 0;">
-                    <p>💰 Salario: ${salary}</p>
-                    <p>😫 Estrés mensual: ${job.stress}%</p>
-                    <p>⚡ Energía: ${job.energy || 0}</p>
-                    ${job.illegal ? `<p style="color: #f44336;">⚠️ Riesgo de cárcel: ${job.riskPerMonth}%/mes</p>` : ''}
-                `;
+                const salary = Array.isArray(job.salary) ? formatMoney(job.salary[0]) : formatMoney(job.salary);
+                const probability = Math.round(calculateHiringProbability(jobId)); // Sin decimales
+                const probColor = probability >= 60 ? '#4CAF50' : probability >= 35 ? '#ff9800' : '#f44336';
 
                 html += `
-                    <div class="job-card tooltip-container ${canApply ? '' : 'disabled'} ${job.illegal ? 'job-illegal' : ''}"
-                         data-type="${job.illegal ? 'ilegal' : 'legal'}"
-                         style="${canApply ? '' : 'opacity: 0.6'} ${job.illegal ? 'border: 1px solid #9c27b0;' : ''}">
-                        <div class="job-header">
-                            <span class="job-title">${job.name}</span>
-                            <span class="job-salary">${salary}/mes</span>
+                    <div class="job-card" data-type="${job.illegal ? 'ilegal' : 'legal'}"
+                         onclick="showJobDetails('${jobId}')"
+                         style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; border-left: 3px solid ${job.illegal ? '#9c27b0' : probColor};">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 0.95em;">${job.name}</div>
+                            <div style="color: #4CAF50; font-size: 0.85em;">${salary}/mes</div>
                         </div>
-                        <div class="job-details" style="margin: 5px 0;">
-                            ${tags.join(' ')}
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.1em; font-weight: bold; color: ${probColor};">${probability}%</div>
+                            <div style="font-size: 0.75em; color: #888;">chance</div>
                         </div>
-                        ${job.description ? `<p style="font-size: 0.8em; color: #aaa; margin: 5px 0;">${job.description}</p>` : ''}
-                        ${reqHtml}
-                        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-                            ${canApply ?
-                                `<span class="probability ${probClass}">${probability}%</span>
-                                 <button class="btn btn-small ${job.illegal ? 'btn-warning' : ''}" onclick="${job.illegal ? `confirmIllegalJob('${jobId}')` : `startInterview('${jobId}')`}">
-                                    ${job.illegal ? '⚠️ Aceptar' : 'Postular'}
-                                 </button>` :
-                                `<span style="color: #f44336; font-size: 0.8em;">${reasons.join(', ')}</span>`
-                            }
-                        </div>
-                        <div class="tooltip">${tooltipContent}</div>
                     </div>
                 `;
             }
 
-            html += '</div>';
+            html += `</div>`;
+            html += `<p style="text-align: center; color: #888; font-size: 0.8em; margin-top: 10px;">Toca un trabajo para ver detalles</p>`;
 
             document.getElementById('modalTitle').textContent = '💼 Bolsa de Trabajo';
             document.getElementById('modalBody').innerHTML = html;
             document.getElementById('modalOptions').innerHTML = '';
             document.getElementById('gameModal').classList.add('active');
+        }
+
+        // Vista detallada de un trabajo
+        function showJobDetails(jobId) {
+            const job = JOBS[jobId];
+            const postulationCost = 15;
+            const salary = Array.isArray(job.salary) ? `${formatMoney(job.salary[0])} - ${formatMoney(job.salary[1])}` : formatMoney(job.salary);
+            const probability = Math.round(calculateHiringProbability(jobId));
+            const probColor = probability >= 60 ? '#4CAF50' : probability >= 35 ? '#ff9800' : '#f44336';
+
+            // Verificar si puede postular
+            let canApply = true;
+            let reasons = [];
+
+            if (job.education === 'tecnico' && !['tecnico', 'universidad', 'maestria'].includes(gameState.education)) {
+                canApply = false;
+                reasons.push('Requiere estudios técnicos');
+            }
+            if (job.education === 'universidad' && !['universidad', 'maestria'].includes(gameState.education)) {
+                canApply = false;
+                reasons.push('Requiere universidad');
+            }
+            if (gameState.money < postulationCost) {
+                canApply = false;
+                reasons.push('Sin dinero para postular');
+            }
+            if (job.physical && gameState.character.healthConditionData?.jobLimit) {
+                canApply = false;
+                reasons.push('Condición física no lo permite');
+            }
+
+            const reqStatus = getJobRequirementStatus(jobId);
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 5px;">${job.name}</h3>
+                    <div style="color: #4CAF50; font-size: 1.3em; font-weight: bold;">${salary}/mes</div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <p style="margin-bottom: 10px;">${job.description || 'Sin descripción disponible.'}</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                        <div>😫 Estrés: ${job.stress}%</div>
+                        <div>⚡ Energía: ${job.energy || 0}</div>
+                        ${job.illegal ? `<div style="color: #f44336;">⚠️ Riesgo: ${job.riskPerMonth}%/mes</div>` : ''}
+                        ${job.physical ? '<div>💪 Trabajo físico</div>' : ''}
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div style="font-size: 2em; font-weight: bold; color: ${probColor};">${probability}%</div>
+                    <div style="color: #888;">Probabilidad de contratación</div>
+                </div>
+            `;
+
+            // Requisitos
+            if (reqStatus.length > 0) {
+                html += `<div style="margin-bottom: 15px;">
+                    <h4 style="margin-bottom: 8px; font-size: 0.9em;">Requisitos:</h4>
+                    <div style="display: grid; gap: 5px;">`;
+                reqStatus.forEach(req => {
+                    html += `<div style="display: flex; justify-content: space-between; font-size: 0.85em; padding: 5px; background: ${req.met ? 'rgba(76,175,80,0.1)' : 'rgba(244,67,54,0.1)'}; border-radius: 5px;">
+                        <span>${req.met ? '✅' : '❌'} ${req.name}</span>
+                        <span>${req.value}</span>
+                    </div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            // Razones por las que no puede postular
+            if (!canApply && reasons.length > 0) {
+                html += `<div style="color: #f44336; margin-bottom: 15px; font-size: 0.9em;">
+                    ⚠️ ${reasons.join(' • ')}
+                </div>`;
+            }
+
+            document.getElementById('modalTitle').textContent = '';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = `
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="openJobMenu()" style="flex: 1;">← Volver</button>
+                    ${canApply ? `
+                        <button class="btn ${job.illegal ? 'btn-warning' : 'btn-success'}" onclick="${job.illegal ? `confirmIllegalJob('${jobId}')` : `startInterview('${jobId}')`}" style="flex: 1;">
+                            ${job.illegal ? '⚠️ Aceptar Riesgo' : '📝 Postular (S/15)'}
+                        </button>
+                    ` : ''}
+                </div>
+            `;
         }
 
         // Filtrar trabajos por tipo
@@ -5760,108 +5737,154 @@
                 gameState.unlockedSkills.resistencia_fisica = 1;
             }
 
+            const monthsPlayed = (gameState.age - 18) * 12 + gameState.month;
+
+            // Determinar qué habilidades mostrar según el progreso
+            // Básicas: siempre visibles
+            // Intermedias: después de 6 meses o si tienes una básica desbloqueada
+            // Avanzadas: después de 12 meses o universidad
+            // Especializadas: después de 24 meses o maestría
+
+            const getSkillTier = (skill) => {
+                if (skill.unlockCost === 0) return 'basico';
+                if (skill.unlockCost <= 50) return 'intermedio';
+                if (skill.unlockCost <= 100) return 'avanzado';
+                return 'especializado';
+            };
+
+            const canSeeSkill = (skillId, skill) => {
+                const tier = getSkillTier(skill);
+                const hasUnlocked = gameState.unlockedSkills[skillId] > 0;
+
+                if (hasUnlocked) return true;
+                if (tier === 'basico') return true;
+                if (tier === 'intermedio' && monthsPlayed >= 3) return true;
+                if (tier === 'avanzado' && (monthsPlayed >= 12 || gameState.education === 'tecnico')) return true;
+                if (tier === 'especializado' && (monthsPlayed >= 24 || ['universidad', 'maestria'].includes(gameState.education))) return true;
+
+                return false;
+            };
+
+            // Contar habilidades visibles
+            const visibleSkills = Object.entries(SKILL_TREE).filter(([id, sk]) => canSeeSkill(id, sk));
+            const unlockedCount = Object.keys(gameState.unlockedSkills).length;
+
             let html = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <div>
-                        <span style="font-size: 1.2em; color: #4CAF50;">⭐ ${gameState.skillPoints}</span>
-                        <span style="color: #888; margin-left: 5px;">Puntos de Habilidad</span>
-                    </div>
-                    <div style="color: #888;">
-                        ${gameState.totalSkillsUnlocked} habilidades desbloqueadas
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: center; gap: 30px;">
+                        <div>
+                            <div style="font-size: 1.8em; color: #4CAF50;">⭐ ${gameState.skillPoints}</div>
+                            <div style="color: #888; font-size: 0.85em;">Puntos</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.8em; color: #2196f3;">${unlockedCount}</div>
+                            <div style="color: #888; font-size: 0.85em;">Desbloqueadas</div>
+                        </div>
                     </div>
                 </div>
 
-                <p style="color: #aaa; font-size: 0.85em; margin-bottom: 15px;">
-                    💡 Ganas puntos de habilidad trabajando, estudiando y con actividades sociales.
+                <p style="color: #888; font-size: 0.85em; margin-bottom: 15px; text-align: center;">
+                    Trabaja y estudia para ganar puntos. Más habilidades se desbloquean con el tiempo.
                 </p>
 
-                <div class="tabs-container">
-                    <div class="tabs-nav" style="flex-wrap: wrap;">
-                        ${Object.entries(SKILL_CATEGORIES).map(([catId, cat], i) => `
-                            <button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="switchSkillTab('${catId}')">
-                                ${cat.icon} ${cat.name}
-                            </button>
-                        `).join('')}
-                    </div>
+                <div style="display: grid; gap: 8px;">
             `;
 
-            // Generar contenido por categoría
-            for (const [catId, cat] of Object.entries(SKILL_CATEGORIES)) {
-                const skillsInCat = Object.entries(SKILL_TREE).filter(([id, sk]) => sk.category === catId);
+            // Mostrar habilidades agrupadas por estado
+            const grouped = {
+                desbloqueadas: [],
+                disponibles: [],
+                bloqueadas: []
+            };
 
-                html += `<div id="skill-tab-${catId}" class="tab-content ${catId === 'social' ? 'active' : ''}" style="max-height: 350px; overflow-y: auto;">`;
+            for (const [skillId, skill] of Object.entries(SKILL_TREE)) {
+                if (!canSeeSkill(skillId, skill)) continue;
 
-                if (skillsInCat.length === 0) {
-                    html += `<p style="color: #888; text-align: center; padding: 20px;">No hay habilidades en esta categoría</p>`;
+                const currentLevel = gameState.unlockedSkills[skillId] || 0;
+                const isUnlocked = currentLevel > 0;
+                const canUnlock = canUnlockSkill(skillId);
+                const isMaxed = currentLevel >= skill.maxLevel;
+
+                if (isUnlocked) {
+                    grouped.desbloqueadas.push({ skillId, skill, currentLevel, canUnlock, isMaxed });
+                } else if (canUnlock) {
+                    grouped.disponibles.push({ skillId, skill, currentLevel, canUnlock, isMaxed });
                 } else {
-                    html += `<div style="display: grid; gap: 10px;">`;
-                    for (const [skillId, skill] of skillsInCat) {
-                        const currentLevel = gameState.unlockedSkills[skillId] || 0;
-                        const isUnlocked = currentLevel > 0;
-                        const canUnlock = canUnlockSkill(skillId);
-                        const isMaxed = currentLevel >= skill.maxLevel;
-
-                        // Verificar requisitos faltantes
-                        let missingReqs = [];
-                        if (skill.requires) {
-                            for (const reqId of skill.requires) {
-                                if (!gameState.unlockedSkills[reqId]) {
-                                    missingReqs.push(SKILL_TREE[reqId]?.name || reqId);
-                                }
-                            }
-                        }
-
-                        html += `
-                            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 3px solid ${isUnlocked ? cat.color : '#333'}; opacity: ${isUnlocked || canUnlock ? '1' : '0.6'};">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                    <div>
-                                        <div style="font-size: 1.3em; margin-bottom: 5px;">${skill.icon} ${skill.name}</div>
-                                        <div style="color: #aaa; font-size: 0.85em; margin-bottom: 8px;">${skill.description}</div>
-                                        ${missingReqs.length > 0 ? `<div style="color: #f44336; font-size: 0.8em;">🔒 Requiere: ${missingReqs.join(', ')}</div>` : ''}
-                                        ${skill.effects ? `
-                                            <div style="font-size: 0.8em; color: #4CAF50; margin-top: 5px;">
-                                                Bonos: ${Object.entries(skill.effects).map(([k, v]) => `+${v} ${k}`).join(', ')}
-                                            </div>
-                                        ` : ''}
-                                    </div>
-                                    <div style="text-align: right; min-width: 100px;">
-                                        <div style="margin-bottom: 5px;">
-                                            ${Array(skill.maxLevel).fill(0).map((_, i) => `
-                                                <span style="color: ${i < currentLevel ? cat.color : '#333'};">●</span>
-                                            `).join('')}
-                                        </div>
-                                        <div style="font-size: 0.8em; color: #888; margin-bottom: 8px;">
-                                            Nivel ${currentLevel}/${skill.maxLevel}
-                                        </div>
-                                        ${isMaxed ? `
-                                            <span style="color: ${cat.color}; font-size: 0.85em;">✓ Máximo</span>
-                                        ` : isUnlocked ? `
-                                            <button class="btn btn-small" onclick="unlockSkill('${skillId}')" ${!canUnlock ? 'disabled style="opacity: 0.5;"' : ''}>
-                                                Subir Nivel
-                                            </button>
-                                        ` : canUnlock ? `
-                                            <button class="btn btn-small btn-success" onclick="unlockSkill('${skillId}')">
-                                                🔓 ${skill.unlockCost} pts
-                                            </button>
-                                        ` : `
-                                            <span style="color: #666; font-size: 0.8em;">🔒 ${skill.unlockCost} pts</span>
-                                        `}
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    html += `</div>`;
+                    grouped.bloqueadas.push({ skillId, skill, currentLevel, canUnlock, isMaxed });
                 }
-                html += `</div>`;
+            }
+
+            // Disponibles primero (verde)
+            if (grouped.disponibles.length > 0) {
+                html += `<div style="color: #4CAF50; font-size: 0.9em; margin: 10px 0 5px;">✨ Disponibles para desbloquear</div>`;
+                for (const { skillId, skill } of grouped.disponibles) {
+                    html += renderSkillCard(skillId, skill, 0, true, false);
+                }
+            }
+
+            // Desbloqueadas (azul)
+            if (grouped.desbloqueadas.length > 0) {
+                html += `<div style="color: #2196f3; font-size: 0.9em; margin: 10px 0 5px;">🎯 Tus habilidades</div>`;
+                for (const { skillId, skill, currentLevel, canUnlock, isMaxed } of grouped.desbloqueadas) {
+                    html += renderSkillCard(skillId, skill, currentLevel, canUnlock, isMaxed);
+                }
+            }
+
+            // Bloqueadas (gris, solo mostrar algunas)
+            const blockedToShow = grouped.bloqueadas.slice(0, 5);
+            if (blockedToShow.length > 0) {
+                html += `<div style="color: #666; font-size: 0.9em; margin: 10px 0 5px;">🔒 Próximamente</div>`;
+                for (const { skillId, skill } of blockedToShow) {
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; opacity: 0.5;">
+                            <div>
+                                <span style="margin-right: 8px;">${skill.icon}</span>
+                                <span>${skill.name}</span>
+                            </div>
+                            <span style="color: #666; font-size: 0.85em;">🔒 ${skill.unlockCost} pts</span>
+                        </div>
+                    `;
+                }
+                if (grouped.bloqueadas.length > 5) {
+                    html += `<div style="text-align: center; color: #555; font-size: 0.8em; padding: 5px;">+${grouped.bloqueadas.length - 5} más por descubrir</div>`;
+                }
             }
 
             html += `</div>`;
 
-            document.getElementById('modalTitle').textContent = '🌳 Árbol de Habilidades';
+            document.getElementById('modalTitle').textContent = '🌳 Habilidades';
             document.getElementById('modalBody').innerHTML = html;
             document.getElementById('modalOptions').innerHTML = '';
             document.getElementById('gameModal').classList.add('active');
+        }
+
+        function renderSkillCard(skillId, skill, currentLevel, canUnlock, isMaxed) {
+            const cat = SKILL_CATEGORIES[skill.category];
+            const isUnlocked = currentLevel > 0;
+
+            let actionHtml = '';
+            if (isMaxed) {
+                actionHtml = `<span style="color: #4CAF50; font-size: 0.85em;">✓ MAX</span>`;
+            } else if (isUnlocked) {
+                actionHtml = canUnlock ?
+                    `<button class="btn btn-small" onclick="unlockSkill('${skillId}')">Subir</button>` :
+                    `<span style="color: #888;">${currentLevel}/${skill.maxLevel}</span>`;
+            } else if (canUnlock) {
+                actionHtml = `<button class="btn btn-small btn-success" onclick="unlockSkill('${skillId}')">${skill.unlockCost} pts</button>`;
+            }
+
+            return `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 3px solid ${isUnlocked ? cat?.color || '#4CAF50' : canUnlock ? '#ff9800' : '#333'};">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.3em;">${skill.icon}</span>
+                        <div>
+                            <div style="font-weight: bold;">${skill.name}</div>
+                            <div style="color: #888; font-size: 0.8em;">${skill.description}</div>
+                        </div>
+                    </div>
+                    <div>${actionHtml}</div>
+                </div>
+            `;
         }
 
         function switchSkillTab(tabId) {
@@ -7437,6 +7460,134 @@
 
         // ==================== GUARDADO ====================
 
+        // ==================== TIENDA DE CRÉDITOS ====================
+
+        const SHOP_ITEMS = {
+            // Boosts temporales
+            energy_boost: {
+                name: "Bebida Energética",
+                description: "+50 energía instantánea",
+                icon: "⚡",
+                cost: 10,
+                effect: (gs) => { gs.energy = Math.min(100, gs.energy + 50); }
+            },
+            health_boost: {
+                name: "Medicina Premium",
+                description: "+30 salud instantánea",
+                icon: "💊",
+                cost: 15,
+                effect: (gs) => { gs.health = Math.min(100, gs.health + 30); }
+            },
+            happiness_boost: {
+                name: "Día de Spa",
+                description: "+25 felicidad, -15 estrés",
+                icon: "🧖",
+                cost: 20,
+                effect: (gs) => { gs.happiness = Math.min(100, gs.happiness + 25); gs.stress = Math.max(0, gs.stress - 15); }
+            },
+            // Dinero
+            money_small: {
+                name: "Regalo Misterioso",
+                description: "Recibe S/ 500",
+                icon: "🎁",
+                cost: 25,
+                effect: (gs) => { gs.money += 500; }
+            },
+            money_medium: {
+                name: "Inversión Secreta",
+                description: "Recibe S/ 2,000",
+                icon: "💰",
+                cost: 80,
+                effect: (gs) => { gs.money += 2000; }
+            },
+            // Habilidades
+            skill_points: {
+                name: "Curso Intensivo",
+                description: "+30 puntos de habilidad",
+                icon: "📚",
+                cost: 40,
+                effect: (gs) => { gs.skillPoints += 30; }
+            },
+            // Trabajo
+            interview_pass: {
+                name: "Recomendación VIP",
+                description: "+30% en próxima entrevista",
+                icon: "📋",
+                cost: 35,
+                effect: (gs) => { gs.interviewBonus = (gs.interviewBonus || 0) + 30; }
+            },
+            // Segunda oportunidad
+            second_chance: {
+                name: "Segunda Oportunidad",
+                description: "Guarda para revivir (automático)",
+                icon: "✨",
+                cost: 100,
+                effect: (gs) => { gs.hasSecondChance = true; }
+            }
+        };
+
+        function openShopMenu() {
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2em;">💎</div>
+                    <div style="font-size: 1.5em; font-weight: bold; color: #4CAF50;">${gameState.credits}</div>
+                    <div style="color: #888; font-size: 0.9em;">Créditos disponibles</div>
+                </div>
+
+                <p style="color: #888; font-size: 0.85em; margin-bottom: 15px; text-align: center;">
+                    Ganas créditos completando desafíos y logros.
+                </p>
+
+                <div style="display: grid; gap: 10px;">
+            `;
+
+            for (const [itemId, item] of Object.entries(SHOP_ITEMS)) {
+                const canBuy = gameState.credits >= item.cost;
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 10px; opacity: ${canBuy ? '1' : '0.5'};">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 1.5em;">${item.icon}</div>
+                            <div>
+                                <div style="font-weight: bold;">${item.name}</div>
+                                <div style="color: #aaa; font-size: 0.85em;">${item.description}</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-small ${canBuy ? 'btn-success' : ''}"
+                                onclick="buyShopItem('${itemId}')"
+                                ${canBuy ? '' : 'disabled'}>
+                            💎 ${item.cost}
+                        </button>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+
+            document.getElementById('modalTitle').textContent = '💎 Tienda';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function buyShopItem(itemId) {
+            const item = SHOP_ITEMS[itemId];
+            if (!item || gameState.credits < item.cost) {
+                showNotification('No tienes suficientes créditos', 'error');
+                return;
+            }
+
+            gameState.credits -= item.cost;
+            item.effect(gameState);
+
+            addLog(`🛒 Compraste: ${item.name}`, 'special');
+            showNotification(`¡Compraste ${item.name}!`, 'success');
+
+            updateUI();
+            openShopMenu(); // Refrescar tienda
+        }
+
+        // ==================== SISTEMA DE GUARDADO ====================
+
         function saveGame() {
             localStorage.setItem('vidaPeruSave', JSON.stringify(gameState));
             addLog('💾 Partida guardada', 'info');
@@ -7454,6 +7605,108 @@
                 showNotification('Partida cargada correctamente', 'success');
             } else {
                 showNotification('No hay partida guardada', 'error');
+            }
+        }
+
+        // Generar código de guardado (como videojuegos clásicos)
+        function generateSaveCode() {
+            const saveData = JSON.stringify(gameState);
+            // Comprimir y codificar en base64
+            const compressed = btoa(encodeURIComponent(saveData));
+            return compressed;
+        }
+
+        // Cargar desde código
+        function loadFromCode(code) {
+            try {
+                const decoded = decodeURIComponent(atob(code));
+                const loadedState = JSON.parse(decoded);
+                gameState = loadedState;
+                updateUI();
+                showScreen('gameScreen');
+                document.getElementById('creditsDisplay').style.display = 'block';
+                addLog('📂 Partida cargada desde código', 'info');
+                showNotification('Partida cargada correctamente', 'success');
+                return true;
+            } catch (e) {
+                showNotification('Código de guardado inválido', 'error');
+                return false;
+            }
+        }
+
+        function openSaveMenu() {
+            const hasSave = localStorage.getItem('vidaPeruSave') !== null;
+            const code = generateSaveCode();
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2em;">💾</div>
+                    <p style="color: #888;">Guarda tu progreso</p>
+                </div>
+
+                <!-- Guardado Local -->
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <h4 style="margin-bottom: 10px;">📱 Guardado Local</h4>
+                    <p style="color: #888; font-size: 0.85em; margin-bottom: 10px;">
+                        Se guarda en tu navegador. Solo funciona en esta PC.
+                    </p>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-success" onclick="saveGame(); openSaveMenu();" style="flex: 1;">
+                            💾 Guardar
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadGame(); closeModal();" style="flex: 1;" ${hasSave ? '' : 'disabled'}>
+                            📂 Cargar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Código de Guardado -->
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <h4 style="margin-bottom: 10px;">🔑 Código de Guardado</h4>
+                    <p style="color: #888; font-size: 0.85em; margin-bottom: 10px;">
+                        Copia este código para jugar en otra PC o navegador.
+                    </p>
+                    <textarea id="saveCodeText" readonly
+                              style="width: 100%; height: 60px; background: rgba(0,0,0,0.5); color: #4CAF50; border: 1px solid #333; border-radius: 5px; padding: 10px; font-family: monospace; font-size: 0.75em; resize: none;"
+                    >${code}</textarea>
+                    <button class="btn btn-small" onclick="copySaveCode()" style="width: 100%; margin-top: 10px;">
+                        📋 Copiar Código
+                    </button>
+                </div>
+
+                <!-- Cargar desde código -->
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                    <h4 style="margin-bottom: 10px;">📥 Cargar desde Código</h4>
+                    <textarea id="loadCodeInput" placeholder="Pega tu código de guardado aquí..."
+                              style="width: 100%; height: 60px; background: rgba(0,0,0,0.5); color: #fff; border: 1px solid #333; border-radius: 5px; padding: 10px; font-family: monospace; font-size: 0.75em; resize: none;"
+                    ></textarea>
+                    <button class="btn btn-warning" onclick="loadFromCodeInput()" style="width: 100%; margin-top: 10px;">
+                        📂 Cargar desde Código
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '💾 Guardar / Cargar';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function copySaveCode() {
+            const textarea = document.getElementById('saveCodeText');
+            textarea.select();
+            document.execCommand('copy');
+            showNotification('Código copiado al portapapeles', 'success');
+        }
+
+        function loadFromCodeInput() {
+            const code = document.getElementById('loadCodeInput').value.trim();
+            if (code) {
+                if (loadFromCode(code)) {
+                    closeModal();
+                }
+            } else {
+                showNotification('Ingresa un código de guardado', 'error');
             }
         }
 
