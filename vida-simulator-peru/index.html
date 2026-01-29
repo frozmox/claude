@@ -1623,6 +1623,30 @@
             background: rgba(255,255,255,0.3);
             border-radius: 3px;
         }
+
+        /* Scrollbar para popup mensual y otras áreas con scroll */
+        .modal-scroll-area {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.3) transparent;
+        }
+
+        .modal-scroll-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-scroll-area::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+
+        .modal-scroll-area::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+
+        .modal-scroll-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
     </style>
 </head>
 <body>
@@ -3547,6 +3571,59 @@
             }
         };
 
+        // Trabajos disponibles solo dentro de prisión
+        const PRISON_JOBS = {
+            lavanderia_prision: {
+                name: "Lavandería de Prisión",
+                salary: 80,
+                stress: 20,
+                energy: -20,
+                description: "Lavar y planchar ropa de los internos. Trabajo legal dentro del penal.",
+                illegal: false,
+                prisonOnly: true
+            },
+            cocina_prision: {
+                name: "Cocina del Penal",
+                salary: 100,
+                stress: 30,
+                energy: -25,
+                description: "Ayudar en la preparación de comidas para los internos.",
+                illegal: false,
+                prisonOnly: true,
+                requirements: { minEndurance: 30 }
+            },
+            mensajero_interno: {
+                name: "Mensajero Interno",
+                salary: 150,
+                stress: 40,
+                energy: -15,
+                description: "Llevar mensajes y paquetes entre internos. Puede incluir contrabando.",
+                illegal: true,
+                prisonOnly: true,
+                riskPerMonth: 15
+            },
+            fabricacion_artesanias: {
+                name: "Fabricación de Artesanías",
+                salary: 120,
+                stress: 15,
+                energy: -10,
+                description: "Crear productos artesanales para venta. Trabajo legal que ayuda a reducir condena.",
+                illegal: false,
+                prisonOnly: true,
+                reducesSentence: true
+            },
+            contrabando_celulares: {
+                name: "Contrabando de Celulares",
+                salary: 400,
+                stress: 60,
+                energy: -10,
+                description: "Introducir y vender celulares dentro del penal. MUY riesgoso.",
+                illegal: true,
+                prisonOnly: true,
+                riskPerMonth: 35
+            }
+        };
+
         // Función para verificar si un trabajo está disponible
         function isJobAvailable(jobId) {
             const job = JOBS[jobId];
@@ -3721,6 +3798,102 @@
                     { text: "Lo máximo posible", score: -5, response: "Todos quisiéramos eso..." },
                     { text: "No he pensado en eso todavía", score: -10, response: "Deberías tener claro tu valor." }
                   ]
+                },
+                { question: "Tu compañero de trabajo te pide que lo cubras mientras sale temprano. ¿Qué haces?",
+                  options: [
+                    { text: "Lo ayudo esta vez pero le digo que no puede ser costumbre", score: 15, response: "Equilibrado, eso es compañerismo." },
+                    { text: "Le digo que no porque es su responsabilidad", score: 5, response: "Correcto, aunque algo inflexible." },
+                    { text: "Le digo que sí sin problema, somos amigos", score: -5, response: "Cuidado con que se aprovechen de ti." },
+                    { text: "Acepto pero se lo reporto al jefe después", score: -15, response: "Eso es traicionar la confianza de un compañero." }
+                  ]
+                },
+                { question: "Descubres que un compañero está robando productos de la empresa. ¿Qué haces?",
+                  options: [
+                    { text: "Lo reporto a recursos humanos confidencialmente", score: 20, response: "Es lo correcto, protegemos a la empresa." },
+                    { text: "Hablo primero con él y le pido que deje de hacerlo", score: 5, response: "Bien intencionado pero arriesgado." },
+                    { text: "No digo nada, no es mi problema", score: -15, response: "Eso te hace cómplice indirectamente." },
+                    { text: "Le pido parte de lo que roba", score: -25, response: "¡Eso es totalmente inaceptable!" }
+                  ]
+                },
+                { question: "Tu jefe te pide que termines un informe para mañana pero ya tienes planes importantes. ¿Qué haces?",
+                  options: [
+                    { text: "Cancelo mis planes y hago el informe", score: 10, response: "Eso muestra compromiso, aunque el balance es importante." },
+                    { text: "Negocio una extensión razonable explicando mi situación", score: 15, response: "Bien, saber comunicar es importante." },
+                    { text: "Le digo que no puedo y que busque a alguien más", score: -10, response: "Eso puede verse como falta de compromiso." },
+                    { text: "Acepto pero entrego un trabajo a medias", score: -15, response: "Mejor negociar que entregar mal trabajo." }
+                  ]
+                },
+                { question: "Un cliente importante te ofrece una propina grande por atenderlo primero. ¿Qué haces?",
+                  options: [
+                    { text: "Rechazo la propina y atiendo en orden de llegada", score: 20, response: "Eso es integridad, excelente." },
+                    { text: "Acepto pero discretamente", score: -10, response: "Eso genera favoritismos." },
+                    { text: "Le digo que no pero le doy prioridad igual", score: -5, response: "Inconsistente, mejor ser justo." },
+                    { text: "Consulto con mi supervisor", score: 10, response: "Bien, pero deberías saber rechazar esto." }
+                  ]
+                },
+                { question: "Llegas tarde al trabajo por un accidente de tránsito. ¿Qué haces?",
+                  options: [
+                    { text: "Aviso inmediatamente y documento el incidente si puedo", score: 20, response: "Perfecto, comunicación proactiva." },
+                    { text: "Invento que me sentía mal para justificar", score: -15, response: "Las mentiras siempre se descubren." },
+                    { text: "No digo nada y espero que nadie se dé cuenta", score: -10, response: "La honestidad es mejor política." },
+                    { text: "Entro como si nada hubiera pasado", score: -20, response: "Eso demuestra falta de responsabilidad." }
+                  ]
+                },
+                { question: "Te enteras que te van a ascender en lugar de un compañero que lo merece más. ¿Qué haces?",
+                  options: [
+                    { text: "Acepto el ascenso y trabajo para merecerlo", score: 15, response: "Práctico, demuestra con hechos." },
+                    { text: "Hablo con mi jefe sobre las capacidades de mi compañero", score: 10, response: "Noble, pero también cuida tu carrera." },
+                    { text: "Rechazo el ascenso", score: -5, response: "No es necesario rechazarlo para ser justo." },
+                    { text: "Me alegro porque al final es competencia", score: 5, response: "Entendible, pero el equipo importa." }
+                  ]
+                },
+                { question: "Tu equipo no logró cumplir una meta y tu jefe pregunta quién fue responsable. ¿Qué haces?",
+                  options: [
+                    { text: "Explico los factores objetivos sin culpar a nadie específicamente", score: 20, response: "Maduro y profesional." },
+                    { text: "Asumo la responsabilidad como parte del equipo", score: 15, response: "Eso es liderazgo." },
+                    { text: "Señalo al compañero que cometió más errores", score: -15, response: "Eso daña el trabajo en equipo." },
+                    { text: "Echo la culpa a factores externos", score: -5, response: "A veces es válido, pero hay que ser honesto." }
+                  ]
+                },
+                { question: "Un cliente te insulta gravemente frente a otros. ¿Qué haces?",
+                  options: [
+                    { text: "Mantengo la calma y pido ayuda a un supervisor", score: 20, response: "Profesional, así se maneja." },
+                    { text: "Le respondo firmemente pero sin insultar", score: 5, response: "Comprensible, pero mejor dejar que otro intervenga." },
+                    { text: "Me retiro del lugar sin decir nada", score: 10, response: "A veces es lo mejor para desescalar." },
+                    { text: "Le respondo de la misma manera", score: -20, response: "Nunca debemos bajar a ese nivel." }
+                  ]
+                },
+                { question: "Cometes un error grave que costará dinero a la empresa. ¿Qué haces?",
+                  options: [
+                    { text: "Informo inmediatamente y propongo soluciones", score: 20, response: "Excelente, eso se valora mucho." },
+                    { text: "Trato de arreglarlo solo antes de que se enteren", score: 0, response: "Bien intencionado pero arriesgado." },
+                    { text: "Espero a ver si alguien lo nota", score: -15, response: "Los problemas empeoran si no se atienden." },
+                    { text: "Busco a quien culpar", score: -20, response: "Eso es muy deshonesto." }
+                  ]
+                },
+                { question: "¿Qué harías si tu jefe te pide hacer algo que consideras poco ético?",
+                  options: [
+                    { text: "Expreso mi preocupación respetuosamente", score: 20, response: "Esa es la manera correcta." },
+                    { text: "Lo hago porque es mi jefe", score: -10, response: "No todo lo que pide un jefe es correcto." },
+                    { text: "Me niego rotundamente sin explicar", score: -5, response: "Mejor explicar tus razones." },
+                    { text: "Renuncio inmediatamente", score: 0, response: "Puede ser extremo, primero comunica." }
+                  ]
+                },
+                { question: "Un colega te cuenta chismes sobre otro compañero. ¿Qué haces?",
+                  options: [
+                    { text: "Le digo que prefiero no participar en chismes", score: 15, response: "Muy profesional de tu parte." },
+                    { text: "Escucho pero no comento nada", score: 5, response: "Neutral, aunque podrías desalentar eso." },
+                    { text: "Comparto lo que yo también sé", score: -15, response: "Los chismes dañan el ambiente laboral." },
+                    { text: "Lo cuento a otros compañeros", score: -20, response: "Eso es muy dañino para el equipo." }
+                  ]
+                },
+                { question: "Te ofrecen un trabajo en la competencia con mejor sueldo. ¿Qué haces?",
+                  options: [
+                    { text: "Evalúo todas las opciones antes de decidir", score: 15, response: "Razonable, es una decisión importante." },
+                    { text: "Acepto inmediatamente por el dinero", score: -5, response: "El dinero no es todo, piénsalo bien." },
+                    { text: "Negocio mejores condiciones con mi empleador actual", score: 10, response: "Válido si valoras donde estás." },
+                    { text: "Rechazo por lealtad a la empresa", score: 5, response: "Noble, pero también piensa en ti." }
+                  ]
                 }
             ],
             physical: [
@@ -3746,6 +3919,30 @@
                     { text: "Me adapto a lo que sea necesario", score: 10, response: "Buena actitud." },
                     { text: "Prefiero ambientes cerrados", score: -10, response: "Eso no siempre es posible aquí." },
                     { text: "Depende de cuánto tiempo", score: 0, response: "A veces son jornadas largas." }
+                  ]
+                },
+                { question: "Estás cargando cajas pesadas y sientes un dolor fuerte en la espalda. ¿Qué haces?",
+                  options: [
+                    { text: "Paro inmediatamente y reporto la situación", score: 20, response: "Correcto, la salud es primero." },
+                    { text: "Sigo trabajando, el dolor ya pasará", score: -15, response: "Eso puede empeorar la lesión." },
+                    { text: "Pido ayuda a un compañero para continuar", score: 10, response: "Bien, aunque debes reportar el malestar." },
+                    { text: "Tomo un descanso sin avisar", score: -5, response: "Debes comunicar siempre tu situación." }
+                  ]
+                },
+                { question: "Tu compañero no está usando el equipo de seguridad correctamente. ¿Qué haces?",
+                  options: [
+                    { text: "Le recuerdo amablemente la importancia de usarlo bien", score: 20, response: "Perfecto, cuidamos entre todos." },
+                    { text: "Lo reporto al supervisor inmediatamente", score: 10, response: "Correcto, aunque primero podrías hablar con él." },
+                    { text: "No digo nada, cada quien es responsable", score: -15, response: "La seguridad es responsabilidad de todos." },
+                    { text: "Tampoco uso el mío para no hacerlo sentir mal", score: -25, response: "¡Eso es muy peligroso!" }
+                  ]
+                },
+                { question: "Te piden trabajar horas extra después de una jornada muy pesada. ¿Qué haces?",
+                  options: [
+                    { text: "Evalúo si físicamente puedo hacerlo sin riesgo", score: 15, response: "Maduro, la seguridad es primero." },
+                    { text: "Acepto sin pensarlo, necesito el dinero", score: -5, response: "Cuidado con el agotamiento." },
+                    { text: "Rechazo porque ya estoy muy cansado", score: 10, response: "Entendible, conoce tus límites." },
+                    { text: "Acepto pero trabajo más lento", score: 0, response: "Comprensible pero comunícalo." }
                   ]
                 }
             ],
@@ -3781,6 +3978,38 @@
                     { text: "Le digo directamente que no", score: 5, response: "Correcto, pero con más tacto." },
                     { text: "Consulto con mi supervisor", score: 10, response: "Bien, aunque deberías conocer las políticas." }
                   ]
+                },
+                { question: "Una señora mayor no entiende cómo funciona un producto y hay fila detrás de ella. ¿Qué haces?",
+                  options: [
+                    { text: "Le explico con paciencia aunque tome más tiempo", score: 20, response: "Excelente servicio al cliente." },
+                    { text: "Le doy el manual y la invito a leerlo", score: -10, response: "Eso es pasar la responsabilidad." },
+                    { text: "Pido a un compañero que la atienda mientras sigo", score: 15, response: "Buena solución para todos." },
+                    { text: "Apuro la explicación para atender a otros", score: -5, response: "Puede generar más confusión." }
+                  ]
+                },
+                { question: "Un cliente dice que le prometieron algo que la empresa no ofrece. ¿Qué haces?",
+                  options: [
+                    { text: "Investigo qué pasó y busco una solución justa", score: 20, response: "Perfecto, eso genera confianza." },
+                    { text: "Le digo que no es posible y punto", score: -10, response: "Podría ser un error de la empresa." },
+                    { text: "Le doy lo que pide para evitar el problema", score: -5, response: "Genera precedentes peligrosos." },
+                    { text: "Escaló a mi supervisor inmediatamente", score: 10, response: "Bien, aunque podrías investigar primero." }
+                  ]
+                },
+                { question: "Un cliente te agradece exageradamente y quiere tu número personal. ¿Qué haces?",
+                  options: [
+                    { text: "Agradezco pero explico que es política no dar datos personales", score: 20, response: "Profesional y correcto." },
+                    { text: "Le doy mi número, es un buen contacto", score: -10, response: "Mezclar lo personal y laboral es riesgoso." },
+                    { text: "Le doy el número de la empresa", score: 15, response: "Buena alternativa profesional." },
+                    { text: "Invento un número falso", score: -15, response: "Mentir nunca es buena opción." }
+                  ]
+                },
+                { question: "Un cliente te pide que le atiendas aunque es hora de tu almuerzo. ¿Qué haces?",
+                  options: [
+                    { text: "Le atiendo rápidamente y luego almuerzo", score: 10, response: "Servicial, pero cuida tus descansos." },
+                    { text: "Le indico amablemente que hay otro compañero que puede atenderle", score: 15, response: "Correcto, el equipo trabaja junto." },
+                    { text: "Me niego porque es mi hora de descanso", score: 0, response: "Tienes derecho, pero podrías ser más flexible." },
+                    { text: "Le digo que regrese después", score: -5, response: "Podrías perder la venta." }
+                  ]
                 }
             ],
             tech: [
@@ -3799,6 +4028,38 @@
                     { text: "Pido más tiempo si es necesario", score: 0, response: "A veces no es posible." },
                     { text: "Me estreso mucho pero lo saco", score: -5, response: "El estrés afecta la calidad." }
                   ]
+                },
+                { question: "Tu código causó un error en producción que afecta a usuarios. ¿Qué haces?",
+                  options: [
+                    { text: "Aviso inmediatamente y trabajo en la solución", score: 20, response: "Eso es lo correcto, transparencia." },
+                    { text: "Trato de arreglarlo solo antes de que lo noten", score: 0, response: "Puede funcionar, pero es arriesgado." },
+                    { text: "Reviso quién más tocó ese código para no ser el único culpable", score: -10, response: "No busques culpables, busca soluciones." },
+                    { text: "Espero a ver si el error se resuelve solo", score: -15, response: "Los errores en producción no se resuelven solos." }
+                  ]
+                },
+                { question: "Un compañero te pide que le expliques algo que ya debería saber. ¿Qué haces?",
+                  options: [
+                    { text: "Le ayudo y le sugiero recursos para que aprenda", score: 20, response: "Buen compañero y mentor." },
+                    { text: "Le explico pero le digo que es la última vez", score: 5, response: "Entendible, pero un poco duro." },
+                    { text: "Le digo que busque en Google", score: -5, response: "Técnicamente correcto pero poco amable." },
+                    { text: "Lo ignoro porque tengo cosas más importantes", score: -10, response: "El equipo trabaja junto." }
+                  ]
+                },
+                { question: "Te piden usar una tecnología que no conoces en un proyecto urgente. ¿Qué haces?",
+                  options: [
+                    { text: "Acepto el reto y estudio rápidamente mientras avanzo", score: 15, response: "Actitud de aprendizaje, excelente." },
+                    { text: "Sugiero una alternativa que sí conozco", score: 10, response: "Práctico, aunque a veces hay que adaptarse." },
+                    { text: "Rechazo el proyecto porque no soy experto", score: -5, response: "Puede verse como falta de iniciativa." },
+                    { text: "Acepto sin mencionar que no la conozco", score: -15, response: "La honestidad es importante." }
+                  ]
+                },
+                { question: "Descubres una vulnerabilidad de seguridad en el sistema. ¿Qué haces?",
+                  options: [
+                    { text: "Lo documento y reporto inmediatamente al equipo de seguridad", score: 20, response: "Perfecto, eso es responsabilidad." },
+                    { text: "La arreglo yo mismo sin avisar", score: 0, response: "Bien intencionado pero debe documentarse." },
+                    { text: "Lo ignoro porque no es mi responsabilidad", score: -15, response: "La seguridad es de todos." },
+                    { text: "La pruebo más a fondo para ver qué tan grave es", score: 5, response: "Cuidado con probar vulnerabilidades en producción." }
+                  ]
                 }
             ],
             sales: [
@@ -3816,6 +4077,46 @@
                     { text: "Fidelicé varios clientes importantes", score: 15, response: "La retención es clave." },
                     { text: "Aún estoy construyendo mi experiencia", score: 0, response: "Todos empezamos en algún momento." },
                     { text: "No tengo experiencia en ventas", score: -10, response: "Este puesto requiere experiencia..." }
+                  ]
+                },
+                { question: "Un cliente está a punto de comprar pero pide un descuento que no puedes dar. ¿Qué haces?",
+                  options: [
+                    { text: "Destaco el valor del producto y ofrezco beneficios adicionales", score: 20, response: "Excelente técnica de ventas." },
+                    { text: "Le doy el descuento aunque no tenga autorización", score: -15, response: "Eso puede costarte el trabajo." },
+                    { text: "Consulto con mi supervisor si podemos hacer algo", score: 10, response: "Bien, muestra flexibilidad." },
+                    { text: "Lo dejo ir, si quiere volverá", score: -5, response: "Podrías perder una venta recuperable." }
+                  ]
+                },
+                { question: "Sabes que un producto tiene problemas pero tu jefe te dice que lo vendas igual. ¿Qué haces?",
+                  options: [
+                    { text: "Expreso mi preocupación y sugiero alternativas honestas", score: 20, response: "La ética en ventas es importante." },
+                    { text: "Lo vendo sin mencionar los problemas", score: -15, response: "Eso puede generar devoluciones y mala reputación." },
+                    { text: "Me niego y arriesgo mi puesto", score: 5, response: "Valiente, pero hay formas de comunicarlo." },
+                    { text: "Lo vendo mencionando las limitaciones", score: 10, response: "Honesto, aunque puede complicarte con tu jefe." }
+                  ]
+                },
+                { question: "Un cliente del mes pasado vuelve molesto porque el producto no funcionó. ¿Qué haces?",
+                  options: [
+                    { text: "Me disculpo, investigo el problema y busco una solución", score: 20, response: "Eso construye lealtad a largo plazo." },
+                    { text: "Le digo que hable con servicio al cliente", score: 0, response: "Técnicamente correcto pero poco servicial." },
+                    { text: "Le explico que ya pasó la garantía", score: -10, response: "Puede ser cierto pero pierdes un cliente." },
+                    { text: "Le ofrezco un descuento en su próxima compra", score: 10, response: "Buen gesto, aunque debería resolver el problema actual." }
+                  ]
+                },
+                { question: "Otro vendedor te robó un cliente que tú habías prospectado. ¿Qué haces?",
+                  options: [
+                    { text: "Hablo con mi compañero profesionalmente para aclarar", score: 15, response: "Maduro, resuelve conflictos directamente." },
+                    { text: "Lo reporto a mi jefe inmediatamente", score: 5, response: "Válido, aunque podría resolverse entre ustedes." },
+                    { text: "Le hago lo mismo cuando tenga oportunidad", score: -20, response: "Eso daña el ambiente del equipo." },
+                    { text: "No digo nada para no causar problemas", score: -5, response: "Puede seguir pasando si no lo mencionas." }
+                  ]
+                },
+                { question: "Un cliente te pide que le recomiendes otro producto que no vendemos. ¿Qué haces?",
+                  options: [
+                    { text: "Le sugiero nuestro producto más similar y explico sus beneficios", score: 20, response: "Buen vendedor, aprovecha la oportunidad." },
+                    { text: "Le digo dónde puede conseguir lo que busca", score: 5, response: "Amable pero pierdes la venta." },
+                    { text: "Le digo que no tenemos eso y ya", score: -5, response: "Podrías ofrecer alternativas." },
+                    { text: "Insisto en que nuestro producto es mejor aunque no sea lo que busca", score: -10, response: "Eso puede molestar al cliente." }
                   ]
                 }
             ]
@@ -3881,10 +4182,13 @@
                 cooking: 0,        // Cocina
                 technical: 0       // Habilidades técnicas
             },
-            // Trabajos ilegales
+            // Trabajos ilegales y prisión
             criminalRecord: false,
             wantedLevel: 0,
             inJail: false,
+            prisonMonths: 0,
+            prisonJob: null,
+            prisonJobMonths: 0,
             captureProtection: 0,
             // Membresías
             gymMembership: false,
@@ -4386,6 +4690,12 @@
                 total += Math.floor(salary * (1 + bonus * 0.3));
             }
 
+            // Incluir ingresos de negocios (si hay)
+            // En prisión, los negocios generan solo 50% (penalidad por no poder supervisar)
+            if (gameState.businessIncome) {
+                total += inPrison ? Math.floor(gameState.businessIncome * 0.5) : gameState.businessIncome;
+            }
+
             // El bono estatal sí se recibe en prisión (es del estado)
             total += getStateDisabilityBonus();
             return total;
@@ -4721,10 +5031,69 @@
 
         function openJobMenu() {
             const postulationCost = 15;
+            const inPrison = gameState.prisonMonths > 0;
 
             let html = ``;
 
-            // Estado actual
+            // Si está en prisión, mostrar trabajos de prisión
+            if (inPrison) {
+                html += `
+                    <div style="background: rgba(244,67,54,0.15); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid #f44336;">
+                        <div style="font-weight: bold; color: #f44336;">🔒 Estás en Prisión</div>
+                        <div style="color: #aaa; font-size: 0.9em; margin-top: 5px;">
+                            Te quedan ${gameState.prisonMonths} meses de condena. Solo puedes acceder a trabajos dentro del penal.
+                        </div>
+                    </div>
+                `;
+
+                // Mostrar trabajo actual de prisión si existe
+                if (gameState.prisonJob) {
+                    const currentPrisonJob = PRISON_JOBS[gameState.prisonJob];
+                    html += `
+                        <div style="background: rgba(156,39,176,0.15); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid #9c27b0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: bold;">📌 ${currentPrisonJob.name}</div>
+                                    <div style="color: #9c27b0; font-size: 0.9em;">${formatMoney(currentPrisonJob.salary)}/mes</div>
+                                </div>
+                                <button class="btn btn-danger btn-small" onclick="quitPrisonJob()">Dejar</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `<h4 style="margin-bottom: 10px; color: #aaa;">Trabajos disponibles en el penal:</h4>`;
+                html += `<div id="jobsList">`;
+
+                for (let jobId of Object.keys(PRISON_JOBS)) {
+                    const job = PRISON_JOBS[jobId];
+                    const isCurrentJob = gameState.prisonJob === jobId;
+
+                    html += `
+                        <div class="job-card" data-type="${job.illegal ? 'ilegal' : 'legal'}"
+                             onclick="${isCurrentJob ? '' : `showPrisonJobDetails('${jobId}')`}"
+                             style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; background: ${isCurrentJob ? 'rgba(156,39,176,0.2)' : 'rgba(255,255,255,0.05)'}; border-radius: 8px; cursor: ${isCurrentJob ? 'default' : 'pointer'}; border-left: 3px solid ${job.illegal ? '#f44336' : '#4CAF50'}; ${isCurrentJob ? 'opacity: 0.7;' : ''}">
+                            <div style="flex: 1;">
+                                <div style="font-weight: bold; font-size: 0.95em;">${job.name} ${isCurrentJob ? '(Actual)' : ''}</div>
+                                <div style="color: #4CAF50; font-size: 0.85em;">${formatMoney(job.salary)}/mes</div>
+                                ${job.illegal ? '<div style="color: #f44336; font-size: 0.75em;">⚠️ Ilegal - Riesgo: ' + job.riskPerMonth + '%/mes</div>' : ''}
+                                ${job.reducesSentence ? '<div style="color: #2196F3; font-size: 0.75em;">📉 Reduce condena</div>' : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+                html += `<p style="text-align: center; color: #888; font-size: 0.8em; margin-top: 10px;">Los trabajos legales pueden reducir tu condena</p>`;
+
+                document.getElementById('modalTitle').textContent = '🔒 Trabajos de Prisión';
+                document.getElementById('modalBody').innerHTML = html;
+                document.getElementById('modalOptions').innerHTML = '';
+                document.getElementById('gameModal').classList.add('active');
+                return;
+            }
+
+            // Estado actual (fuera de prisión)
             if (gameState.job) {
                 const currentJob = JOBS[gameState.job];
                 const salary = Array.isArray(currentJob.salary) ? currentJob.salary[0] : currentJob.salary;
@@ -5128,6 +5497,135 @@
             addLog(`Renunciaste a tu trabajo como ${oldJob}`, 'neutral');
             closeModal();
             updateUI();
+        }
+
+        // ==================== SISTEMA DE TRABAJOS DE PRISIÓN ====================
+
+        function showPrisonJobDetails(jobId) {
+            const job = PRISON_JOBS[jobId];
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 5px;">${job.name}</h3>
+                    <div style="color: #4CAF50; font-size: 1.3em; font-weight: bold;">${formatMoney(job.salary)}/mes</div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <p style="margin-bottom: 10px;">${job.description}</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                        <div>😫 Estrés: +${job.stress}%</div>
+                        <div>⚡ Energía: ${job.energy}</div>
+                        ${job.illegal ? `<div style="color: #f44336;">⚠️ Riesgo detección: ${job.riskPerMonth}%/mes</div>` : ''}
+                        ${job.reducesSentence ? '<div style="color: #2196F3;">📉 Reduce 1 mes de condena/mes trabajado</div>' : ''}
+                    </div>
+                </div>
+
+                ${job.illegal ? `
+                    <div style="background: rgba(244,67,54,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid #f44336;">
+                        <div style="color: #f44336; font-weight: bold;">⚠️ Trabajo Ilegal</div>
+                        <div style="color: #aaa; font-size: 0.85em;">Si te descubren, se añadirán meses a tu condena y perderás privilegios.</div>
+                    </div>
+                ` : ''}
+
+                ${job.reducesSentence ? `
+                    <div style="background: rgba(33,150,243,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid #2196F3;">
+                        <div style="color: #2196F3; font-weight: bold;">✅ Trabajo con beneficio penitenciario</div>
+                        <div style="color: #aaa; font-size: 0.85em;">Este trabajo puede reducir tu tiempo de condena por buen comportamiento.</div>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('modalTitle').textContent = '';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = `
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" onclick="openJobMenu()" style="flex: 1;">← Volver</button>
+                    <button class="btn ${job.illegal ? 'btn-warning' : 'btn-success'}" onclick="acceptPrisonJob('${jobId}')" style="flex: 1;">
+                        ${job.illegal ? '⚠️ Aceptar Riesgo' : '✅ Aceptar Trabajo'}
+                    </button>
+                </div>
+            `;
+        }
+
+        function acceptPrisonJob(jobId) {
+            const job = PRISON_JOBS[jobId];
+
+            // Si tiene requisitos, verificar
+            if (job.requirements) {
+                const ps = gameState.physicalStats;
+                if (job.requirements.minEndurance && ps.endurance < job.requirements.minEndurance) {
+                    showNotification('No tienes suficiente resistencia física para este trabajo', 'error');
+                    return;
+                }
+            }
+
+            // Si ya tiene trabajo de prisión, cambiarlo
+            if (gameState.prisonJob) {
+                const oldJob = PRISON_JOBS[gameState.prisonJob].name;
+                addLog(`Dejaste tu trabajo de ${oldJob} en prisión`, 'neutral');
+            }
+
+            gameState.prisonJob = jobId;
+            gameState.prisonJobMonths = 0;
+
+            addLog(`Comenzaste a trabajar en ${job.name} dentro del penal`, job.illegal ? 'warning' : 'positive');
+            showNotification(`Ahora trabajas en: ${job.name}`, 'success');
+
+            closeModal();
+            updateUI();
+        }
+
+        function quitPrisonJob() {
+            if (!gameState.prisonJob) return;
+
+            const oldJob = PRISON_JOBS[gameState.prisonJob].name;
+            gameState.prisonJob = null;
+            gameState.prisonJobMonths = 0;
+
+            addLog(`Dejaste tu trabajo de ${oldJob} en prisión`, 'neutral');
+            closeModal();
+            updateUI();
+        }
+
+        function processPrisonJob() {
+            if (!gameState.prisonJob || gameState.prisonMonths <= 0) return;
+
+            const job = PRISON_JOBS[gameState.prisonJob];
+
+            // Pagar salario
+            gameState.money += job.salary;
+
+            // Aplicar efectos
+            gameState.stress = Math.min(100, gameState.stress + job.stress);
+            gameState.energy = Math.max(0, gameState.energy + job.energy);
+
+            // Aumentar meses trabajados
+            gameState.prisonJobMonths = (gameState.prisonJobMonths || 0) + 1;
+
+            // Si reduce condena y es trabajo legal
+            if (job.reducesSentence && !job.illegal && gameState.prisonMonths > 1) {
+                // 70% de probabilidad de reducir 1 mes
+                if (Math.random() < 0.7) {
+                    gameState.prisonMonths--;
+                    addLog(`📉 Tu buen comportamiento trabajando redujo tu condena en 1 mes`, 'positive');
+                }
+            }
+
+            // Si es trabajo ilegal, riesgo de ser descubierto
+            if (job.illegal) {
+                if (Math.random() * 100 < job.riskPerMonth) {
+                    // Descubierto
+                    const extraMonths = Math.floor(Math.random() * 6) + 3;
+                    gameState.prisonMonths += extraMonths;
+                    gameState.prisonJob = null;
+                    gameState.prisonJobMonths = 0;
+                    gameState.happiness -= 30;
+                    gameState.stress += 40;
+
+                    addLog(`🚨 ¡Te descubrieron haciendo ${job.name}! +${extraMonths} meses de condena`, 'negative');
+                    showNotification(`¡Descubierto! Se añadieron ${extraMonths} meses a tu condena`, 'error');
+                }
+            }
         }
 
         // ==================== SISTEMA DE ASCENSOS ====================
@@ -8384,6 +8882,9 @@
 
             // Si estás en la cárcel, pasar tiempo
             if (gameState.prisonMonths > 0) {
+                // Procesar trabajo de prisión primero (puede reducir condena)
+                processPrisonJob();
+
                 gameState.prisonMonths--;
                 gameState.month++;
                 if (gameState.month > 12) {
@@ -8396,6 +8897,9 @@
                 gameState.physicalStats.strength += 1; // Hacer ejercicio en la cárcel
 
                 if (gameState.prisonMonths <= 0) {
+                    // Limpiar trabajo de prisión al salir
+                    gameState.prisonJob = null;
+                    gameState.prisonJobMonths = 0;
                     gameState.onParole = true;
                     gameState.paroleMonths = 24; // 2 años de libertad condicional
                     addLog('¡Saliste de la cárcel! Estás en libertad condicional.', 'warning');
@@ -8868,9 +9372,9 @@
                 <!-- Eventos recientes -->
                 ${recentEvents.length > 0 ? `
                     <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                        <div style="font-weight: bold; margin-bottom: 10px;">📋 Eventos del mes</div>
-                        <div style="max-height: 100px; overflow-y: auto;">
-                            ${recentEvents.map(e => `<div style="font-size: 0.85em; color: #aaa; margin-bottom: 5px;">• ${e.message || e.text || 'Sin descripción'}</div>`).join('')}
+                        <div style="font-weight: bold; margin-bottom: 10px;">📋 Eventos del mes (${recentEvents.length})</div>
+                        <div class="modal-scroll-area" style="max-height: 120px; overflow-y: auto; padding-right: 8px;">
+                            ${recentEvents.map(e => `<div style="font-size: 0.85em; color: #aaa; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1);">• ${e.message || e.text || 'Sin descripción'}</div>`).join('')}
                         </div>
                     </div>
                 ` : ''}
