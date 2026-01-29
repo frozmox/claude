@@ -1855,13 +1855,13 @@
         const HEALTH_CONDITIONS = {
             ninguna: { name: "Sin condiciones", probability: 60, monthlyCost: 0, energyPenalty: 0 },
             asma: { name: "Asma", probability: 10, monthlyCost: 50, energyPenalty: -10 },
-            diabetes: { name: "Diabetes Tipo 1", probability: 5, monthlyCost: 300, energyPenalty: -15 },
-            discapacidad: { name: "Discapacidad Física", probability: 5, monthlyCost: 200, energyPenalty: -20, jobLimit: true },
-            tdah: { name: "TDAH", probability: 8, monthlyCost: 80, energyPenalty: 0, creativityBonus: 25 },
+            diabetes: { name: "Diabetes Tipo 1", probability: 5, monthlyCost: 300, energyPenalty: -15, stateBonus: 150 },
+            discapacidad: { name: "Discapacidad Física", probability: 5, monthlyCost: 200, energyPenalty: -20, jobLimit: true, stateBonus: 300 },
+            tdah: { name: "TDAH", probability: 8, monthlyCost: 80, energyPenalty: 0, creativityBonus: 25, stateBonus: 100 },
             depresion: { name: "Depresión/Ansiedad", probability: 7, monthlyCost: 150, happinessPenalty: -20 },
-            cronica: { name: "Enfermedad Crónica", probability: 3, monthlyCost: 500, energyPenalty: -30 },
-            ceguera: { name: "Ceguera/Baja Visión", probability: 1, monthlyCost: 100, jobLimit: true },
-            sordera: { name: "Sordera", probability: 1, monthlyCost: 50, jobLimit: true }
+            cronica: { name: "Enfermedad Crónica", probability: 3, monthlyCost: 500, energyPenalty: -30, stateBonus: 250 },
+            ceguera: { name: "Ceguera/Baja Visión", probability: 1, monthlyCost: 100, jobLimit: true, stateBonus: 300 },
+            sordera: { name: "Sordera", probability: 1, monthlyCost: 50, jobLimit: true, stateBonus: 250 }
         };
 
         const FAMILY_SITUATIONS = {
@@ -3146,6 +3146,8 @@
             // Trabajos ilegales
             criminalRecord: false,
             wantedLevel: 0,
+            inJail: false,
+            captureProtection: 0,
             // Membresías
             gymMembership: false,
             gymMonthsLeft: 0,
@@ -3527,11 +3529,21 @@
         }
 
         function calculateMonthlyIncome() {
-            if (!gameState.job) return 0;
-            const job = JOBS[gameState.job];
-            let salary = Array.isArray(job.salary) ? Math.floor((job.salary[0] + job.salary[1]) / 2) : job.salary;
-            const bonus = gameState.character.totalJobBonus / 100;
-            return Math.floor(salary * (1 + bonus * 0.3));
+            let total = 0;
+            // Salario del trabajo
+            if (gameState.job) {
+                const job = JOBS[gameState.job];
+                let salary = Array.isArray(job.salary) ? Math.floor((job.salary[0] + job.salary[1]) / 2) : job.salary;
+                const bonus = gameState.character.totalJobBonus / 100;
+                total += Math.floor(salary * (1 + bonus * 0.3));
+            }
+            // Bono estatal por discapacidad (Programa CONTIGO)
+            total += getStateDisabilityBonus();
+            return total;
+        }
+
+        function getStateDisabilityBonus() {
+            return gameState.character.healthConditionData.stateBonus || 0;
         }
 
         function calculateMonthlyExpenses() {
@@ -4255,162 +4267,210 @@
 
         // ==================== SISTEMA DE ACTIVIDADES MEJORADO ====================
 
-        function openActivitiesMenu() {
-            // Mostrar estadísticas físicas actuales
-            const ps = gameState.physicalStats;
-            const sk = gameState.skills;
+        // Categorías de actividades organizadas
+        const ACTIVITY_CATEGORIES = {
+            descanso: { name: '😴 Descanso', color: '#9c88ff', desc: 'Recupera energía y reduce estrés' },
+            fisico: { name: '💪 Físico', color: '#f44336', desc: 'Mejora fuerza, resistencia y salud' },
+            apariencia: { name: '✨ Apariencia', color: '#e91e63', desc: 'Mejora tu imagen personal' },
+            habilidades: { name: '📚 Habilidades', color: '#2196F3', desc: 'Aprende y mejora tus skills' },
+            social: { name: '👥 Social', color: '#4CAF50', desc: 'Socializa y gana carisma' },
+            trabajo: { name: '💰 Dinero', color: '#ff9800', desc: 'Genera ingresos extra' }
+        };
 
-            let statsHtml = `
-                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                    <h4 style="margin-bottom: 10px;">📊 Tus Estadísticas</h4>
-                    <div class="physical-stats">
-                        <div class="physical-stat">
-                            <span class="stat-name">💪 Fuerza</span>
-                            <span class="stat-value">${ps.strength}</span>
-                            <div class="mini-bar"><div class="mini-bar-fill" style="width: ${ps.strength}%; background: #f44336;"></div></div>
-                        </div>
-                        <div class="physical-stat">
-                            <span class="stat-name">🏃 Resistencia</span>
-                            <span class="stat-value">${ps.endurance}</span>
-                            <div class="mini-bar"><div class="mini-bar-fill" style="width: ${ps.endurance}%; background: #ff9800;"></div></div>
-                        </div>
-                        <div class="physical-stat">
-                            <span class="stat-name">✨ Apariencia</span>
-                            <span class="stat-value">${ps.appearance}</span>
-                            <div class="mini-bar"><div class="mini-bar-fill" style="width: ${ps.appearance}%; background: #e91e63;"></div></div>
-                        </div>
-                        <div class="physical-stat">
-                            <span class="stat-name">👔 Ropa</span>
-                            <span class="stat-value">${ps.clothing}</span>
-                            <div class="mini-bar"><div class="mini-bar-fill" style="width: ${ps.clothing}%; background: #9c27b0;"></div></div>
-                        </div>
-                        <div class="physical-stat">
-                            <span class="stat-name">🗣️ Carisma</span>
-                            <span class="stat-value">${ps.charisma}</span>
-                            <div class="mini-bar"><div class="mini-bar-fill" style="width: ${ps.charisma}%; background: #2196F3;"></div></div>
-                        </div>
-                        <div class="physical-stat">
-                            <span class="stat-name">📏 Altura</span>
-                            <span class="stat-value">${ps.height} cm</span>
-                        </div>
+        function getActivitiesList() {
+            const sk = gameState.skills;
+            return [
+                // DESCANSO
+                { id: 'rest', icon: '😴', name: 'Descansar', category: 'descanso', cost: 0,
+                  tooltip: 'Recupera energía sin gastar dinero.',
+                  effects: { energy: 30, health: 5, stress: -15 } },
+                { id: 'meditate', icon: '🧘', name: 'Meditar', category: 'descanso', cost: 0,
+                  tooltip: 'La meditación reduce el estrés significativamente.',
+                  effects: { stress: -25, happiness: 10, health: 3 } },
+                { id: 'entertainment', icon: '🎮', name: 'Entretenimiento', category: 'descanso', cost: 50,
+                  tooltip: 'Relájate con videojuegos, películas, etc.',
+                  effects: { happiness: 15, energy: 10, stress: -10 } },
+
+                // FÍSICO
+                { id: 'gym_session', icon: '🏋️', name: gameState.gymMembership ? 'Entrenar (Membresía)' : 'Ir al gimnasio',
+                  category: 'fisico', cost: gameState.gymMembership ? 0 : 25,
+                  tooltip: `Mejora fuerza (+2) y resistencia (+2). ${gameState.gymMembership ? 'Membresía activa.' : ''}`,
+                  effects: { health: 5, energy: -20 }, bonusStrength: 2, bonusEndurance: 2 },
+                { id: 'gym_membership', icon: '💳', name: 'Membresía Gym (3 meses)', category: 'fisico', cost: 150,
+                  tooltip: 'Entrena gratis por 3 meses. ¡Ahorra dinero!',
+                  effects: {}, special: 'gym_membership', hidden: gameState.gymMembership },
+                { id: 'doctor', icon: '🏥', name: 'Ir al doctor', category: 'fisico', cost: 100,
+                  tooltip: 'Chequeo médico. Mejora tu salud (+15).',
+                  effects: { health: 15, stress: -5 } },
+
+                // APARIENCIA
+                { id: 'haircut', icon: '💇', name: 'Peluquería', category: 'apariencia', cost: 40,
+                  tooltip: 'Buen corte mejora apariencia (+3).',
+                  effects: { happiness: 5 }, bonusAppearance: 3 },
+                { id: 'spa', icon: '🧖', name: 'Día de SPA', category: 'apariencia', cost: 200,
+                  tooltip: 'Tratamiento completo. Apariencia +5, reduce estrés.',
+                  effects: { happiness: 15, stress: -20 }, bonusAppearance: 5 },
+                { id: 'clothing_basic', icon: '👕', name: 'Ropa (Gamarra)', category: 'apariencia', cost: 80,
+                  tooltip: 'Ropa económica pero presentable. Ropa +10.',
+                  effects: {}, bonusClothing: 10 },
+                { id: 'clothing_formal', icon: '👔', name: 'Ropa (Saga/Ripley)', category: 'apariencia', cost: 350,
+                  tooltip: 'Ropa formal de calidad. Ropa +25.',
+                  effects: { happiness: 10 }, bonusClothing: 25 },
+                { id: 'clothing_premium', icon: '🎩', name: 'Ropa (Marca)', category: 'apariencia', cost: 800,
+                  tooltip: 'Ropa premium de marca. Ropa +40.',
+                  effects: { happiness: 15 }, bonusClothing: 40 },
+
+                // HABILIDADES
+                { id: 'study_self', icon: '📖', name: 'Estudiar solo', category: 'habilidades', cost: 0,
+                  tooltip: `Autodidacta. Computación +2. Tu nivel: ${sk.computing}%`,
+                  effects: { energy: -10 }, bonusSkillComputing: 2 },
+                { id: 'course_computing', icon: '💻', name: 'Curso Computación', category: 'habilidades', cost: 120,
+                  tooltip: `CIBERTEC/IDAT. Computación +5. Tu nivel: ${sk.computing}%`,
+                  effects: { energy: -10 }, bonusSkillComputing: 5 },
+                { id: 'course_english', icon: '🇬🇧', name: 'Clase de Inglés', category: 'habilidades', cost: 150,
+                  tooltip: `ICPNA/Británico. Inglés +5. Tu nivel: ${sk.english}%`,
+                  effects: { energy: -10 }, bonusSkillEnglish: 5 },
+                { id: 'course_driving', icon: '🚗', name: 'Clase de Manejo', category: 'habilidades', cost: 100,
+                  tooltip: `Academia de manejo. Manejo +8. Tu nivel: ${sk.driving}%`,
+                  effects: { energy: -15 }, bonusSkillDriving: 8 },
+
+                // SOCIAL
+                { id: 'friends', icon: '🍺', name: 'Salir con amigos', category: 'social', cost: 120,
+                  tooltip: 'Socializar mejora carisma (+1).',
+                  effects: { happiness: 20, energy: -10, stress: -10 }, bonusCharisma: 1 },
+
+                // TRABAJO
+                { id: 'side_hustle', icon: '💰', name: 'Cachuelo', category: 'trabajo', cost: 0,
+                  tooltip: 'Trabajo informal. Gana S/ 50-150.',
+                  effects: { energy: -25, stress: 10 }, special: 'money' }
+            ];
+        }
+
+        function openActivitiesMenu(openCategory = null) {
+            const ps = gameState.physicalStats;
+
+            // Header compacto con stats relevantes
+            let html = `
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; font-size: 0.85em;">
+                    <div style="background: rgba(244,67,54,0.2); padding: 8px; border-radius: 8px; text-align: center;">
+                        💪 ${ps.strength} | 🏃 ${ps.endurance}
                     </div>
-                    ${gameState.gymMembership ? `<p style="color: #4CAF50; margin-top: 10px;">🏋️ Membresía Gym: ${gameState.gymMonthsLeft} meses</p>` : ''}
+                    <div style="background: rgba(233,30,99,0.2); padding: 8px; border-radius: 8px; text-align: center;">
+                        ✨ ${ps.appearance} | 👔 ${ps.clothing}
+                    </div>
+                    <div style="background: rgba(33,150,243,0.2); padding: 8px; border-radius: 8px; text-align: center;">
+                        🗣️ ${ps.charisma} | ⚡ ${gameState.energy}
+                    </div>
                 </div>
             `;
 
-            const activities = [
-                // ENTRETENIMIENTO Y DESCANSO
-                { id: 'entertainment', icon: '🎮', name: 'Entretenimiento', desc: 'Videojuegos, películas, etc.', cost: 50,
-                  tooltip: 'Relájate con entretenimiento. Reduce estrés y aumenta felicidad.',
-                  effects: { happiness: 15, energy: 10, stress: -10 } },
-                { id: 'friends', icon: '🍺', name: 'Salir con amigos', desc: 'Socializar y divertirse', cost: 120,
-                  tooltip: 'Socializar mejora tu carisma con el tiempo (+1 carisma).',
-                  effects: { happiness: 20, energy: -10, stress: -10 }, bonusCharisma: 1 },
-                { id: 'rest', icon: '😴', name: 'Descansar', desc: 'Un día de relax en casa', cost: 0,
-                  tooltip: 'Recupera energía sin gastar dinero.',
-                  effects: { energy: 30, health: 5, stress: -15 } },
-                { id: 'meditate', icon: '🧘', name: 'Meditar', desc: 'Paz mental y reflexión', cost: 0,
-                  tooltip: 'La meditación reduce el estrés significativamente.',
-                  effects: { stress: -25, happiness: 10, health: 3 } },
-
-                // MEJORA FÍSICA
-                { id: 'gym_session', icon: '💪', name: gameState.gymMembership ? 'Entrenar (Membresía)' : 'Ir al gimnasio',
-                  desc: gameState.gymMembership ? 'Sesión de entrenamiento gratuita' : 'Pase diario de gimnasio',
-                  cost: gameState.gymMembership ? 0 : 25,
-                  tooltip: `Mejora tu fuerza (+2) y resistencia (+2). ${gameState.gymMembership ? 'Ya tienes membresía activa.' : 'Considera una membresía mensual para ahorrar.'}`,
-                  effects: { health: 5, energy: -20, stress: -10 }, bonusStrength: 2, bonusEndurance: 2 },
-                { id: 'gym_membership', icon: '🏋️', name: 'Membresía Gym (3 meses)', desc: 'S/ 150 - Entrena gratis por 3 meses', cost: 150,
-                  tooltip: 'Con membresía puedes entrenar gratis. ¡Ahorra dinero y mejora tu físico!',
-                  effects: {}, special: 'gym_membership', hidden: gameState.gymMembership },
-
-                // MEJORA DE APARIENCIA
-                { id: 'spa', icon: '🧖', name: 'Día de SPA', desc: 'Tratamiento facial, masajes, cuidado personal', cost: 200,
-                  tooltip: 'El SPA mejora tu apariencia (+5) y reduce estrés. Importante para trabajos con "buena presencia".',
-                  effects: { happiness: 15, stress: -20 }, bonusAppearance: 5 },
-                { id: 'haircut', icon: '💇', name: 'Peluquería/Barbería', desc: 'Corte de cabello y arreglo personal', cost: 40,
-                  tooltip: 'Un buen corte mejora tu apariencia (+3) y da buena impresión en entrevistas.',
-                  effects: { happiness: 5 }, bonusAppearance: 3 },
-                { id: 'clothing_basic', icon: '👕', name: 'Ropa básica (Gamarra)', desc: 'Ropa económica pero presentable', cost: 80,
-                  tooltip: 'Mejora tu nivel de ropa (+10). Suficiente para trabajos informales.',
-                  effects: {}, bonusClothing: 10 },
-                { id: 'clothing_formal', icon: '👔', name: 'Ropa formal (Saga/Ripley)', desc: 'Ropa de calidad para oficina', cost: 350,
-                  tooltip: 'Mejora significativa en ropa (+25). Necesario para trabajos corporativos.',
-                  effects: { happiness: 10 }, bonusClothing: 25 },
-                { id: 'clothing_premium', icon: '🎩', name: 'Ropa premium (Marca)', desc: 'Ropa de marca, alta calidad', cost: 800,
-                  tooltip: 'La mejor ropa disponible (+40). Imprescindible para puestos ejecutivos.',
-                  effects: { happiness: 15 }, bonusClothing: 40 },
-
-                // DESARROLLO DE HABILIDADES
-                { id: 'course_english', icon: '🇬🇧', name: 'Clase de Inglés', desc: 'ICPNA/Británico - Mejora tu inglés', cost: 150,
-                  tooltip: `Tu inglés actual: ${sk.english}%. Cada clase mejora +5%. Necesario para trabajos corporativos.`,
-                  effects: { stress: 5, energy: -10 }, bonusSkillEnglish: 5 },
-                { id: 'course_computing', icon: '💻', name: 'Curso de Computación', desc: 'CIBERTEC/IDAT - Office y más', cost: 120,
-                  tooltip: `Tu nivel de computación: ${sk.computing}%. Mejora +5%. Esencial para trabajos de oficina.`,
-                  effects: { stress: 5, energy: -10 }, bonusSkillComputing: 5 },
-                { id: 'course_driving', icon: '🚗', name: 'Clase de Manejo', desc: 'Academia de manejo - Aprende a conducir', cost: 100,
-                  tooltip: `Tu habilidad de manejo: ${sk.driving}%. Mejora +8%. Necesario para trabajos de transporte.`,
-                  effects: { energy: -15 }, bonusSkillDriving: 8 },
-                { id: 'study_self', icon: '📖', name: 'Estudiar por tu cuenta', desc: 'Leer y aprender online (gratis)', cost: 0,
-                  tooltip: 'Estudio autodidacta. Mejora computación (+2) lentamente pero gratis.',
-                  effects: { stress: 5, energy: -10 }, bonusSkillComputing: 2, bonusExperience: 2 },
-
-                // TRABAJO Y DINERO
-                { id: 'side_hustle', icon: '💰', name: 'Cachuelo', desc: 'Trabajo informal por el día', cost: 0,
-                  tooltip: 'Gana entre S/ 50-150 haciendo trabajos informales. Cansa pero genera dinero.',
-                  effects: { energy: -25, stress: 10 }, special: 'money' },
-
-                // SALUD
-                { id: 'doctor', icon: '🏥', name: 'Ir al doctor', desc: 'Chequeo médico general', cost: 100,
-                  tooltip: 'Mejora tu salud (+15). Importante si tu salud está baja.',
-                  effects: { health: 15, stress: -5 } }
-            ];
-
-            // Agregar opción de salir del closet si aplica
-            if (gameState.inCloset && !gameState.isOut) {
-                activities.push({
-                    id: 'comeout', icon: '🌈', name: 'Salir del closet', desc: 'Revelar tu orientación a tu familia', cost: 0,
-                    tooltip: 'Revelar tu orientación sexual. Puede tener consecuencias positivas o negativas según tu familia.',
-                    effects: {}, special: 'comeout'
-                });
+            if (gameState.gymMembership) {
+                html += `<div style="background: rgba(76,175,80,0.2); padding: 8px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-size: 0.85em;">🏋️ Membresía Gym: ${gameState.gymMonthsLeft} meses restantes</div>`;
             }
 
-            let html = statsHtml + `<p style="margin-bottom: 15px;">Elige una actividad:</p>`;
+            // Si hay categoría abierta, mostrar actividades de esa categoría
+            if (openCategory && ACTIVITY_CATEGORIES[openCategory]) {
+                const cat = ACTIVITY_CATEGORIES[openCategory];
+                const activities = getActivitiesList().filter(a => a.category === openCategory && !a.hidden);
 
-            html += activities.filter(act => !act.hidden).map(act => {
-                const canAfford = gameState.money >= act.cost;
-                const hasEnergy = gameState.energy >= 10;
-                const canDo = canAfford && hasEnergy;
-
-                let effectsText = Object.entries(act.effects).map(([key, val]) => {
-                    const labels = { happiness: '😊', health: '❤️', energy: '⚡', stress: '😫' };
-                    const color = (key === 'stress' ? (val < 0 ? '#4CAF50' : '#f44336') : (val > 0 ? '#4CAF50' : '#f44336'));
-                    return `<span style="color: ${color}">${labels[key] || key} ${val > 0 ? '+' : ''}${val}</span>`;
-                }).join(' | ');
-
-                // Mostrar bonificaciones de stats
-                if (act.bonusStrength) effectsText += ` | <span style="color: #f44336">💪+${act.bonusStrength}</span>`;
-                if (act.bonusEndurance) effectsText += ` | <span style="color: #ff9800">🏃+${act.bonusEndurance}</span>`;
-                if (act.bonusAppearance) effectsText += ` | <span style="color: #e91e63">✨+${act.bonusAppearance}</span>`;
-                if (act.bonusClothing) effectsText += ` | <span style="color: #9c27b0">👔+${act.bonusClothing}</span>`;
-                if (act.bonusCharisma) effectsText += ` | <span style="color: #2196F3">🗣️+${act.bonusCharisma}</span>`;
-                if (act.bonusSkillEnglish) effectsText += ` | <span style="color: #4CAF50">🇬🇧+${act.bonusSkillEnglish}</span>`;
-                if (act.bonusSkillComputing) effectsText += ` | <span style="color: #2196F3">💻+${act.bonusSkillComputing}</span>`;
-                if (act.bonusSkillDriving) effectsText += ` | <span style="color: #ff9800">🚗+${act.bonusSkillDriving}</span>`;
-                if (act.special === 'money') effectsText += ' | <span style="color: #4CAF50">💵 +S/ 50-150</span>';
-
-                return `
-                    <div class="modal-option tooltip-container" onclick="${canDo ? `doActivity('${act.id}')` : ''}" ${canDo ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'}>
-                        <div class="option-title">${act.icon} ${act.name} ${act.cost > 0 ? `<span style="color: #ff9800;">(${formatMoney(act.cost)})</span>` : '<span style="color: #4CAF50;">(Gratis)</span>'}</div>
-                        <div class="option-desc">${act.desc}</div>
-                        <div style="margin-top: 8px; font-size: 0.8em;">${effectsText}</div>
-                        ${!canAfford ? '<div style="color: #f44336; font-size: 0.8em;">No tienes suficiente dinero</div>' : ''}
-                        ${!hasEnergy ? '<div style="color: #f44336; font-size: 0.8em;">Estás muy cansado/a</div>' : ''}
-                        <div class="tooltip"><h4>ℹ️ Info</h4>${act.tooltip}</div>
+                html += `
+                    <div style="margin-bottom: 15px;">
+                        <button class="btn" onclick="openActivitiesMenu()" style="padding: 8px 15px;">
+                            ← Volver a categorías
+                        </button>
                     </div>
+                    <h3 style="color: ${cat.color}; margin-bottom: 15px;">${cat.name}</h3>
                 `;
-            }).join('');
 
-            document.getElementById('modalTitle').textContent = '🎮 Actividades y Mejoras';
+                for (const act of activities) {
+                    const canAfford = gameState.money >= act.cost;
+                    const hasEnergy = gameState.energy >= 10;
+                    const canDo = canAfford && hasEnergy;
+
+                    let bonusText = '';
+                    if (act.bonusStrength) bonusText += `💪+${act.bonusStrength} `;
+                    if (act.bonusEndurance) bonusText += `🏃+${act.bonusEndurance} `;
+                    if (act.bonusAppearance) bonusText += `✨+${act.bonusAppearance} `;
+                    if (act.bonusClothing) bonusText += `👔+${act.bonusClothing} `;
+                    if (act.bonusCharisma) bonusText += `🗣️+${act.bonusCharisma} `;
+                    if (act.bonusSkillEnglish) bonusText += `🇬🇧+${act.bonusSkillEnglish} `;
+                    if (act.bonusSkillComputing) bonusText += `💻+${act.bonusSkillComputing} `;
+                    if (act.bonusSkillDriving) bonusText += `🚗+${act.bonusSkillDriving} `;
+                    if (act.special === 'money') bonusText += `💵+S/50-150`;
+
+                    html += `
+                        <div class="activity-item" onclick="${canDo ? `doActivity('${act.id}')` : ''}"
+                             style="display: flex; justify-content: space-between; align-items: center;
+                                    padding: 12px 15px; margin-bottom: 8px; border-radius: 10px;
+                                    background: ${canDo ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.3)'};
+                                    cursor: ${canDo ? 'pointer' : 'not-allowed'}; opacity: ${canDo ? '1' : '0.6'};
+                                    transition: background 0.2s;"
+                             onmouseover="this.style.background='${canDo ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.3)'}'"
+                             onmouseout="this.style.background='${canDo ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.3)'}'">
+                            <div>
+                                <div style="font-weight: bold;">${act.icon} ${act.name}</div>
+                                <div style="font-size: 0.8em; color: #aaa; margin-top: 3px;">${act.tooltip}</div>
+                                ${bonusText ? `<div style="font-size: 0.75em; color: #4CAF50; margin-top: 3px;">${bonusText}</div>` : ''}
+                            </div>
+                            <div style="text-align: right; min-width: 80px;">
+                                <div style="color: ${act.cost > 0 ? '#ff9800' : '#4CAF50'}; font-weight: bold;">
+                                    ${act.cost > 0 ? formatMoney(act.cost) : 'Gratis'}
+                                </div>
+                                ${!canAfford ? '<div style="color: #f44336; font-size: 0.7em;">Sin dinero</div>' : ''}
+                                ${!hasEnergy ? '<div style="color: #f44336; font-size: 0.7em;">Sin energía</div>' : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Opción especial de salir del closet
+                if (openCategory === 'social' && gameState.inCloset && !gameState.isOut) {
+                    html += `
+                        <div class="activity-item" onclick="doActivity('comeout')"
+                             style="display: flex; justify-content: space-between; align-items: center;
+                                    padding: 12px 15px; margin-bottom: 8px; border-radius: 10px;
+                                    background: rgba(156,136,255,0.2); cursor: pointer;">
+                            <div>
+                                <div style="font-weight: bold;">🌈 Salir del closet</div>
+                                <div style="font-size: 0.8em; color: #aaa;">Revelar tu orientación a tu familia</div>
+                            </div>
+                            <div style="color: #4CAF50; font-weight: bold;">Gratis</div>
+                        </div>
+                    `;
+                }
+            } else {
+                // Mostrar categorías como cards
+                html += `<p style="margin-bottom: 15px; color: #aaa;">Selecciona una categoría:</p>`;
+
+                for (const [catId, cat] of Object.entries(ACTIVITY_CATEGORIES)) {
+                    const activities = getActivitiesList().filter(a => a.category === catId && !a.hidden);
+                    const count = activities.length;
+
+                    html += `
+                        <div class="category-card" onclick="openActivitiesMenu('${catId}')"
+                             style="display: flex; justify-content: space-between; align-items: center;
+                                    padding: 15px 20px; margin-bottom: 10px; border-radius: 12px;
+                                    background: linear-gradient(135deg, ${cat.color}33, ${cat.color}11);
+                                    border-left: 4px solid ${cat.color}; cursor: pointer;
+                                    transition: transform 0.2s, background 0.2s;"
+                             onmouseover="this.style.transform='translateX(5px)'; this.style.background='linear-gradient(135deg, ${cat.color}44, ${cat.color}22)'"
+                             onmouseout="this.style.transform='translateX(0)'; this.style.background='linear-gradient(135deg, ${cat.color}33, ${cat.color}11)'">
+                            <div>
+                                <div style="font-size: 1.1em; font-weight: bold;">${cat.name}</div>
+                                <div style="font-size: 0.85em; color: #aaa;">${cat.desc}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="background: ${cat.color}44; padding: 4px 10px; border-radius: 15px; font-size: 0.8em;">
+                                    ${count} opciones
+                                </span>
+                                <span style="font-size: 1.2em;">→</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            document.getElementById('modalTitle').textContent = '🎮 Actividades';
             document.getElementById('modalBody').innerHTML = html;
             document.getElementById('modalOptions').innerHTML = '';
             document.getElementById('gameModal').classList.add('active');
@@ -4877,7 +4937,7 @@
                             ${gameState.job ? `
                                 <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                                     <span>💼 ${JOBS[gameState.job].name}</span>
-                                    <span style="color: #4CAF50">${formatMoney(income)}</span>
+                                    <span style="color: #4CAF50">${formatMoney(income - getStateDisabilityBonus())}</span>
                                 </div>
                             ` : `
                                 <p style="color: #888; text-align: center;">No tienes trabajo actualmente</p>
@@ -4885,6 +4945,12 @@
                                     <button class="btn btn-small btn-success" onclick="closeModal(); openJobMenu();">🔍 Buscar Empleo</button>
                                 </p>
                             `}
+                            ${getStateDisabilityBonus() > 0 ? `
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    <span>🏛️ Bono CONTIGO (${gameState.character.healthConditionData.name})</span>
+                                    <span style="color: #4CAF50">${formatMoney(getStateDisabilityBonus())}</span>
+                                </div>
+                            ` : ''}
                             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
                                 <strong>Total Ingresos: <span style="color: #4CAF50">${formatMoney(income)}/mes</span></strong>
                             </div>
@@ -5963,36 +6029,67 @@
             showNotification(`🏆 ${challenge.name} completado!`, 'success');
         }
 
-        function openChallengesMenu() {
-            const currentMonth = (gameState.age - 18) * 12 + gameState.month;
-            const totalChallenges = Object.keys(MONTHLY_CHALLENGES).length;
-            const completedCount = Object.keys(gameState.completedChallenges).length;
+        // Definir tiers de desafíos (qué desafíos aparecen según nivel del jugador)
+        const CHALLENGE_TIERS = {
+            // Tier 1: Desafíos básicos para principiantes (siempre visibles)
+            1: ['first_job', 'save_1000', 'survive_year', 'own_room'],
+            // Tier 2: Después de completar 2 desafíos o 6 meses
+            2: ['work_3_months', 'gym_3_months', 'first_relationship', 'finish_technical'],
+            // Tier 3: Después de completar 4 desafíos o 1 año
+            3: ['save_10000', 'unlock_5_skills', 'make_friends', 'own_apartment'],
+            // Tier 4: Después de completar 6 desafíos o 2 años
+            4: ['finish_university', 'unlock_10_skills', 'survive_5_years', 'get_married'],
+            // Tier 5: Después de completar 10 desafíos o 3 años
+            5: ['save_50000']
+        };
 
-            // Agrupar desafíos por categoría
-            const categories = {};
-            for (const [id, challenge] of Object.entries(MONTHLY_CHALLENGES)) {
-                const cat = challenge.category || 'otros';
-                if (!categories[cat]) categories[cat] = [];
-                categories[cat].push({ id, ...challenge });
+        function getVisibleChallenges() {
+            const completedCount = Object.keys(gameState.completedChallenges).length;
+            const monthsPlayed = (gameState.age - 18) * 12 + gameState.month;
+
+            // Calcular nivel del jugador basado en desafíos completados y tiempo
+            let playerLevel = 1;
+            if (completedCount >= 2 || monthsPlayed >= 6) playerLevel = 2;
+            if (completedCount >= 4 || monthsPlayed >= 12) playerLevel = 3;
+            if (completedCount >= 6 || monthsPlayed >= 24) playerLevel = 4;
+            if (completedCount >= 10 || monthsPlayed >= 36) playerLevel = 5;
+
+            // Obtener todos los desafíos visibles hasta el nivel actual
+            const visibleIds = new Set();
+            for (let tier = 1; tier <= playerLevel; tier++) {
+                for (const id of CHALLENGE_TIERS[tier] || []) {
+                    visibleIds.add(id);
+                }
             }
 
-            const categoryNames = {
-                trabajo: { name: 'Trabajo', icon: '💼' },
-                finanzas: { name: 'Finanzas', icon: '💰' },
-                educacion: { name: 'Educación', icon: '📚' },
-                habilidades: { name: 'Habilidades', icon: '🌳' },
-                bienestar: { name: 'Bienestar', icon: '❤️' },
-                social: { name: 'Social', icon: '👥' },
-                vivienda: { name: 'Vivienda', icon: '🏠' },
-                supervivencia: { name: 'Supervivencia', icon: '🎯' }
-            };
+            // Siempre mostrar desafíos ya completados
+            for (const id of Object.keys(gameState.completedChallenges)) {
+                visibleIds.add(id);
+            }
+
+            return { visibleIds, playerLevel };
+        }
+
+        function openChallengesMenu() {
+            const { visibleIds, playerLevel } = getVisibleChallenges();
+            const completedCount = Object.keys(gameState.completedChallenges).length;
+            const visibleChallenges = Object.entries(MONTHLY_CHALLENGES)
+                .filter(([id]) => visibleIds.has(id));
+            const visibleCount = visibleChallenges.length;
+
+            // Separar en activos, completados y próximos
+            const activeChallenges = visibleChallenges.filter(([id]) => !gameState.completedChallenges[id]);
+            const completedChallenges = visibleChallenges.filter(([id]) => gameState.completedChallenges[id]);
+
+            // Contar desafíos bloqueados
+            const totalChallenges = Object.keys(MONTHLY_CHALLENGES).length;
+            const lockedCount = totalChallenges - visibleCount;
 
             let html = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <div>
-                        <span style="font-size: 1.5em;">🏆</span>
-                        <span style="font-size: 1.2em; margin-left: 10px;">${completedCount}/${totalChallenges}</span>
-                        <span style="color: #888; margin-left: 5px;">Desafíos completados</span>
+                        <span style="font-size: 1.2em;">🏆 Nivel ${playerLevel}</span>
+                        <span style="color: #888; margin-left: 10px;">${completedCount} completados</span>
                     </div>
                     <div style="background: rgba(76,175,80,0.2); padding: 5px 15px; border-radius: 20px;">
                         ${Math.round((completedCount / totalChallenges) * 100)}%
@@ -6002,32 +6099,21 @@
                 <div style="background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; margin-bottom: 20px; overflow: hidden;">
                     <div style="background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; width: ${(completedCount / totalChallenges) * 100}%; transition: width 0.3s;"></div>
                 </div>
-
-                <div style="max-height: 400px; overflow-y: auto;">
             `;
 
-            for (const [catId, challenges] of Object.entries(categories)) {
-                const catInfo = categoryNames[catId] || { name: catId, icon: '📋' };
-                const completedInCat = challenges.filter(c => gameState.completedChallenges[c.id]).length;
+            // Desafíos activos
+            if (activeChallenges.length > 0) {
+                html += `<h4 style="margin-bottom: 10px; color: #ff9800;">🎯 Desafíos Activos (${activeChallenges.length})</h4>`;
+                html += `<div style="display: grid; gap: 8px; margin-bottom: 20px;">`;
 
-                html += `
-                    <div style="margin-bottom: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h4>${catInfo.icon} ${catInfo.name}</h4>
-                            <span style="color: #888; font-size: 0.9em;">${completedInCat}/${challenges.length}</span>
-                        </div>
-                        <div style="display: grid; gap: 8px;">
-                `;
-
-                for (const challenge of challenges) {
-                    const isCompleted = !!gameState.completedChallenges[challenge.id];
-                    const onCooldown = gameState.challengeCooldowns[challenge.id] > 0;
+                for (const [id, challenge] of activeChallenges) {
+                    const onCooldown = gameState.challengeCooldowns[id] > 0;
                     const canComplete = challenge.check ? challenge.check(gameState) : false;
 
-                    // Calcular progreso para algunos desafíos
+                    // Calcular progreso para desafíos de ahorro
                     let progressHtml = '';
-                    if (!isCompleted && challenge.id.startsWith('save_')) {
-                        const target = challenge.id === 'save_1000' ? 1000 : challenge.id === 'save_10000' ? 10000 : 50000;
+                    if (id.startsWith('save_')) {
+                        const target = id === 'save_1000' ? 1000 : id === 'save_10000' ? 10000 : 50000;
                         const progress = Math.min(100, (gameState.money / target) * 100);
                         progressHtml = `<div style="background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px; margin-top: 5px; overflow: hidden;">
                             <div style="background: #4CAF50; height: 100%; width: ${progress}%;"></div>
@@ -6035,30 +6121,61 @@
                     }
 
                     html += `
-                        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border-left: 3px solid ${isCompleted ? '#4CAF50' : canComplete ? '#ff9800' : '#333'}; opacity: ${isCompleted ? '0.8' : '1'};">
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border-left: 3px solid ${canComplete ? '#ff9800' : '#333'};">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div style="flex: 1;">
                                     <div style="font-weight: bold; margin-bottom: 3px;">
                                         ${challenge.icon} ${challenge.name}
-                                        ${isCompleted ? '<span style="color: #4CAF50; margin-left: 5px;">✓</span>' : ''}
-                                        ${onCooldown ? `<span style="color: #888; font-size: 0.8em; margin-left: 5px;">(${gameState.challengeCooldowns[challenge.id]} meses)</span>` : ''}
+                                        ${onCooldown ? `<span style="color: #888; font-size: 0.8em; margin-left: 5px;">(${gameState.challengeCooldowns[id]} meses)</span>` : ''}
+                                        ${canComplete ? '<span style="color: #ff9800; font-size: 0.8em; margin-left: 5px;">¡Listo!</span>' : ''}
                                     </div>
                                     <div style="color: #aaa; font-size: 0.85em;">${challenge.description}</div>
                                     ${progressHtml}
                                 </div>
-                                <div style="text-align: right; min-width: 80px;">
+                                <div style="text-align: right; min-width: 70px;">
                                     ${Object.entries(challenge.rewards).map(([type, value]) => {
-                                        const icons = { money: '💵', credits: '⭐', skillPoints: '🎯', happiness: '😊', health: '❤️' };
-                                        return `<div style="font-size: 0.8em; color: #4CAF50;">${icons[type] || '•'} +${type === 'money' ? formatMoney(value) : value}</div>`;
+                                        const icons = { money: '💵', credits: '⭐', skillPoints: '🎯' };
+                                        return `<div style="font-size: 0.75em; color: #4CAF50;">${icons[type] || '•'} +${type === 'money' ? formatMoney(value) : value}</div>`;
                                     }).join('')}
-                                    ${!challenge.oneTime ? '<div style="font-size: 0.7em; color: #888; margin-top: 3px;">Repetible</div>' : ''}
                                 </div>
                             </div>
                         </div>
                     `;
                 }
+                html += `</div>`;
+            }
 
+            // Desafíos completados (colapsables)
+            if (completedChallenges.length > 0) {
+                html += `
+                    <div style="margin-bottom: 15px;">
+                        <div onclick="document.getElementById('completed-challenges').style.display = document.getElementById('completed-challenges').style.display === 'none' ? 'block' : 'none'"
+                             style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(76,175,80,0.15); border-radius: 8px;">
+                            <span style="color: #4CAF50;">✓ Completados (${completedChallenges.length})</span>
+                            <span style="color: #888;">▼</span>
+                        </div>
+                        <div id="completed-challenges" style="display: none; margin-top: 8px;">
+                `;
+
+                for (const [id, challenge] of completedChallenges) {
+                    html += `
+                        <div style="background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 6px; margin-bottom: 5px; opacity: 0.7; font-size: 0.9em;">
+                            ${challenge.icon} ${challenge.name} <span style="color: #4CAF50;">✓</span>
+                        </div>
+                    `;
+                }
                 html += `</div></div>`;
+            }
+
+            // Desafíos bloqueados
+            if (lockedCount > 0) {
+                html += `
+                    <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; text-align: center; color: #888;">
+                        <div style="font-size: 1.5em;">🔒</div>
+                        <div>${lockedCount} desafíos más</div>
+                        <div style="font-size: 0.8em; margin-top: 5px;">Completa desafíos o juega más para desbloquear</div>
+                    </div>
+                `;
             }
 
             html += `</div>`;
@@ -6377,17 +6494,26 @@
 
                 // ========== TRABAJO ILEGAL - RIESGO DE CÁRCEL ==========
                 if (job.illegal) {
-                    const catchRisk = job.riskPerMonth;
-                    if (Math.random() * 100 < catchRisk) {
-                        // ¡Te atraparon!
-                        const prisonTime = randomRange(job.prisonTime[0], job.prisonTime[1]);
-                        gameState.prisonMonths = prisonTime;
-                        gameState.criminalRecord = true;
-                        gameState.job = null;
-                        gameState.jobMonths = 0;
-                        gameState.happiness -= 30;
-                        addLog(`🚨 ¡LA POLICÍA TE ATRAPÓ! Condenado a ${prisonTime} meses de cárcel.`, 'negative');
-                        showNotification(`¡Arrestado! ${prisonTime} meses de prisión.`, 'error');
+                    // Verificar si tiene protección temporal
+                    if (gameState.captureProtection > 0) {
+                        gameState.captureProtection--;
+                        if (gameState.captureProtection === 0) {
+                            addLog('🛡️ Tu protección contra captura ha expirado.', 'warning');
+                        }
+                    } else {
+                        const catchRisk = job.riskPerMonth;
+                        if (Math.random() * 100 < catchRisk) {
+                            // ¡Te atraparon!
+                            const prisonTime = randomRange(job.prisonTime[0], job.prisonTime[1]);
+                            gameState.prisonMonths = prisonTime;
+                            gameState.inJail = true;
+                            gameState.criminalRecord = true;
+                            gameState.job = null;
+                            gameState.jobMonths = 0;
+                            gameState.happiness -= 30;
+                            addLog(`🚨 ¡LA POLICÍA TE ATRAPÓ! Condenado a ${prisonTime} meses de cárcel.`, 'negative');
+                            showNotification(`¡Arrestado! ${prisonTime} meses de prisión.`, 'error');
+                        }
                     }
                 }
 
@@ -7381,9 +7507,15 @@
                             ${statBar('Ropa', ps.clothing, 100, '#2196F3')}
                             ${statBar('Higiene', ps.hygiene, 100, '#4CAF50')}
                         </div>
-                        <p style="margin-top: 15px; color: #888; font-size: 0.85em;">
-                            💡 Tip: Ve al gimnasio para mejorar fuerza y resistencia. Compra ropa y ve al spa para mejorar tu imagen.
-                        </p>
+                        <!-- Acciones rápidas -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-primary" onclick="closeModal(); openActivitiesMenu('fisico')" style="padding: 12px;">
+                                🏋️ Ir al Gimnasio
+                            </button>
+                            <button class="btn btn-success" onclick="closeModal(); openActivitiesMenu('apariencia')" style="padding: 12px;">
+                                ✨ Mejorar Apariencia
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Tab: Habilidades -->
@@ -7403,9 +7535,15 @@
                             ${gameState.studying ? `<p><strong>Estudiando:</strong> ${EDUCATION_OPTIONS[gameState.studying].name} (${gameState.studyMonthsLeft} meses restantes)</p>` : '<p style="color: #888;">No estás estudiando actualmente</p>'}
                             <p><strong>Experiencia laboral:</strong> ${gameState.experience} puntos</p>
                         </div>
-                        <p style="margin-top: 15px; color: #888; font-size: 0.85em;">
-                            💡 Tip: Toma cursos en Actividades para mejorar tus habilidades y conseguir mejores trabajos.
-                        </p>
+                        <!-- Acciones rápidas -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                            <button class="btn btn-primary" onclick="closeModal(); openActivitiesMenu('habilidades')" style="padding: 12px;">
+                                📚 Tomar Cursos
+                            </button>
+                            <button class="btn btn-success" onclick="closeModal(); openSkillTreeMenu()" style="padding: 12px;">
+                                🌳 Árbol de Skills
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Tab: Mi Vida -->
@@ -7466,102 +7604,180 @@
             // Boosts temporales
             energy_boost: {
                 name: "Bebida Energética",
-                description: "+50 energía instantánea",
+                description: "+50 energía",
+                tooltip: "Recupera energía instantáneamente. Útil cuando estás cansado y necesitas hacer actividades importantes.",
                 icon: "⚡",
                 cost: 10,
+                category: "boost",
                 effect: (gs) => { gs.energy = Math.min(100, gs.energy + 50); }
             },
             health_boost: {
                 name: "Medicina Premium",
-                description: "+30 salud instantánea",
+                description: "+30 salud",
+                tooltip: "Mejora tu salud rápidamente. Ideal cuando tu salud está baja y no quieres arriesgarte.",
                 icon: "💊",
                 cost: 15,
+                category: "boost",
                 effect: (gs) => { gs.health = Math.min(100, gs.health + 30); }
             },
             happiness_boost: {
                 name: "Día de Spa",
                 description: "+25 felicidad, -15 estrés",
+                tooltip: "Mejora tu ánimo y reduce el estrés. La felicidad alta mejora tu rendimiento en entrevistas.",
                 icon: "🧖",
                 cost: 20,
+                category: "boost",
                 effect: (gs) => { gs.happiness = Math.min(100, gs.happiness + 25); gs.stress = Math.max(0, gs.stress - 15); }
             },
             // Dinero
             money_small: {
                 name: "Regalo Misterioso",
                 description: "Recibe S/ 500",
+                tooltip: "Dinero rápido para emergencias. No afecta tu record laboral ni crediticio.",
                 icon: "🎁",
                 cost: 25,
+                category: "dinero",
                 effect: (gs) => { gs.money += 500; }
             },
             money_medium: {
                 name: "Inversión Secreta",
                 description: "Recibe S/ 2,000",
+                tooltip: "Una suma considerable de dinero. Puede sacarte de apuros financieros serios.",
                 icon: "💰",
                 cost: 80,
+                category: "dinero",
                 effect: (gs) => { gs.money += 2000; }
             },
             // Habilidades
             skill_points: {
                 name: "Curso Intensivo",
-                description: "+30 puntos de habilidad",
+                description: "+30 puntos de skill",
+                tooltip: "Puntos de habilidad que puedes gastar en el Árbol de Skills. Desbloquea nuevas habilidades y trabajos.",
                 icon: "📚",
                 cost: 40,
+                category: "skills",
                 effect: (gs) => { gs.skillPoints += 30; }
             },
             // Trabajo
             interview_pass: {
                 name: "Recomendación VIP",
                 description: "+30% en próxima entrevista",
+                tooltip: "Un contacto te recomienda. Aumenta tu probabilidad de éxito en la próxima entrevista de trabajo.",
                 icon: "📋",
                 cost: 35,
+                category: "trabajo",
                 effect: (gs) => { gs.interviewBonus = (gs.interviewBonus || 0) + 30; }
+            },
+            // Protección legal
+            jail_escape: {
+                name: "Fianza / Abogado",
+                description: "Sal de la cárcel inmediatamente",
+                tooltip: "Un abogado bien conectado te saca de prisión. Solo funciona si estás en la cárcel actualmente.",
+                icon: "⚖️",
+                cost: 60,
+                category: "legal",
+                condition: (gs) => gs.prisonMonths > 0,
+                effect: (gs) => {
+                    gs.prisonMonths = 0;
+                    gs.inJail = false;
+                }
+            },
+            capture_protection: {
+                name: "Protección Temporal",
+                description: "Inmunidad a captura por 1 mes",
+                tooltip: "Contactos en la policía te protegen. Por 1 mes no serás capturado si haces actividades ilegales.",
+                icon: "🛡️",
+                cost: 45,
+                category: "legal",
+                condition: (gs) => gs.prisonMonths === 0 && gs.job && JOBS[gs.job]?.illegal,
+                effect: (gs) => { gs.captureProtection = 1; }
             },
             // Segunda oportunidad
             second_chance: {
                 name: "Segunda Oportunidad",
-                description: "Guarda para revivir (automático)",
+                description: "Revive automáticamente (1 vez)",
+                tooltip: "Si el juego termina (Game Over), esta compra te dará una segunda oportunidad. Se activa automáticamente.",
                 icon: "✨",
                 cost: 100,
+                category: "especial",
+                condition: (gs) => !gs.hasSecondChance,
                 effect: (gs) => { gs.hasSecondChance = true; }
             }
         };
 
         function openShopMenu() {
+            const categories = {
+                boost: { name: '⚡ Mejoras Rápidas', color: '#ff9800' },
+                dinero: { name: '💰 Dinero', color: '#4CAF50' },
+                skills: { name: '📚 Habilidades', color: '#2196F3' },
+                trabajo: { name: '💼 Trabajo', color: '#9c27b0' },
+                legal: { name: '⚖️ Legal', color: '#f44336' },
+                especial: { name: '✨ Especial', color: '#e91e63' }
+            };
+
             let html = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div style="font-size: 2em;">💎</div>
                     <div style="font-size: 1.5em; font-weight: bold; color: #4CAF50;">${gameState.credits}</div>
                     <div style="color: #888; font-size: 0.9em;">Créditos disponibles</div>
                 </div>
-
-                <p style="color: #888; font-size: 0.85em; margin-bottom: 15px; text-align: center;">
-                    Ganas créditos completando desafíos y logros.
-                </p>
-
-                <div style="display: grid; gap: 10px;">
             `;
 
-            for (const [itemId, item] of Object.entries(SHOP_ITEMS)) {
-                const canBuy = gameState.credits >= item.cost;
-                html += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 10px; opacity: ${canBuy ? '1' : '0.5'};">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="font-size: 1.5em;">${item.icon}</div>
-                            <div>
-                                <div style="font-weight: bold;">${item.name}</div>
-                                <div style="color: #aaa; font-size: 0.85em;">${item.description}</div>
+            // Agrupar items por categoría
+            for (const [catId, cat] of Object.entries(categories)) {
+                const items = Object.entries(SHOP_ITEMS).filter(([id, item]) => item.category === catId);
+                if (items.length === 0) continue;
+
+                // Verificar si al menos un item de esta categoría está disponible
+                const hasAvailableItems = items.some(([id, item]) => !item.condition || item.condition(gameState));
+                if (!hasAvailableItems) continue;
+
+                html += `<div style="margin-bottom: 15px;">
+                    <h4 style="color: ${cat.color}; margin-bottom: 10px; font-size: 0.9em;">${cat.name}</h4>
+                `;
+
+                for (const [itemId, item] of items) {
+                    // Verificar condición del item
+                    if (item.condition && !item.condition(gameState)) continue;
+
+                    const canBuy = gameState.credits >= item.cost;
+                    html += `
+                        <div class="shop-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 8px; opacity: ${canBuy ? '1' : '0.6'}; position: relative; cursor: pointer;"
+                             onmouseover="this.querySelector('.shop-tooltip').style.display='block'"
+                             onmouseout="this.querySelector('.shop-tooltip').style.display='none'">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="font-size: 1.5em;">${item.icon}</div>
+                                <div>
+                                    <div style="font-weight: bold;">${item.name}</div>
+                                    <div style="color: #aaa; font-size: 0.85em;">${item.description}</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-small ${canBuy ? 'btn-success' : ''}"
+                                    onclick="event.stopPropagation(); buyShopItem('${itemId}')"
+                                    ${canBuy ? '' : 'disabled'}>
+                                💎 ${item.cost}
+                            </button>
+                            <div class="shop-tooltip" style="display: none; position: absolute; bottom: 100%; left: 10px; right: 10px; background: rgba(0,0,0,0.95); padding: 10px; border-radius: 8px; font-size: 0.85em; color: #ddd; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                                ${item.tooltip}
                             </div>
                         </div>
-                        <button class="btn btn-small ${canBuy ? 'btn-success' : ''}"
-                                onclick="buyShopItem('${itemId}')"
-                                ${canBuy ? '' : 'disabled'}>
-                            💎 ${item.cost}
-                        </button>
-                    </div>
-                `;
+                    `;
+                }
+
+                html += `</div>`;
             }
 
-            html += `</div>`;
+            // Mostrar items especiales condicionales si corresponde
+            if (gameState.prisonMonths > 0) {
+                html += `<div style="background: rgba(244,67,54,0.2); padding: 10px; border-radius: 8px; margin-top: 10px; text-align: center;">
+                    <span style="color: #f44336;">🔒 Estás en la cárcel (${gameState.prisonMonths} meses) - La opción de Fianza está disponible</span>
+                </div>`;
+            }
+            if (gameState.captureProtection > 0) {
+                html += `<div style="background: rgba(76,175,80,0.2); padding: 10px; border-radius: 8px; margin-top: 10px; text-align: center;">
+                    <span style="color: #4CAF50;">🛡️ Protección activa: ${gameState.captureProtection} mes(es) restante(s)</span>
+                </div>`;
+            }
 
             document.getElementById('modalTitle').textContent = '💎 Tienda';
             document.getElementById('modalBody').innerHTML = html;
