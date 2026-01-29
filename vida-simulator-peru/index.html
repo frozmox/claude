@@ -2518,7 +2518,7 @@
                         <p><strong>Dificultad:</strong> <span class="difficulty-badge difficulty-${char.difficulty.class}">${char.difficulty.name}</span></p>
                         <p><strong>Eventos vividos:</strong> ${gameState.stats.eventsExperienced}</p>
                         <p><strong>Créditos:</strong> 💎 ${gameState.credits}</p>
-                        ${char.healthConditionData.condition !== 'Ninguna' ? `<p style="color: #f44336;"><strong>Condición:</strong> ${char.healthConditionData.condition}</p>` : ''}
+                        ${char.healthConditionData.name !== 'Sin condiciones' ? `<p style="color: #f44336;"><strong>Condición:</strong> ${char.healthConditionData.name}</p>` : ''}
                         ${gameState.isOut ? '<p style="color: #e91e63;">🌈 Fuera del closet</p>' : ''}
                     </div>
                 </div>
