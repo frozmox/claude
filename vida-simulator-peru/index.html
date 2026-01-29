@@ -1605,6 +1605,18 @@
                                 <span class="icon">📈</span>
                                 <span class="label">Carrera</span>
                             </div>
+                            <div class="nav-item" onclick="openSkillTreeMenu()">
+                                <span class="icon">🌳</span>
+                                <span class="label">Habilidades</span>
+                            </div>
+                            <div class="nav-item" onclick="openChallengesMenu()">
+                                <span class="icon">🏆</span>
+                                <span class="label">Desafíos</span>
+                            </div>
+                            <div class="nav-item" onclick="openBusinessMenu()">
+                                <span class="icon">🏢</span>
+                                <span class="label">Negocios</span>
+                            </div>
                         </div>
 
                         <div class="nav-section">
@@ -1855,6 +1867,730 @@
             disfuncional: { name: "Familia Disfuncional", probability: 20, support: 0, happinessBonus: -20, monthlyObligation: 0, traumaRisk: true },
             huerfano: { name: "Huérfano/Sistema de Acogida", probability: 8, support: 0, happinessBonus: -10, monthlyObligation: 0, resilience: 40 },
             inmigrante: { name: "Familia Inmigrante", probability: 7, support: 100, happinessBonus: 0, monthlyObligation: 300 }
+        };
+
+        // ==================== MISIONES DE ORIGEN ====================
+        const ORIGIN_MISSIONS = {
+            nuclear_estable: [
+                {
+                    id: 'reunion_familiar',
+                    name: 'Reunión Familiar',
+                    description: 'Tu familia organiza una reunión. ¿Irás?',
+                    trigger: { monthsPlayed: 6, chance: 0.15 },
+                    choices: [
+                        { text: 'Ir y disfrutar', effect: { happiness: 10, credits: 5, money: -50 }, log: '🏠 Pasaste un buen momento con tu familia.' },
+                        { text: 'No tengo tiempo', effect: { happiness: -5 }, log: '😔 Tu familia se sintió decepcionada.' }
+                    ]
+                },
+                {
+                    id: 'herencia_familiar',
+                    name: 'Herencia del Abuelo',
+                    description: 'Tu abuelo falleció y dejó una pequeña herencia.',
+                    trigger: { monthsPlayed: 36, oneTime: true, chance: 0.5 },
+                    choices: [
+                        { text: 'Aceptar herencia', effect: { money: 15000, happiness: -10 }, log: '💰 Recibiste una herencia de tu abuelo. Descansa en paz.' }
+                    ]
+                }
+            ],
+            madre_soltera: [
+                {
+                    id: 'mama_enferma',
+                    name: 'Tu Madre Está Enferma',
+                    description: 'Tu madre necesita dinero para medicinas.',
+                    trigger: { monthsPlayed: 12, chance: 0.12 },
+                    choices: [
+                        { text: 'Ayudarla (S/ 500)', effect: { money: -500, happiness: 5, credits: 10 }, condition: (gs) => gs.money >= 500, log: '❤️ Ayudaste a tu madre. Ella está agradecida.' },
+                        { text: 'No puedo ayudar', effect: { happiness: -15, stress: 10 }, log: '😢 Te sientes culpable por no poder ayudar.' }
+                    ]
+                },
+                {
+                    id: 'hermano_problemas',
+                    name: 'Tu Hermano en Problemas',
+                    description: 'Tu hermano menor tiene problemas en el colegio.',
+                    trigger: { monthsPlayed: 8, chance: 0.10 },
+                    choices: [
+                        { text: 'Hablar con él', effect: { happiness: 5, skillPoints: 5 }, log: '👨‍👦 Tuviste una buena conversación con tu hermano.' },
+                        { text: 'No es mi problema', effect: { happiness: -5 }, log: '😕 Tu hermano se sintió abandonado.' }
+                    ]
+                }
+            ],
+            abuelos: [
+                {
+                    id: 'abuelo_historia',
+                    name: 'Historias del Abuelo',
+                    description: 'Tu abuelo quiere contarte sobre su juventud.',
+                    trigger: { monthsPlayed: 3, chance: 0.15 },
+                    choices: [
+                        { text: 'Escuchar sus historias', effect: { happiness: 8, skillPoints: 10 }, log: '📖 Aprendiste mucho de las historias de tu abuelo.' },
+                        { text: 'Estoy ocupado', effect: { happiness: -3 }, log: '😔 Tu abuelo se quedó solo con sus recuerdos.' }
+                    ]
+                },
+                {
+                    id: 'salud_abuelo',
+                    name: 'Salud del Abuelo',
+                    description: 'Tu abuelo necesita cuidados especiales.',
+                    trigger: { monthsPlayed: 24, chance: 0.20 },
+                    choices: [
+                        { text: 'Cuidarlo personalmente', effect: { energy: -20, happiness: 10, credits: 15 }, log: '🏥 Cuidaste a tu abuelo. Él valora tu sacrificio.' },
+                        { text: 'Pagar una enfermera (S/ 800)', effect: { money: -800 }, condition: (gs) => gs.money >= 800, log: '👩‍⚕️ Contrataste ayuda profesional para tu abuelo.' },
+                        { text: 'No puedo hacer nada', effect: { happiness: -20, stress: 15 }, log: '😢 Te sientes impotente ante la situación.' }
+                    ]
+                }
+            ],
+            disfuncional: [
+                {
+                    id: 'papa_borracho',
+                    name: 'Conflicto Familiar',
+                    description: 'Tu padre llegó borracho y hay una pelea en casa.',
+                    trigger: { monthsPlayed: 2, chance: 0.20 },
+                    choices: [
+                        { text: 'Intervenir', effect: { happiness: -10, stress: 15 }, log: '😰 Intentaste calmar la situación. Fue agotador.' },
+                        { text: 'Escapar de casa', effect: { happiness: -5, stress: 5, energy: -10 }, log: '🚶 Saliste a caminar para alejarte del problema.' },
+                        { text: 'Encerrarte en tu cuarto', effect: { stress: 10 }, log: '🚪 Te encerraste mientras escuchabas los gritos.' }
+                    ]
+                },
+                {
+                    id: 'terapia',
+                    name: 'Oportunidad de Terapia',
+                    description: 'Un programa gratuito de apoyo psicológico está disponible.',
+                    trigger: { monthsPlayed: 12, oneTime: true, chance: 0.30 },
+                    choices: [
+                        { text: 'Asistir a terapia', effect: { happiness: 20, stress: -15, credits: 20 }, log: '🧠 La terapia te ayudó a procesar tu pasado.' },
+                        { text: 'No lo necesito', effect: {}, log: '🤷 Decidiste no asistir.' }
+                    ]
+                },
+                {
+                    id: 'romper_ciclo',
+                    name: 'Romper el Ciclo',
+                    description: 'Tienes la oportunidad de alejarte de tu familia tóxica.',
+                    trigger: { monthsPlayed: 24, oneTime: true, chance: 0.25, condition: (gs) => gs.money >= 2000 },
+                    choices: [
+                        { text: 'Independizarte', effect: { money: -2000, happiness: 30, stress: -20, credits: 30 }, log: '🦋 Finalmente te independizaste. Es un nuevo comienzo.' },
+                        { text: 'Aún no estoy listo', effect: {}, log: '⏳ Decidiste esperar.' }
+                    ]
+                }
+            ],
+            huerfano: [
+                {
+                    id: 'recuerdos',
+                    name: 'Recuerdos del Pasado',
+                    description: 'Encontraste una foto antigua de tus padres.',
+                    trigger: { monthsPlayed: 6, oneTime: true, chance: 0.40 },
+                    choices: [
+                        { text: 'Guardarla con cariño', effect: { happiness: -5, credits: 10 }, log: '📷 La foto te trae recuerdos agridulces. Te hace más fuerte.' },
+                        { text: 'Seguir adelante', effect: { happiness: 5 }, log: '💪 Decides enfocarte en el futuro.' }
+                    ]
+                },
+                {
+                    id: 'mentor',
+                    name: 'Un Mentor Aparece',
+                    description: 'Una persona mayor quiere ser tu mentor.',
+                    trigger: { monthsPlayed: 12, oneTime: true, chance: 0.25 },
+                    choices: [
+                        { text: 'Aceptar la guía', effect: { skillPoints: 30, credits: 25, happiness: 15 }, log: '🌟 Tu mentor te enseña valiosas lecciones de vida.' },
+                        { text: 'Puedo solo', effect: { credits: 5 }, log: '🚶 Prefieres tu independencia.' }
+                    ]
+                },
+                {
+                    id: 'reunion_hermanos',
+                    name: 'Reencuentro con Hermano',
+                    description: 'Descubriste que tienes un hermano biológico.',
+                    trigger: { monthsPlayed: 36, oneTime: true, chance: 0.20 },
+                    choices: [
+                        { text: 'Buscarlo', effect: { money: -200, happiness: 25, credits: 20 }, log: '👨‍👧 Encontraste a tu hermano. Ya no estás solo.' },
+                        { text: 'Dejarlo pasar', effect: { happiness: -10 }, log: '😔 Prefieres no abrir viejas heridas.' }
+                    ]
+                }
+            ],
+            inmigrante: [
+                {
+                    id: 'enviar_dinero',
+                    name: 'Familia en el Extranjero',
+                    description: 'Tu familia en Venezuela necesita dinero.',
+                    trigger: { monthsPlayed: 3, chance: 0.25 },
+                    choices: [
+                        { text: 'Enviar S/ 300', effect: { money: -300, happiness: 10, credits: 5 }, condition: (gs) => gs.money >= 300, log: '💸 Enviaste dinero a tu familia. Se sienten aliviados.' },
+                        { text: 'No puedo ahora', effect: { happiness: -10, stress: 10 }, log: '😢 Te sientes mal por no poder ayudar.' }
+                    ]
+                },
+                {
+                    id: 'discriminacion',
+                    name: 'Discriminación',
+                    description: 'Alguien te discriminó por ser extranjero.',
+                    trigger: { monthsPlayed: 2, chance: 0.18 },
+                    choices: [
+                        { text: 'Responder con calma', effect: { stress: 5, credits: 5 }, log: '🙏 Mantuviste la calma ante la ignorancia.' },
+                        { text: 'Confrontar', effect: { stress: 15, happiness: -5 }, log: '😠 La confrontación te dejó agotado.' },
+                        { text: 'Ignorar', effect: { happiness: -5 }, log: '😞 Es difícil ignorar estos comentarios.' }
+                    ]
+                },
+                {
+                    id: 'residencia',
+                    name: 'Trámite de Residencia',
+                    description: 'Puedes regularizar tu situación migratoria.',
+                    trigger: { monthsPlayed: 24, oneTime: true, chance: 0.35 },
+                    choices: [
+                        { text: 'Hacer el trámite (S/ 500)', effect: { money: -500, happiness: 25, credits: 30 }, condition: (gs) => gs.money >= 500, log: '📄 ¡Obtuviste tu carnet de extranjería! Más oportunidades te esperan.' },
+                        { text: 'Esperar', effect: {}, log: '⏳ Decides esperar por ahora.' }
+                    ]
+                },
+                {
+                    id: 'familia_llega',
+                    name: 'Tu Familia Llega a Perú',
+                    description: 'Tu familia quiere reunirse contigo en Perú.',
+                    trigger: { monthsPlayed: 36, oneTime: true, chance: 0.30, condition: (gs) => gs.money >= 3000 },
+                    choices: [
+                        { text: 'Ayudarlos a venir (S/ 3000)', effect: { money: -3000, happiness: 40, credits: 50 }, log: '👨‍👩‍👧 Tu familia está contigo. Juntos son más fuertes.' },
+                        { text: 'Aún no es momento', effect: { happiness: -5 }, log: '⏳ Aún no tienes las condiciones.' }
+                    ]
+                }
+            ]
+        };
+
+        // ==================== ÁRBOL DE HABILIDADES ====================
+        const SKILL_TREE = {
+            // === HABILIDADES BÁSICAS (sin requisitos) ===
+            comunicacion_basica: {
+                name: "Comunicación Básica",
+                description: "Habilidad para expresarte claramente",
+                icon: "💬",
+                category: "social",
+                maxLevel: 3,
+                effects: { charisma: 5 },
+                unlockCost: 0, // Se desbloquea automáticamente
+                sources: ["relationships", "work"]
+            },
+            aritmetica: {
+                name: "Aritmética",
+                description: "Matemáticas básicas para el día a día",
+                icon: "🔢",
+                category: "conocimiento",
+                maxLevel: 3,
+                effects: { sales: 3 },
+                unlockCost: 0,
+                sources: ["education", "work"]
+            },
+            resistencia_fisica: {
+                name: "Resistencia Física",
+                description: "Capacidad de realizar trabajo físico",
+                icon: "💪",
+                category: "fisico",
+                maxLevel: 5,
+                effects: { endurance: 5, strength: 3 },
+                unlockCost: 0,
+                sources: ["gym", "work_physical"]
+            },
+
+            // === HABILIDADES INTERMEDIAS (requieren básicas) ===
+            negociacion: {
+                name: "Negociación",
+                description: "Convencer a otros y cerrar tratos",
+                icon: "🤝",
+                category: "social",
+                maxLevel: 5,
+                effects: { sales: 10, charisma: 5 },
+                requires: ["comunicacion_basica"],
+                unlockCost: 50,
+                sources: ["work_sales", "education"]
+            },
+            computacion_basica: {
+                name: "Computación Básica",
+                description: "Uso de computadoras y programas básicos",
+                icon: "💻",
+                category: "conocimiento",
+                maxLevel: 3,
+                effects: { computing: 10 },
+                requires: [],
+                unlockCost: 30,
+                sources: ["courses", "education"]
+            },
+            ingles_basico: {
+                name: "Inglés Básico",
+                description: "Vocabulario y gramática básica en inglés",
+                icon: "🇬🇧",
+                category: "conocimiento",
+                maxLevel: 3,
+                effects: { english: 15 },
+                requires: [],
+                unlockCost: 40,
+                sources: ["courses", "education"]
+            },
+            conduccion: {
+                name: "Manejo de Vehículos",
+                description: "Licencia de conducir categoría A",
+                icon: "🚗",
+                category: "practica",
+                maxLevel: 2,
+                effects: { driving: 50 },
+                requires: [],
+                unlockCost: 100,
+                sources: ["courses"]
+            },
+
+            // === HABILIDADES AVANZADAS ===
+            ventas_profesionales: {
+                name: "Ventas Profesionales",
+                description: "Técnicas avanzadas de venta y cierre",
+                icon: "📊",
+                category: "profesional",
+                maxLevel: 5,
+                effects: { sales: 15, charisma: 5 },
+                requires: ["negociacion"],
+                unlockCost: 100,
+                sources: ["work_sales", "courses"]
+            },
+            computacion_avanzada: {
+                name: "Computación Avanzada",
+                description: "Excel avanzado, bases de datos, análisis",
+                icon: "📈",
+                category: "profesional",
+                maxLevel: 5,
+                effects: { computing: 20 },
+                requires: ["computacion_basica"],
+                unlockCost: 80,
+                sources: ["courses", "education"]
+            },
+            ingles_intermedio: {
+                name: "Inglés Intermedio",
+                description: "Conversación fluida y documentos técnicos",
+                icon: "🗣️",
+                category: "conocimiento",
+                maxLevel: 5,
+                effects: { english: 25 },
+                requires: ["ingles_basico"],
+                unlockCost: 80,
+                sources: ["courses", "education"]
+            },
+            liderazgo: {
+                name: "Liderazgo",
+                description: "Dirigir equipos y tomar decisiones",
+                icon: "👑",
+                category: "profesional",
+                maxLevel: 5,
+                effects: { charisma: 10 },
+                requires: ["negociacion", "comunicacion_basica"],
+                unlockCost: 150,
+                sources: ["work_manager", "courses"]
+            },
+            finanzas_personales: {
+                name: "Finanzas Personales",
+                description: "Manejo de dinero, ahorro e inversiones",
+                icon: "💰",
+                category: "conocimiento",
+                maxLevel: 3,
+                effects: { },
+                requires: ["aritmetica"],
+                unlockCost: 60,
+                sources: ["courses", "education"]
+            },
+
+            // === HABILIDADES DE ESPECIALIZACIÓN ===
+            programacion: {
+                name: "Programación",
+                description: "Desarrollo de software y aplicaciones",
+                icon: "🖥️",
+                category: "especializado",
+                maxLevel: 5,
+                effects: { computing: 30, technical: 20 },
+                requires: ["computacion_avanzada"],
+                unlockCost: 200,
+                sources: ["education", "courses"]
+            },
+            ingles_avanzado: {
+                name: "Inglés Avanzado",
+                description: "Nivel nativo, traducción profesional",
+                icon: "🎓",
+                category: "especializado",
+                maxLevel: 5,
+                effects: { english: 35 },
+                requires: ["ingles_intermedio"],
+                unlockCost: 150,
+                sources: ["courses", "education"]
+            },
+            gestion_empresarial: {
+                name: "Gestión Empresarial",
+                description: "Administración y manejo de negocios",
+                icon: "🏢",
+                category: "especializado",
+                maxLevel: 5,
+                effects: { sales: 10, charisma: 5 },
+                requires: ["liderazgo", "finanzas_personales"],
+                unlockCost: 250,
+                sources: ["education", "courses"]
+            },
+            cocina_profesional: {
+                name: "Cocina Profesional",
+                description: "Técnicas culinarias avanzadas",
+                icon: "👨‍🍳",
+                category: "especializado",
+                maxLevel: 5,
+                effects: { cooking: 40 },
+                requires: [],
+                unlockCost: 120,
+                sources: ["courses"]
+            },
+            mecanica: {
+                name: "Mecánica Automotriz",
+                description: "Reparación y mantenimiento de vehículos",
+                icon: "🔧",
+                category: "especializado",
+                maxLevel: 5,
+                effects: { technical: 30 },
+                requires: ["resistencia_fisica"],
+                unlockCost: 100,
+                sources: ["courses", "work_technical"]
+            },
+
+            // === HABILIDADES SOCIALES ESPECIALES ===
+            carisma_natural: {
+                name: "Carisma Natural",
+                description: "Encanto y atractivo personal",
+                icon: "✨",
+                category: "social",
+                maxLevel: 5,
+                effects: { charisma: 15, appearance: 5 },
+                requires: ["comunicacion_basica"],
+                unlockCost: 80,
+                sources: ["relationships", "activities"]
+            },
+            networking: {
+                name: "Networking",
+                description: "Crear y mantener contactos profesionales",
+                icon: "🔗",
+                category: "social",
+                maxLevel: 3,
+                effects: { charisma: 5 },
+                requires: ["negociacion"],
+                unlockCost: 100,
+                sources: ["work", "activities"]
+            },
+            inteligencia_emocional: {
+                name: "Inteligencia Emocional",
+                description: "Manejar emociones propias y ajenas",
+                icon: "🧠",
+                category: "social",
+                maxLevel: 5,
+                effects: { charisma: 10 },
+                requires: ["comunicacion_basica"],
+                unlockCost: 70,
+                sources: ["relationships", "activities"]
+            }
+        };
+
+        // Categorías de habilidades para el UI
+        const SKILL_CATEGORIES = {
+            social: { name: "Social", color: "#e91e63", icon: "💬" },
+            conocimiento: { name: "Conocimiento", color: "#2196f3", icon: "📚" },
+            fisico: { name: "Físico", color: "#ff9800", icon: "💪" },
+            practica: { name: "Práctico", color: "#4caf50", icon: "🛠️" },
+            profesional: { name: "Profesional", color: "#9c27b0", icon: "💼" },
+            especializado: { name: "Especializado", color: "#f44336", icon: "🎯" }
+        };
+
+        // ==================== SISTEMA DE DESAFÍOS MENSUALES ====================
+        const MONTHLY_CHALLENGES = {
+            // Desafíos de trabajo
+            work_3_months: {
+                name: "Empleado Estable",
+                description: "Mantén un trabajo por 3 meses seguidos",
+                icon: "💼",
+                category: "trabajo",
+                check: (gs) => gs.jobMonths >= 3,
+                rewards: { money: 500, credits: 20 },
+                oneTime: false,
+                cooldown: 3
+            },
+            first_job: {
+                name: "Primer Empleo",
+                description: "Consigue tu primer trabajo",
+                icon: "🎉",
+                category: "trabajo",
+                check: (gs) => gs.stats.jobsHad >= 1,
+                rewards: { credits: 30, skillPoints: 20 },
+                oneTime: true
+            },
+            // Desafíos de ahorro
+            save_1000: {
+                name: "Primer Ahorro",
+                description: "Ahorra S/ 1,000",
+                icon: "💰",
+                category: "finanzas",
+                check: (gs) => gs.money >= 1000,
+                rewards: { credits: 15 },
+                oneTime: true
+            },
+            save_10000: {
+                name: "Ahorro Significativo",
+                description: "Ahorra S/ 10,000",
+                icon: "💵",
+                category: "finanzas",
+                check: (gs) => gs.money >= 10000,
+                rewards: { credits: 40, skillPoints: 30 },
+                oneTime: true
+            },
+            save_50000: {
+                name: "Buen Colchón",
+                description: "Ahorra S/ 50,000",
+                icon: "🏦",
+                category: "finanzas",
+                check: (gs) => gs.money >= 50000,
+                rewards: { credits: 100, skillPoints: 50 },
+                oneTime: true
+            },
+            // Desafíos de educación
+            finish_technical: {
+                name: "Técnico Certificado",
+                description: "Completa estudios técnicos",
+                icon: "🛠️",
+                category: "educacion",
+                check: (gs) => ['tecnico', 'universidad', 'maestria'].includes(gs.education),
+                rewards: { credits: 50, skillPoints: 40 },
+                oneTime: true
+            },
+            finish_university: {
+                name: "Profesional",
+                description: "Completa la universidad",
+                icon: "🎓",
+                category: "educacion",
+                check: (gs) => ['universidad', 'maestria'].includes(gs.education),
+                rewards: { credits: 100, skillPoints: 80 },
+                oneTime: true
+            },
+            // Desafíos de habilidades
+            unlock_5_skills: {
+                name: "Aprendiz",
+                description: "Desbloquea 5 habilidades",
+                icon: "🌱",
+                category: "habilidades",
+                check: (gs) => gs.totalSkillsUnlocked >= 5,
+                rewards: { skillPoints: 30 },
+                oneTime: true
+            },
+            unlock_10_skills: {
+                name: "Versátil",
+                description: "Desbloquea 10 habilidades",
+                icon: "🌳",
+                category: "habilidades",
+                check: (gs) => gs.totalSkillsUnlocked >= 10,
+                rewards: { skillPoints: 60, credits: 30 },
+                oneTime: true
+            },
+            // Desafíos de bienestar
+            gym_3_months: {
+                name: "En Forma",
+                description: "Mantén membresía de gimnasio por 3 meses",
+                icon: "💪",
+                category: "bienestar",
+                check: (gs) => gs.gymMembership && gs.gymStreakMonths >= 3,
+                rewards: { skillPoints: 15 },
+                oneTime: false,
+                cooldown: 3
+            },
+            // Desafíos de relaciones
+            first_relationship: {
+                name: "Primer Amor",
+                description: "Consigue tu primera pareja",
+                icon: "💕",
+                category: "social",
+                check: (gs) => gs.relationships?.romantic != null,
+                rewards: { credits: 15 },
+                oneTime: true
+            },
+            make_friends: {
+                name: "Sociable",
+                description: "Ten al menos 3 amigos",
+                icon: "👥",
+                category: "social",
+                check: (gs) => (gs.relationships?.friends?.length || 0) >= 3,
+                rewards: { credits: 20, skillPoints: 10 },
+                oneTime: true
+            },
+            get_married: {
+                name: "Matrimonio",
+                description: "Cásate",
+                icon: "💒",
+                category: "social",
+                check: (gs) => gs.relationships?.romantic?.relationshipType === 'Casados',
+                rewards: { credits: 50 },
+                oneTime: true
+            },
+            // Desafíos de vivienda
+            own_room: {
+                name: "Independencia",
+                description: "Consigue tu propio cuarto",
+                icon: "🚪",
+                category: "vivienda",
+                check: (gs) => ['cuarto_solo', 'minidepa', 'depto_1d', 'depto_2d', 'casa'].includes(gs.housing),
+                rewards: { credits: 20 },
+                oneTime: true
+            },
+            own_apartment: {
+                name: "Mi Depa",
+                description: "Consigue un departamento",
+                icon: "🏢",
+                category: "vivienda",
+                check: (gs) => ['minidepa', 'depto_1d', 'depto_2d'].includes(gs.housing),
+                rewards: { credits: 40 },
+                oneTime: true
+            },
+            // Desafíos de supervivencia
+            survive_year: {
+                name: "Un Año Más",
+                description: "Sobrevive un año completo",
+                icon: "📅",
+                category: "supervivencia",
+                check: (gs) => gs.age >= 19,
+                rewards: { credits: 30, skillPoints: 20 },
+                oneTime: true
+            },
+            survive_5_years: {
+                name: "Veterano",
+                description: "Sobrevive 5 años en el juego",
+                icon: "🏆",
+                category: "supervivencia",
+                check: (gs) => gs.age >= 23,
+                rewards: { credits: 100, skillPoints: 50 },
+                oneTime: true
+            }
+        };
+
+        // ==================== SISTEMA DE EMPRENDIMIENTOS ====================
+        const BUSINESSES = {
+            // Negocios pequeños (bajo capital)
+            puesto_comida: {
+                name: "Puesto de comida",
+                description: "Venta de menú y comida callejera",
+                icon: "🍲",
+                category: "comida",
+                investmentCost: 3000,
+                monthlyExpenses: 800,
+                monthlyRevenue: [1500, 3500],
+                riskFactor: 0.15,
+                requirements: { cooking: 20 },
+                employeesMax: 2
+            },
+            bodega: {
+                name: "Bodega/Tienda",
+                description: "Tienda de abarrotes de barrio",
+                icon: "🏪",
+                category: "retail",
+                investmentCost: 8000,
+                monthlyExpenses: 1200,
+                monthlyRevenue: [2000, 5000],
+                riskFactor: 0.10,
+                requirements: { sales: 15 },
+                employeesMax: 2
+            },
+            lavanderia: {
+                name: "Lavandería",
+                description: "Servicio de lavado y planchado",
+                icon: "🧺",
+                category: "servicios",
+                investmentCost: 5000,
+                monthlyExpenses: 600,
+                monthlyRevenue: [1200, 2500],
+                riskFactor: 0.08,
+                requirements: {},
+                employeesMax: 3
+            },
+            cabinas_internet: {
+                name: "Cabinas de Internet",
+                description: "Alquiler de PCs e impresiones",
+                icon: "💻",
+                category: "tecnologia",
+                investmentCost: 10000,
+                monthlyExpenses: 1000,
+                monthlyRevenue: [1800, 4000],
+                riskFactor: 0.12,
+                requirements: { computing: 30 },
+                employeesMax: 1
+            },
+            peluqueria: {
+                name: "Peluquería/Barbería",
+                description: "Cortes de cabello y servicios de belleza",
+                icon: "💇",
+                category: "servicios",
+                investmentCost: 6000,
+                monthlyExpenses: 800,
+                monthlyRevenue: [1500, 3500],
+                riskFactor: 0.10,
+                requirements: { charisma: 40 },
+                employeesMax: 3
+            },
+            // Negocios medianos
+            restaurante: {
+                name: "Restaurante",
+                description: "Local con mesas y carta variada",
+                icon: "🍽️",
+                category: "comida",
+                investmentCost: 25000,
+                monthlyExpenses: 4000,
+                monthlyRevenue: [6000, 15000],
+                riskFactor: 0.18,
+                requirements: { cooking: 50, sales: 30 },
+                employeesMax: 6
+            },
+            minimarket: {
+                name: "Minimarket",
+                description: "Tienda más grande con variedad de productos",
+                icon: "🛒",
+                category: "retail",
+                investmentCost: 30000,
+                monthlyExpenses: 5000,
+                monthlyRevenue: [8000, 18000],
+                riskFactor: 0.12,
+                requirements: { sales: 40 },
+                employeesMax: 5
+            },
+            taller_mecanico: {
+                name: "Taller Mecánico",
+                description: "Reparación de vehículos",
+                icon: "🔧",
+                category: "servicios",
+                investmentCost: 20000,
+                monthlyExpenses: 3000,
+                monthlyRevenue: [5000, 12000],
+                riskFactor: 0.10,
+                requirements: { technical: 50 },
+                employeesMax: 4
+            },
+            academia: {
+                name: "Academia/Instituto",
+                description: "Clases de inglés, computación, etc.",
+                icon: "📚",
+                category: "educacion",
+                investmentCost: 15000,
+                monthlyExpenses: 2000,
+                monthlyRevenue: [3500, 9000],
+                riskFactor: 0.15,
+                requirements: { english: 50 },
+                employeesMax: 4
+            },
+            // Negocios grandes
+            importadora: {
+                name: "Importadora",
+                description: "Importación y venta mayorista",
+                icon: "🚢",
+                category: "comercio",
+                investmentCost: 80000,
+                monthlyExpenses: 12000,
+                monthlyRevenue: [20000, 50000],
+                riskFactor: 0.20,
+                requirements: { sales: 60, english: 40 },
+                employeesMax: 8
+            },
+            software_house: {
+                name: "Empresa de Software",
+                description: "Desarrollo de aplicaciones y sistemas",
+                icon: "🖥️",
+                category: "tecnologia",
+                investmentCost: 50000,
+                monthlyExpenses: 8000,
+                monthlyRevenue: [15000, 40000],
+                riskFactor: 0.18,
+                requirements: { computing: 70, english: 50 },
+                employeesMax: 10
+            }
         };
 
         // Trabajos con requisitos detallados estilo LinkedIn/Computrabajo
@@ -2143,6 +2879,115 @@
                 availableFrom: 12,
                 riskPerMonth: 12,
                 prisonTime: [36, 96]
+            },
+            extorsion: {
+                name: "Cobrador de cupos/Extorsionador", salary: [3000, 7000], education: "ninguno", stress: 80, energy: -25,
+                category: "ilegal", illegal: true,
+                requirements: { minStrength: 50, minCharisma: 40 },
+                description: "⚠️ ILEGAL: Cobro de cupos a negocios y construcciones. MUY peligroso.",
+                availableFrom: 6,
+                riskPerMonth: 18,
+                prisonTime: [48, 120]
+            },
+            sicario: {
+                name: "Sicario", salary: [5000, 15000], education: "ninguno", stress: 90, energy: -30,
+                category: "ilegal", illegal: true,
+                requirements: { minStrength: 60 },
+                description: "⚠️ ILEGAL: Trabajos de alto riesgo. Cadena perpetua posible.",
+                availableFrom: 24,
+                riskPerMonth: 25,
+                prisonTime: [180, 300]
+            },
+
+            // ========== SEGUROS - CARRERA COMPLETA ==========
+            asesor_seguros_jr: {
+                name: "Asesor de Seguros Junior", salary: 1400, education: "secundaria", stress: 40, energy: -20,
+                category: "seguros",
+                requirements: { minCharisma: 45, minAppearance: 40 },
+                description: "Venta de seguros de vida y vehiculares. Comisiones por venta.",
+                availableFrom: 3,
+                careerPath: { nextPosition: 'asesor_seguros', monthsRequired: 12, requirements: { sales: 30 } }
+            },
+            asesor_seguros: {
+                name: "Asesor de Seguros", salary: 2200, education: "secundaria", stress: 45, energy: -20,
+                category: "seguros",
+                requirements: { minCharisma: 55, minAppearance: 45, minSkillSales: 30 },
+                description: "Asesor con cartera de clientes. Rimac, Pacífico, Mapfre.",
+                availableFrom: 12,
+                careerPath: { nextPosition: 'supervisor_seguros', monthsRequired: 18, requirements: { sales: 50 } }
+            },
+            supervisor_seguros: {
+                name: "Supervisor de Seguros", salary: 4000, education: "tecnico", stress: 50, energy: -25,
+                category: "seguros",
+                requirements: { minCharisma: 60, minSkillSales: 50, minSkillComputing: 30 },
+                description: "Supervisión de equipo de asesores. Metas mensuales.",
+                availableFrom: 24,
+                careerPath: { nextPosition: 'gerente_seguros', monthsRequired: 24, requirements: { sales: 70 } }
+            },
+            gerente_seguros: {
+                name: "Gerente de Agencia de Seguros", salary: 8000, education: "universidad", stress: 55, energy: -25,
+                category: "seguros",
+                requirements: { minCharisma: 70, minSkillSales: 70, minSkillComputing: 50 },
+                description: "Gerencia de agencia. Bonos por cumplimiento.",
+                availableFrom: 48
+            },
+
+            // ========== RETAIL - CARRERA COMPLETA ==========
+            vendedor_retail: {
+                name: "Vendedor Retail", salary: 1100, education: "secundaria", stress: 35, energy: -25,
+                category: "ventas",
+                requirements: { minCharisma: 40, minAppearance: 45 },
+                description: "Ventas en tienda. Saga, Ripley, Oechsle.",
+                availableFrom: 0,
+                careerPath: { nextPosition: 'supervisor_retail', monthsRequired: 12, requirements: { sales: 30 } }
+            },
+            supervisor_retail: {
+                name: "Supervisor de Tienda", salary: 2000, education: "secundaria", stress: 45, energy: -25,
+                category: "ventas",
+                requirements: { minCharisma: 50, minAppearance: 50, minSkillSales: 30 },
+                description: "Supervisión de vendedores y metas de tienda.",
+                availableFrom: 12,
+                careerPath: { nextPosition: 'gerente_tienda', monthsRequired: 18, requirements: { sales: 50 } }
+            },
+            gerente_tienda: {
+                name: "Gerente de Tienda", salary: 4500, education: "tecnico", stress: 50, energy: -25,
+                category: "ventas",
+                requirements: { minCharisma: 60, minSkillSales: 50, minSkillComputing: 40 },
+                description: "Gerencia de tienda. Responsable de P&L.",
+                availableFrom: 24
+            },
+
+            // ========== BANCA - CARRERA COMPLETA ==========
+            promotor_banco: {
+                name: "Promotor Bancario", salary: 1300, education: "secundaria", stress: 35, energy: -20,
+                category: "banca",
+                requirements: { minCharisma: 45, minAppearance: 50, noCriminalRecord: true },
+                description: "Atención al cliente y venta de productos bancarios.",
+                availableFrom: 6,
+                careerPath: { nextPosition: 'ejecutivo_banco', monthsRequired: 12, requirements: { sales: 35 } }
+            },
+            ejecutivo_banco: {
+                name: "Ejecutivo de Cuentas", salary: 2500, education: "tecnico", stress: 45, energy: -20,
+                category: "banca",
+                requirements: { minCharisma: 55, minAppearance: 55, minSkillSales: 35, noCriminalRecord: true },
+                description: "Atención a clientes premium. Metas de colocación.",
+                availableFrom: 18,
+                careerPath: { nextPosition: 'subgerente_banco', monthsRequired: 24, requirements: { sales: 55 } }
+            },
+            subgerente_banco: {
+                name: "Subgerente de Agencia", salary: 5000, education: "universidad", stress: 55, energy: -25,
+                category: "banca",
+                requirements: { minCharisma: 65, minSkillSales: 55, minSkillComputing: 50, noCriminalRecord: true },
+                description: "Apoyo en gerencia de agencia bancaria.",
+                availableFrom: 36,
+                careerPath: { nextPosition: 'gerente_banco', monthsRequired: 24, requirements: { sales: 70 } }
+            },
+            gerente_banco: {
+                name: "Gerente de Agencia Bancaria", salary: 12000, education: "universidad", stress: 60, energy: -25,
+                category: "banca",
+                requirements: { minCharisma: 75, minSkillSales: 70, minAppearance: 60, noCriminalRecord: true },
+                description: "Gerencia de agencia. Alto nivel de responsabilidad.",
+                availableFrom: 60
             }
         };
 
@@ -2299,7 +3144,24 @@
             wantedLevel: 0,
             // Membresías
             gymMembership: false,
-            gymMonthsLeft: 0
+            gymMonthsLeft: 0,
+            // Sistema de carrera
+            jobMonths: 0,         // Meses en el trabajo actual
+            promotionNotified: false,  // Si ya se notificó que está listo para ascender
+            // Árbol de habilidades
+            unlockedSkills: {},   // { skillId: level } - habilidades desbloqueadas y su nivel
+            skillPoints: 0,       // Puntos de habilidad para desbloquear nuevas
+            totalSkillsUnlocked: 0,  // Total de habilidades desbloqueadas
+            // Sistema de desafíos
+            completedChallenges: {},  // { challengeId: monthCompleted }
+            challengeCooldowns: {},   // { challengeId: monthsRemaining }
+            gymStreakMonths: 0,       // Meses consecutivos en el gimnasio
+            // Sistema de emprendimientos
+            businesses: [],           // Array de negocios propios
+            businessIncome: 0,        // Ingresos del último mes por negocios
+            // Misiones de origen
+            completedOriginMissions: {},  // { missionId: true }
+            pendingOriginMission: null    // Misión activa pendiente de responder
         };
 
         // ==================== FUNCIONES DE UTILIDAD ====================
@@ -2915,7 +3777,64 @@
             `;
 
             if (gameState.job) {
-                html += `<button class="btn btn-danger btn-small" onclick="quitJob()" style="margin-bottom: 15px;">❌ Renunciar</button>`;
+                const currentJob = JOBS[gameState.job];
+                html += `<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 15px;">`;
+                html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span>📅 Tiempo en el puesto: <strong>${gameState.jobMonths} meses</strong></span>
+                    <button class="btn btn-danger btn-small" onclick="quitJob()">❌ Renunciar</button>
+                </div>`;
+
+                // Mostrar progreso de carrera si tiene careerPath
+                if (currentJob.careerPath) {
+                    const career = currentJob.careerPath;
+                    const nextJob = JOBS[career.nextPosition];
+                    const monthsProgress = Math.min(gameState.jobMonths, career.monthsRequired);
+                    const monthsPercent = (monthsProgress / career.monthsRequired) * 100;
+
+                    html += `<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">`;
+                    html += `<p style="margin-bottom: 8px;">📈 <strong>Siguiente puesto:</strong> ${nextJob.name}</p>`;
+                    html += `<p style="font-size: 0.85em; color: #4CAF50; margin-bottom: 8px;">💰 Salario: ${Array.isArray(nextJob.salary) ? formatMoney(nextJob.salary[0]) + ' - ' + formatMoney(nextJob.salary[1]) : formatMoney(nextJob.salary)}</p>`;
+
+                    // Barra de progreso de tiempo
+                    html += `<div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8em; margin-bottom: 3px;">
+                            <span>⏱️ Experiencia requerida</span>
+                            <span>${monthsProgress}/${career.monthsRequired} meses</span>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 5px; height: 8px; overflow: hidden;">
+                            <div style="background: ${monthsPercent >= 100 ? '#4CAF50' : '#ff9800'}; height: 100%; width: ${monthsPercent}%;"></div>
+                        </div>
+                    </div>`;
+
+                    // Requisitos de habilidades
+                    if (career.requirements) {
+                        let allMet = true;
+                        html += `<div style="font-size: 0.85em; margin-bottom: 10px;">`;
+                        for (const [skill, value] of Object.entries(career.requirements)) {
+                            const current = gameState.skills[skill] || 0;
+                            const met = current >= value;
+                            if (!met) allMet = false;
+                            const skillNames = { sales: 'Ventas', computing: 'Computación', english: 'Inglés', driving: 'Manejo', cooking: 'Cocina', technical: 'Técnico' };
+                            html += `<div style="display: flex; justify-content: space-between; padding: 3px 0;">
+                                <span>${met ? '✅' : '❌'} ${skillNames[skill] || skill}</span>
+                                <span style="color: ${met ? '#4CAF50' : '#f44336'};">${Math.floor(current)}/${value}</span>
+                            </div>`;
+                        }
+                        html += `</div>`;
+
+                        // Botón de ascenso
+                        const canPromote = monthsPercent >= 100 && allMet;
+                        if (canPromote) {
+                            html += `<button class="btn btn-success" onclick="requestPromotion()" style="width: 100%;">🎉 ¡Solicitar Ascenso!</button>`;
+                        } else {
+                            html += `<p style="text-align: center; color: #aaa; font-size: 0.85em;">Completa los requisitos para ascender</p>`;
+                        }
+                    }
+                    html += `</div>`;
+                } else {
+                    html += `<p style="color: #aaa; font-size: 0.85em; margin-top: 5px;">Este trabajo no tiene línea de carrera definida.</p>`;
+                }
+                html += `</div>`;
             }
 
             // Tabs para filtrar trabajos
@@ -2929,8 +3848,12 @@
 
             html += `<div id="jobsList" style="max-height: 400px; overflow-y: auto;">`;
 
-            // Ordenar trabajos: disponibles primero, luego por salario
-            const jobIds = Object.keys(JOBS).filter(id => isJobAvailable(id));
+            // Ordenar trabajos por probabilidad (mayor a menor)
+            const jobIds = Object.keys(JOBS)
+                .filter(id => isJobAvailable(id))
+                .map(id => ({ id, probability: calculateHiringProbability(id) }))
+                .sort((a, b) => b.probability - a.probability)
+                .map(j => j.id);
 
             for (let jobId of jobIds) {
                 const job = JOBS[jobId];
@@ -3076,6 +3999,8 @@
         function acceptIllegalJob(jobId) {
             const job = JOBS[jobId];
             gameState.job = jobId;
+            gameState.jobMonths = 0;
+            gameState.promotionNotified = false;
             gameState.stats.jobsHad++;
             addLog(`⚠️ Empezaste a trabajar en actividades ilegales: ${job.name}`, 'warning');
             showNotification('Aceptaste un trabajo ilegal. Ten cuidado...', 'warning');
@@ -3193,6 +4118,8 @@
 
             if (success) {
                 gameState.job = state.jobId;
+                gameState.jobMonths = 0;
+                gameState.promotionNotified = false;
                 gameState.stats.jobsHad++;
                 gameState.stats.interviewsPassed++;
                 gameState.happiness += 15;
@@ -3256,9 +4183,97 @@
         function quitJob() {
             const oldJob = JOBS[gameState.job].name;
             gameState.job = null;
+            gameState.jobMonths = 0;
+            gameState.promotionNotified = false;
             addLog(`Renunciaste a tu trabajo como ${oldJob}`, 'neutral');
             closeModal();
             updateUI();
+        }
+
+        // ==================== SISTEMA DE ASCENSOS ====================
+
+        function requestPromotion() {
+            if (!gameState.job) return;
+
+            const currentJob = JOBS[gameState.job];
+            if (!currentJob.careerPath) {
+                showNotification('Este trabajo no tiene línea de carrera', 'error');
+                return;
+            }
+
+            const career = currentJob.careerPath;
+            const nextJobId = career.nextPosition;
+            const nextJob = JOBS[nextJobId];
+
+            // Verificar tiempo
+            if (gameState.jobMonths < career.monthsRequired) {
+                showNotification(`Necesitas ${career.monthsRequired - gameState.jobMonths} meses más de experiencia`, 'warning');
+                return;
+            }
+
+            // Verificar requisitos de habilidades
+            if (career.requirements) {
+                for (const [skill, value] of Object.entries(career.requirements)) {
+                    if ((gameState.skills[skill] || 0) < value) {
+                        showNotification(`Tu nivel de ${skill} es insuficiente`, 'error');
+                        return;
+                    }
+                }
+            }
+
+            // ¡Ascenso exitoso!
+            const oldJobName = currentJob.name;
+            gameState.job = nextJobId;
+            gameState.jobMonths = 0;
+            gameState.promotionNotified = false;
+            gameState.happiness += 20;
+            gameState.stress -= 10;
+            gameState.credits += 30;
+
+            // Bonus de salario por ascenso
+            const newSalary = Array.isArray(nextJob.salary) ? nextJob.salary[0] : nextJob.salary;
+            const oldSalary = Array.isArray(currentJob.salary) ? currentJob.salary[0] : currentJob.salary;
+            const raise = newSalary - oldSalary;
+
+            addLog(`🎉 ¡ASCENDISTE! De ${oldJobName} a ${nextJob.name}. Aumento: +${formatMoney(raise)}/mes`, 'special');
+            showNotification(`¡Felicidades! Ascendiste a ${nextJob.name}`, 'success');
+
+            // Mostrar celebración
+            showPromotionCelebration(oldJobName, nextJob.name, raise);
+        }
+
+        function showPromotionCelebration(oldJob, newJob, raise) {
+            const html = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 4em; margin-bottom: 20px;">🎉🎊🎉</div>
+                    <h2 style="color: #4CAF50; margin-bottom: 15px;">¡ASCENSO LABORAL!</h2>
+                    <div style="background: rgba(76,175,80,0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <p style="font-size: 1.1em; margin-bottom: 10px;">
+                            <span style="color: #aaa;">${oldJob}</span>
+                            <span style="font-size: 1.5em; margin: 0 15px;">➡️</span>
+                            <span style="color: #4CAF50; font-weight: bold;">${newJob}</span>
+                        </p>
+                        <p style="color: #4CAF50; font-size: 1.3em;">💰 +${formatMoney(raise)}/mes</p>
+                    </div>
+                    <p style="color: #aaa; margin-bottom: 20px;">Tu esfuerzo y dedicación han sido reconocidos.</p>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px;">
+                            <span style="color: #4CAF50;">+20</span> 😊 Felicidad
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px;">
+                            <span style="color: #4CAF50;">-10</span> 😫 Estrés
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 10px 15px; border-radius: 8px;">
+                            <span style="color: #4CAF50;">+30</span> ⭐ Créditos
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '<button class="btn btn-success" onclick="closeModal(); updateUI();">¡Gracias!</button>';
+            document.getElementById('gameModal').classList.add('active');
         }
 
         // ==================== SISTEMA DE ACTIVIDADES MEJORADO ====================
@@ -4669,6 +5684,628 @@
             gameState.stress = Math.max(0, Math.min(100, gameState.stress));
         }
 
+        // ==================== ÁRBOL DE HABILIDADES ====================
+
+        function canUnlockSkill(skillId) {
+            const skill = SKILL_TREE[skillId];
+            if (!skill) return false;
+
+            // Ya está desbloqueada al máximo
+            const currentLevel = gameState.unlockedSkills[skillId] || 0;
+            if (currentLevel >= skill.maxLevel) return false;
+
+            // Verificar requisitos
+            if (skill.requires && skill.requires.length > 0) {
+                for (const reqId of skill.requires) {
+                    if (!gameState.unlockedSkills[reqId] || gameState.unlockedSkills[reqId] < 1) {
+                        return false;
+                    }
+                }
+            }
+
+            // Verificar puntos de habilidad (para nuevas habilidades)
+            if (currentLevel === 0 && skill.unlockCost > 0) {
+                if (gameState.skillPoints < skill.unlockCost) return false;
+            }
+
+            return true;
+        }
+
+        function unlockSkill(skillId) {
+            const skill = SKILL_TREE[skillId];
+            if (!canUnlockSkill(skillId)) {
+                showNotification('No puedes desbloquear esta habilidad aún', 'error');
+                return;
+            }
+
+            const currentLevel = gameState.unlockedSkills[skillId] || 0;
+
+            // Primera vez desbloqueando
+            if (currentLevel === 0 && skill.unlockCost > 0) {
+                gameState.skillPoints -= skill.unlockCost;
+                gameState.totalSkillsUnlocked++;
+            }
+
+            // Subir nivel
+            gameState.unlockedSkills[skillId] = currentLevel + 1;
+
+            // Aplicar efectos
+            if (skill.effects) {
+                for (const [stat, value] of Object.entries(skill.effects)) {
+                    if (gameState.skills[stat] !== undefined) {
+                        gameState.skills[stat] = Math.min(100, gameState.skills[stat] + value);
+                    }
+                    if (gameState.physicalStats[stat] !== undefined) {
+                        gameState.physicalStats[stat] = Math.min(100, gameState.physicalStats[stat] + value);
+                    }
+                }
+            }
+
+            addLog(`🌳 Desbloqueaste: ${skill.name} (Nivel ${currentLevel + 1})`, 'special');
+            showNotification(`¡${skill.name} nivel ${currentLevel + 1}!`, 'success');
+
+            // Refrescar menú
+            openSkillTreeMenu();
+        }
+
+        function openSkillTreeMenu() {
+            // Inicializar habilidades básicas si no existen
+            if (!gameState.unlockedSkills.comunicacion_basica) {
+                gameState.unlockedSkills.comunicacion_basica = 1;
+            }
+            if (!gameState.unlockedSkills.aritmetica) {
+                gameState.unlockedSkills.aritmetica = 1;
+            }
+            if (!gameState.unlockedSkills.resistencia_fisica) {
+                gameState.unlockedSkills.resistencia_fisica = 1;
+            }
+
+            let html = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <span style="font-size: 1.2em; color: #4CAF50;">⭐ ${gameState.skillPoints}</span>
+                        <span style="color: #888; margin-left: 5px;">Puntos de Habilidad</span>
+                    </div>
+                    <div style="color: #888;">
+                        ${gameState.totalSkillsUnlocked} habilidades desbloqueadas
+                    </div>
+                </div>
+
+                <p style="color: #aaa; font-size: 0.85em; margin-bottom: 15px;">
+                    💡 Ganas puntos de habilidad trabajando, estudiando y con actividades sociales.
+                </p>
+
+                <div class="tabs-container">
+                    <div class="tabs-nav" style="flex-wrap: wrap;">
+                        ${Object.entries(SKILL_CATEGORIES).map(([catId, cat], i) => `
+                            <button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="switchSkillTab('${catId}')">
+                                ${cat.icon} ${cat.name}
+                            </button>
+                        `).join('')}
+                    </div>
+            `;
+
+            // Generar contenido por categoría
+            for (const [catId, cat] of Object.entries(SKILL_CATEGORIES)) {
+                const skillsInCat = Object.entries(SKILL_TREE).filter(([id, sk]) => sk.category === catId);
+
+                html += `<div id="skill-tab-${catId}" class="tab-content ${catId === 'social' ? 'active' : ''}" style="max-height: 350px; overflow-y: auto;">`;
+
+                if (skillsInCat.length === 0) {
+                    html += `<p style="color: #888; text-align: center; padding: 20px;">No hay habilidades en esta categoría</p>`;
+                } else {
+                    html += `<div style="display: grid; gap: 10px;">`;
+                    for (const [skillId, skill] of skillsInCat) {
+                        const currentLevel = gameState.unlockedSkills[skillId] || 0;
+                        const isUnlocked = currentLevel > 0;
+                        const canUnlock = canUnlockSkill(skillId);
+                        const isMaxed = currentLevel >= skill.maxLevel;
+
+                        // Verificar requisitos faltantes
+                        let missingReqs = [];
+                        if (skill.requires) {
+                            for (const reqId of skill.requires) {
+                                if (!gameState.unlockedSkills[reqId]) {
+                                    missingReqs.push(SKILL_TREE[reqId]?.name || reqId);
+                                }
+                            }
+                        }
+
+                        html += `
+                            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 3px solid ${isUnlocked ? cat.color : '#333'}; opacity: ${isUnlocked || canUnlock ? '1' : '0.6'};">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div>
+                                        <div style="font-size: 1.3em; margin-bottom: 5px;">${skill.icon} ${skill.name}</div>
+                                        <div style="color: #aaa; font-size: 0.85em; margin-bottom: 8px;">${skill.description}</div>
+                                        ${missingReqs.length > 0 ? `<div style="color: #f44336; font-size: 0.8em;">🔒 Requiere: ${missingReqs.join(', ')}</div>` : ''}
+                                        ${skill.effects ? `
+                                            <div style="font-size: 0.8em; color: #4CAF50; margin-top: 5px;">
+                                                Bonos: ${Object.entries(skill.effects).map(([k, v]) => `+${v} ${k}`).join(', ')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <div style="text-align: right; min-width: 100px;">
+                                        <div style="margin-bottom: 5px;">
+                                            ${Array(skill.maxLevel).fill(0).map((_, i) => `
+                                                <span style="color: ${i < currentLevel ? cat.color : '#333'};">●</span>
+                                            `).join('')}
+                                        </div>
+                                        <div style="font-size: 0.8em; color: #888; margin-bottom: 8px;">
+                                            Nivel ${currentLevel}/${skill.maxLevel}
+                                        </div>
+                                        ${isMaxed ? `
+                                            <span style="color: ${cat.color}; font-size: 0.85em;">✓ Máximo</span>
+                                        ` : isUnlocked ? `
+                                            <button class="btn btn-small" onclick="unlockSkill('${skillId}')" ${!canUnlock ? 'disabled style="opacity: 0.5;"' : ''}>
+                                                Subir Nivel
+                                            </button>
+                                        ` : canUnlock ? `
+                                            <button class="btn btn-small btn-success" onclick="unlockSkill('${skillId}')">
+                                                🔓 ${skill.unlockCost} pts
+                                            </button>
+                                        ` : `
+                                            <span style="color: #666; font-size: 0.8em;">🔒 ${skill.unlockCost} pts</span>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    html += `</div>`;
+                }
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            document.getElementById('modalTitle').textContent = '🌳 Árbol de Habilidades';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function switchSkillTab(tabId) {
+            document.querySelectorAll('#gameModal .tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('#gameModal .tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            const targetTab = document.getElementById(`skill-tab-${tabId}`);
+            if (targetTab) targetTab.classList.add('active');
+
+            // Activar el botón correcto
+            event.target.classList.add('active');
+        }
+
+        // ==================== SISTEMA DE DESAFÍOS ====================
+
+        function checkChallenges() {
+            const currentMonth = (gameState.age - 18) * 12 + gameState.month;
+
+            for (const [challengeId, challenge] of Object.entries(MONTHLY_CHALLENGES)) {
+                // Saltar si ya está completado y es one-time
+                if (challenge.oneTime && gameState.completedChallenges[challengeId]) {
+                    continue;
+                }
+
+                // Verificar cooldown
+                if (gameState.challengeCooldowns[challengeId] > 0) {
+                    gameState.challengeCooldowns[challengeId]--;
+                    continue;
+                }
+
+                // Verificar si se cumple el desafío
+                if (challenge.check && challenge.check(gameState)) {
+                    completeChallenge(challengeId);
+                }
+            }
+        }
+
+        function completeChallenge(challengeId) {
+            const challenge = MONTHLY_CHALLENGES[challengeId];
+            if (!challenge) return;
+
+            const currentMonth = (gameState.age - 18) * 12 + gameState.month;
+            gameState.completedChallenges[challengeId] = currentMonth;
+
+            // Aplicar recompensas
+            const rewards = challenge.rewards;
+            let rewardText = [];
+
+            if (rewards.money) {
+                gameState.money += rewards.money;
+                rewardText.push(`+${formatMoney(rewards.money)}`);
+            }
+            if (rewards.credits) {
+                gameState.credits += rewards.credits;
+                rewardText.push(`+${rewards.credits} créditos`);
+            }
+            if (rewards.skillPoints) {
+                gameState.skillPoints += rewards.skillPoints;
+                rewardText.push(`+${rewards.skillPoints} pts habilidad`);
+            }
+            if (rewards.happiness) {
+                gameState.happiness = Math.min(100, gameState.happiness + rewards.happiness);
+                rewardText.push(`+${rewards.happiness} felicidad`);
+            }
+            if (rewards.health) {
+                gameState.health = Math.min(100, gameState.health + rewards.health);
+                rewardText.push(`+${rewards.health} salud`);
+            }
+
+            // Establecer cooldown si no es one-time
+            if (!challenge.oneTime && challenge.cooldown) {
+                gameState.challengeCooldowns[challengeId] = challenge.cooldown;
+            }
+
+            addLog(`🏆 ¡Desafío completado: ${challenge.name}! Recompensas: ${rewardText.join(', ')}`, 'special');
+            showNotification(`🏆 ${challenge.name} completado!`, 'success');
+        }
+
+        function openChallengesMenu() {
+            const currentMonth = (gameState.age - 18) * 12 + gameState.month;
+            const totalChallenges = Object.keys(MONTHLY_CHALLENGES).length;
+            const completedCount = Object.keys(gameState.completedChallenges).length;
+
+            // Agrupar desafíos por categoría
+            const categories = {};
+            for (const [id, challenge] of Object.entries(MONTHLY_CHALLENGES)) {
+                const cat = challenge.category || 'otros';
+                if (!categories[cat]) categories[cat] = [];
+                categories[cat].push({ id, ...challenge });
+            }
+
+            const categoryNames = {
+                trabajo: { name: 'Trabajo', icon: '💼' },
+                finanzas: { name: 'Finanzas', icon: '💰' },
+                educacion: { name: 'Educación', icon: '📚' },
+                habilidades: { name: 'Habilidades', icon: '🌳' },
+                bienestar: { name: 'Bienestar', icon: '❤️' },
+                social: { name: 'Social', icon: '👥' },
+                vivienda: { name: 'Vivienda', icon: '🏠' },
+                supervivencia: { name: 'Supervivencia', icon: '🎯' }
+            };
+
+            let html = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <span style="font-size: 1.5em;">🏆</span>
+                        <span style="font-size: 1.2em; margin-left: 10px;">${completedCount}/${totalChallenges}</span>
+                        <span style="color: #888; margin-left: 5px;">Desafíos completados</span>
+                    </div>
+                    <div style="background: rgba(76,175,80,0.2); padding: 5px 15px; border-radius: 20px;">
+                        ${Math.round((completedCount / totalChallenges) * 100)}%
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); height: 8px; border-radius: 4px; margin-bottom: 20px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, #4CAF50, #8BC34A); height: 100%; width: ${(completedCount / totalChallenges) * 100}%; transition: width 0.3s;"></div>
+                </div>
+
+                <div style="max-height: 400px; overflow-y: auto;">
+            `;
+
+            for (const [catId, challenges] of Object.entries(categories)) {
+                const catInfo = categoryNames[catId] || { name: catId, icon: '📋' };
+                const completedInCat = challenges.filter(c => gameState.completedChallenges[c.id]).length;
+
+                html += `
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4>${catInfo.icon} ${catInfo.name}</h4>
+                            <span style="color: #888; font-size: 0.9em;">${completedInCat}/${challenges.length}</span>
+                        </div>
+                        <div style="display: grid; gap: 8px;">
+                `;
+
+                for (const challenge of challenges) {
+                    const isCompleted = !!gameState.completedChallenges[challenge.id];
+                    const onCooldown = gameState.challengeCooldowns[challenge.id] > 0;
+                    const canComplete = challenge.check ? challenge.check(gameState) : false;
+
+                    // Calcular progreso para algunos desafíos
+                    let progressHtml = '';
+                    if (!isCompleted && challenge.id.startsWith('save_')) {
+                        const target = challenge.id === 'save_1000' ? 1000 : challenge.id === 'save_10000' ? 10000 : 50000;
+                        const progress = Math.min(100, (gameState.money / target) * 100);
+                        progressHtml = `<div style="background: rgba(255,255,255,0.1); height: 4px; border-radius: 2px; margin-top: 5px; overflow: hidden;">
+                            <div style="background: #4CAF50; height: 100%; width: ${progress}%;"></div>
+                        </div>`;
+                    }
+
+                    html += `
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border-left: 3px solid ${isCompleted ? '#4CAF50' : canComplete ? '#ff9800' : '#333'}; opacity: ${isCompleted ? '0.8' : '1'};">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold; margin-bottom: 3px;">
+                                        ${challenge.icon} ${challenge.name}
+                                        ${isCompleted ? '<span style="color: #4CAF50; margin-left: 5px;">✓</span>' : ''}
+                                        ${onCooldown ? `<span style="color: #888; font-size: 0.8em; margin-left: 5px;">(${gameState.challengeCooldowns[challenge.id]} meses)</span>` : ''}
+                                    </div>
+                                    <div style="color: #aaa; font-size: 0.85em;">${challenge.description}</div>
+                                    ${progressHtml}
+                                </div>
+                                <div style="text-align: right; min-width: 80px;">
+                                    ${Object.entries(challenge.rewards).map(([type, value]) => {
+                                        const icons = { money: '💵', credits: '⭐', skillPoints: '🎯', happiness: '😊', health: '❤️' };
+                                        return `<div style="font-size: 0.8em; color: #4CAF50;">${icons[type] || '•'} +${type === 'money' ? formatMoney(value) : value}</div>`;
+                                    }).join('')}
+                                    ${!challenge.oneTime ? '<div style="font-size: 0.7em; color: #888; margin-top: 3px;">Repetible</div>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `</div></div>`;
+            }
+
+            html += `</div>`;
+
+            document.getElementById('modalTitle').textContent = '🏆 Desafíos';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        // ==================== SISTEMA DE EMPRENDIMIENTOS ====================
+
+        function canStartBusiness(businessId) {
+            const business = BUSINESSES[businessId];
+            if (!business) return { can: false, reason: 'Negocio no existe' };
+
+            // Verificar dinero
+            if (gameState.money < business.investmentCost) {
+                return { can: false, reason: `Necesitas ${formatMoney(business.investmentCost)}` };
+            }
+
+            // Verificar requisitos de skills
+            if (business.requirements) {
+                for (const [skill, value] of Object.entries(business.requirements)) {
+                    const currentValue = gameState.skills[skill] || gameState.physicalStats[skill] || 0;
+                    if (currentValue < value) {
+                        return { can: false, reason: `${skill} insuficiente (${Math.floor(currentValue)}/${value})` };
+                    }
+                }
+            }
+
+            return { can: true };
+        }
+
+        function startBusiness(businessId) {
+            const check = canStartBusiness(businessId);
+            if (!check.can) {
+                showNotification(check.reason, 'error');
+                return;
+            }
+
+            const business = BUSINESSES[businessId];
+            gameState.money -= business.investmentCost;
+            gameState.stats.totalSpent += business.investmentCost;
+
+            const newBusiness = {
+                id: businessId,
+                name: business.name,
+                monthsOwned: 0,
+                employees: 0,
+                reputation: 50,
+                lastRevenue: 0,
+                totalRevenue: 0
+            };
+
+            gameState.businesses.push(newBusiness);
+            addLog(`🏢 ¡Abriste tu negocio: ${business.name}! Inversión: ${formatMoney(business.investmentCost)}`, 'special');
+            showNotification(`¡Felicidades! Abriste ${business.name}`, 'success');
+            openBusinessMenu();
+        }
+
+        function closeBusiness(index) {
+            if (index < 0 || index >= gameState.businesses.length) return;
+
+            const business = gameState.businesses[index];
+            const businessData = BUSINESSES[business.id];
+
+            // Recuperar 30% de la inversión
+            const recovery = Math.floor(businessData.investmentCost * 0.3);
+            gameState.money += recovery;
+
+            addLog(`📉 Cerraste ${business.name}. Recuperaste ${formatMoney(recovery)}`, 'warning');
+            showNotification(`Cerraste ${business.name}`, 'warning');
+
+            gameState.businesses.splice(index, 1);
+            openBusinessMenu();
+        }
+
+        function hireEmployee(index) {
+            if (index < 0 || index >= gameState.businesses.length) return;
+
+            const business = gameState.businesses[index];
+            const businessData = BUSINESSES[business.id];
+
+            if (business.employees >= businessData.employeesMax) {
+                showNotification('No puedes contratar más empleados', 'error');
+                return;
+            }
+
+            business.employees++;
+            addLog(`👤 Contrataste un empleado para ${business.name}`, 'positive');
+            showNotification('Empleado contratado', 'success');
+            openBusinessMenu();
+        }
+
+        function openBusinessMenu() {
+            const totalBusinesses = gameState.businesses.length;
+            const totalMonthlyIncome = gameState.businessIncome || 0;
+
+            let html = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <span style="font-size: 1.5em;">🏢</span>
+                        <span style="font-size: 1.2em; margin-left: 10px;">${totalBusinesses}</span>
+                        <span style="color: #888; margin-left: 5px;">Negocios propios</span>
+                    </div>
+                    <div style="background: rgba(76,175,80,0.2); padding: 5px 15px; border-radius: 20px;">
+                        ${formatMoney(totalMonthlyIncome)}/mes
+                    </div>
+                </div>
+            `;
+
+            // Mostrar negocios propios
+            if (gameState.businesses.length > 0) {
+                html += `<h4 style="margin-bottom: 10px;">📊 Mis Negocios</h4>`;
+                html += `<div style="display: grid; gap: 10px; margin-bottom: 20px;">`;
+
+                gameState.businesses.forEach((business, index) => {
+                    const data = BUSINESSES[business.id];
+                    const revenueRange = `${formatMoney(data.monthlyRevenue[0])} - ${formatMoney(data.monthlyRevenue[1])}`;
+
+                    html += `
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border-left: 3px solid #4CAF50;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <div style="font-size: 1.2em; margin-bottom: 5px;">${data.icon} ${business.name}</div>
+                                    <div style="color: #aaa; font-size: 0.85em;">
+                                        📅 ${business.monthsOwned} meses | 👥 ${business.employees}/${data.employeesMax} empleados
+                                    </div>
+                                    <div style="color: #4CAF50; font-size: 0.9em; margin-top: 5px;">
+                                        💰 Último mes: ${formatMoney(business.lastRevenue)} | Total: ${formatMoney(business.totalRevenue)}
+                                    </div>
+                                    <div style="color: #888; font-size: 0.8em; margin-top: 3px;">
+                                        Gastos: ${formatMoney(data.monthlyExpenses + (business.employees * 1000))}/mes
+                                    </div>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    ${business.employees < data.employeesMax ? `
+                                        <button class="btn btn-small" onclick="hireEmployee(${index})">+👤 S/1000</button>
+                                    ` : ''}
+                                    <button class="btn btn-small btn-danger" onclick="if(confirm('¿Cerrar negocio?')) closeBusiness(${index})">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            // Mostrar negocios disponibles
+            html += `<h4 style="margin-bottom: 10px;">🛒 Negocios Disponibles</h4>`;
+            html += `<p style="color: #888; font-size: 0.85em; margin-bottom: 10px;">Invierte en tu propio negocio y genera ingresos pasivos.</p>`;
+
+            // Agrupar por categoría
+            const categories = {
+                comida: { name: 'Comida', icon: '🍽️' },
+                retail: { name: 'Retail', icon: '🛒' },
+                servicios: { name: 'Servicios', icon: '🔧' },
+                tecnologia: { name: 'Tecnología', icon: '💻' },
+                educacion: { name: 'Educación', icon: '📚' },
+                comercio: { name: 'Comercio', icon: '📦' }
+            };
+
+            html += `<div style="max-height: 300px; overflow-y: auto;">`;
+
+            for (const [catId, catInfo] of Object.entries(categories)) {
+                const businessesInCat = Object.entries(BUSINESSES).filter(([id, b]) => b.category === catId);
+                if (businessesInCat.length === 0) continue;
+
+                html += `<div style="margin-bottom: 15px;">`;
+                html += `<div style="color: #888; font-size: 0.9em; margin-bottom: 8px;">${catInfo.icon} ${catInfo.name}</div>`;
+
+                for (const [businessId, business] of businessesInCat) {
+                    const check = canStartBusiness(businessId);
+                    const revenueRange = `${formatMoney(business.monthlyRevenue[0])} - ${formatMoney(business.monthlyRevenue[1])}`;
+
+                    html += `
+                        <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px; opacity: ${check.can ? '1' : '0.6'};">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold;">${business.icon} ${business.name}</div>
+                                    <div style="color: #aaa; font-size: 0.8em;">${business.description}</div>
+                                    <div style="font-size: 0.85em; margin-top: 5px;">
+                                        <span style="color: #f44336;">💵 Inversión: ${formatMoney(business.investmentCost)}</span>
+                                        <span style="margin-left: 10px; color: #4CAF50;">📈 ${revenueRange}/mes</span>
+                                    </div>
+                                    ${!check.can ? `<div style="color: #f44336; font-size: 0.8em; margin-top: 3px;">❌ ${check.reason}</div>` : ''}
+                                </div>
+                                <div>
+                                    ${check.can ? `
+                                        <button class="btn btn-small btn-success" onclick="startBusiness('${businessId}')">Invertir</button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            document.getElementById('modalTitle').textContent = '🏢 Emprendimientos';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function processBusinesses() {
+            let totalIncome = 0;
+
+            gameState.businesses.forEach(business => {
+                const data = BUSINESSES[business.id];
+                business.monthsOwned++;
+
+                // Calcular ingresos base
+                const baseRevenue = randomRange(data.monthlyRevenue[0], data.monthlyRevenue[1]);
+
+                // Bonus por empleados (20% por empleado)
+                const employeeBonus = 1 + (business.employees * 0.2);
+
+                // Bonus por reputación
+                const reputationBonus = business.reputation / 100;
+
+                // Calcular ingresos finales
+                let revenue = Math.floor(baseRevenue * employeeBonus * reputationBonus);
+
+                // Calcular gastos (base + empleados)
+                const expenses = data.monthlyExpenses + (business.employees * 1000);
+
+                // Evento de riesgo (robo, incidente, etc.)
+                if (Math.random() < data.riskFactor) {
+                    const incident = Math.random();
+                    if (incident < 0.3) {
+                        revenue = Math.floor(revenue * 0.5);
+                        addLog(`⚠️ ${business.name}: Problemas este mes. Ingresos reducidos.`, 'warning');
+                    } else if (incident < 0.5) {
+                        const loss = randomRange(500, 2000);
+                        gameState.money -= loss;
+                        addLog(`🔧 ${business.name}: Reparaciones urgentes. -${formatMoney(loss)}`, 'negative');
+                    } else {
+                        business.reputation = Math.max(20, business.reputation - 10);
+                        addLog(`📉 ${business.name}: Cliente insatisfecho. Reputación baja.`, 'warning');
+                    }
+                }
+
+                // Mejorar reputación con el tiempo (pequeño incremento)
+                business.reputation = Math.min(100, business.reputation + 1);
+
+                const netProfit = revenue - expenses;
+                business.lastRevenue = netProfit;
+                business.totalRevenue += netProfit;
+                totalIncome += netProfit;
+
+                if (netProfit < 0) {
+                    addLog(`📉 ${business.name}: Pérdida de ${formatMoney(Math.abs(netProfit))} este mes.`, 'negative');
+                }
+            });
+
+            gameState.businessIncome = totalIncome;
+            if (totalIncome > 0) {
+                gameState.money += totalIncome;
+                gameState.stats.totalEarned += totalIncome;
+            } else if (totalIncome < 0) {
+                gameState.money += totalIncome; // Se resta porque es negativo
+            }
+
+            return totalIncome;
+        }
+
         // ==================== PASO DEL TIEMPO ====================
 
         function passMonth() {
@@ -4724,11 +6361,82 @@
                         gameState.prisonMonths = prisonTime;
                         gameState.criminalRecord = true;
                         gameState.job = null;
+                        gameState.jobMonths = 0;
                         gameState.happiness -= 30;
                         addLog(`🚨 ¡LA POLICÍA TE ATRAPÓ! Condenado a ${prisonTime} meses de cárcel.`, 'negative');
                         showNotification(`¡Arrestado! ${prisonTime} meses de prisión.`, 'error');
                     }
                 }
+
+                // ========== SISTEMA DE ASCENSOS/CARRERA ==========
+                gameState.jobMonths++;
+
+                if (job.careerPath) {
+                    const career = job.careerPath;
+                    const nextJob = JOBS[career.nextPosition];
+
+                    // Verificar si cumple requisitos para ascender
+                    let meetsRequirements = true;
+                    let missingReqs = [];
+
+                    // Verificar meses en el trabajo
+                    if (gameState.jobMonths < career.monthsRequired) {
+                        meetsRequirements = false;
+                    }
+
+                    // Verificar skills requeridos
+                    if (career.requirements) {
+                        for (const [skill, value] of Object.entries(career.requirements)) {
+                            if (gameState.skills[skill] < value) {
+                                meetsRequirements = false;
+                                missingReqs.push(`${skill}: ${gameState.skills[skill]}/${value}`);
+                            }
+                        }
+                    }
+
+                    // Notificar cuando está listo para ascender (solo una vez)
+                    if (meetsRequirements && !gameState.promotionNotified) {
+                        gameState.promotionNotified = true;
+                        addLog(`📈 ¡Puedes ascender a ${nextJob.name}! Ve a Trabajo para solicitar ascenso.`, 'special');
+                        showNotification(`¡Ascenso disponible a ${nextJob.name}!`, 'success');
+                    }
+
+                    // Progreso hacia el ascenso (cada 3 meses notificar)
+                    if (!meetsRequirements && gameState.jobMonths % 3 === 0 && gameState.jobMonths > 0) {
+                        const monthsLeft = career.monthsRequired - gameState.jobMonths;
+                        if (monthsLeft > 0) {
+                            addLog(`📊 Progreso laboral: ${gameState.jobMonths}/${career.monthsRequired} meses para ascenso.`, 'info');
+                        }
+                        if (missingReqs.length > 0) {
+                            addLog(`⚠️ Necesitas mejorar: ${missingReqs.join(', ')}`, 'warning');
+                        }
+                    }
+                }
+
+                // Ganar habilidades por trabajar
+                if (job.category === 'seguros' || job.category === 'ventas' || job.category === 'retail') {
+                    gameState.skills.sales = Math.min(100, gameState.skills.sales + 0.5);
+                }
+                if (job.category === 'tecnologia') {
+                    gameState.skills.computing = Math.min(100, gameState.skills.computing + 0.5);
+                }
+                if (job.category === 'banca') {
+                    gameState.skills.sales = Math.min(100, gameState.skills.sales + 0.3);
+                }
+
+                // ========== PUNTOS DE HABILIDAD POR TRABAJO ==========
+                // Ganar puntos de habilidad por trabajar
+                let skillPointsGained = 1; // Base por trabajar
+                if (job.category === 'atencion' || job.category === 'ventas' || job.category === 'seguros') {
+                    skillPointsGained += 1; // Extra por trabajos que requieren habilidades sociales
+                }
+                if (job.category === 'tecnologia' || job.category === 'banca') {
+                    skillPointsGained += 2; // Extra por trabajos especializados
+                }
+                if (job.illegal) {
+                    skillPointsGained = 0; // No ganas puntos de habilidad en trabajos ilegales
+                }
+                gameState.skillPoints += skillPointsGained;
             }
 
             // ========== ESTUDIOS ==========
@@ -4736,6 +6444,7 @@
                 gameState.studyMonthsLeft--;
                 gameState.stress += 5;
                 gameState.energy -= 5;
+                gameState.skillPoints += 3; // Puntos de habilidad por estudiar
 
                 if (gameState.studyMonthsLeft <= 0) {
                     const study = EDUCATION_OPTIONS[gameState.studying];
@@ -4744,6 +6453,7 @@
                     showNotification(`¡Te graduaste de ${study.name}!`, 'success');
                     gameState.happiness += 25;
                     gameState.credits += 25;
+                    gameState.skillPoints += 50; // Bonus grande al graduarse
                     gameState.studying = null;
                 }
             }
@@ -4751,9 +6461,29 @@
             // ========== MEMBRESÍA DE GIMNASIO ==========
             if (gameState.gymMembership) {
                 gameState.gymMonthsLeft--;
+                gameState.gymStreakMonths = (gameState.gymStreakMonths || 0) + 1; // Meses consecutivos
+                gameState.skillPoints += 1; // Puntos de habilidad por ir al gimnasio
+                // Subir nivel de resistencia física si está desbloqueada
+                if (gameState.unlockedSkills.resistencia_fisica && gameState.unlockedSkills.resistencia_fisica < 5) {
+                    if (Math.random() < 0.1) { // 10% de chance de subir nivel
+                        gameState.unlockedSkills.resistencia_fisica++;
+                        addLog(`💪 Tu resistencia física subió a nivel ${gameState.unlockedSkills.resistencia_fisica}`, 'positive');
+                    }
+                }
                 if (gameState.gymMonthsLeft <= 0) {
                     gameState.gymMembership = false;
+                    gameState.gymStreakMonths = 0; // Reset streak
                     addLog('Tu membresía del gimnasio expiró.', 'info');
+                }
+            } else {
+                gameState.gymStreakMonths = 0; // Reset si no tiene membresía
+            }
+
+            // ========== EMPRENDIMIENTOS ==========
+            if (gameState.businesses && gameState.businesses.length > 0) {
+                const businessIncome = processBusinesses();
+                if (businessIncome !== 0) {
+                    addLog(`🏢 Ingresos de negocios: ${businessIncome >= 0 ? '+' : ''}${formatMoney(businessIncome)}`, businessIncome >= 0 ? 'positive' : 'negative');
                 }
             }
 
@@ -4904,9 +6634,17 @@
                 triggerRandomEvent();
             }
 
+            // Misiones de origen (historias de fondo)
+            if (Math.random() < 0.3) {
+                checkOriginMissions();
+            }
+
             // Mantener stats en rangos válidos
             clampStats();
             clampPhysicalStats();
+
+            // Verificar desafíos completados
+            checkChallenges();
 
             // Verificar condiciones de fin del juego
             checkGameOver();
@@ -4919,6 +6657,113 @@
             const moneyText = moneyChange >= 0 ? `+${formatMoney(moneyChange)}` : formatMoney(moneyChange);
 
             showNotification(`${monthName} ${gameState.year} | ${moneyText}`, moneyChange >= 0 ? 'info' : 'warning');
+        }
+
+        // ==================== MISIONES DE ORIGEN ====================
+
+        function checkOriginMissions() {
+            if (!gameState.character || !gameState.character.familySituation) return;
+            if (gameState.pendingOriginMission) return; // Ya hay una misión pendiente
+
+            const familySituation = gameState.character.familySituation;
+            const missions = ORIGIN_MISSIONS[familySituation];
+            if (!missions) return;
+
+            const monthsPlayed = (gameState.age - 18) * 12 + gameState.month;
+
+            for (const mission of missions) {
+                // Saltar si ya está completada y es oneTime
+                if (mission.trigger.oneTime && gameState.completedOriginMissions[mission.id]) {
+                    continue;
+                }
+
+                // Verificar meses mínimos
+                if (monthsPlayed < mission.trigger.monthsPlayed) continue;
+
+                // Verificar condición adicional
+                if (mission.trigger.condition && !mission.trigger.condition(gameState)) continue;
+
+                // Verificar probabilidad
+                if (Math.random() > mission.trigger.chance) continue;
+
+                // ¡Disparar misión!
+                showOriginMission(mission);
+                return;
+            }
+        }
+
+        function showOriginMission(mission) {
+            gameState.pendingOriginMission = mission;
+
+            let html = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3em; margin-bottom: 15px;">📖</div>
+                    <h3 style="color: #ff9800; margin-bottom: 10px;">${mission.name}</h3>
+                    <p style="color: #ddd; margin-bottom: 20px; font-size: 1.1em;">${mission.description}</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+            `;
+
+            mission.choices.forEach((choice, index) => {
+                const canChoose = !choice.condition || choice.condition(gameState);
+                html += `
+                    <button class="btn ${canChoose ? '' : 'btn-disabled'}"
+                            onclick="selectOriginChoice(${index})"
+                            ${canChoose ? '' : 'disabled'}
+                            style="padding: 12px; ${canChoose ? '' : 'opacity: 0.5;'}">
+                        ${choice.text}
+                    </button>
+                `;
+            });
+
+            html += `</div></div>`;
+
+            document.getElementById('modalTitle').textContent = '📖 Historia de tu Vida';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function selectOriginChoice(choiceIndex) {
+            const mission = gameState.pendingOriginMission;
+            if (!mission) return;
+
+            const choice = mission.choices[choiceIndex];
+            if (!choice) return;
+
+            // Verificar condición
+            if (choice.condition && !choice.condition(gameState)) {
+                showNotification('No cumples los requisitos', 'error');
+                return;
+            }
+
+            // Aplicar efectos
+            if (choice.effect) {
+                for (const [key, value] of Object.entries(choice.effect)) {
+                    if (key === 'money') gameState.money += value;
+                    else if (key === 'happiness') gameState.happiness = Math.max(0, Math.min(100, gameState.happiness + value));
+                    else if (key === 'stress') gameState.stress = Math.max(0, Math.min(100, gameState.stress + value));
+                    else if (key === 'energy') gameState.energy = Math.max(0, Math.min(100, gameState.energy + value));
+                    else if (key === 'health') gameState.health = Math.max(0, Math.min(100, gameState.health + value));
+                    else if (key === 'credits') gameState.credits += value;
+                    else if (key === 'skillPoints') gameState.skillPoints += value;
+                }
+            }
+
+            // Registrar en log
+            if (choice.log) {
+                addLog(choice.log, 'special');
+            }
+
+            // Marcar como completada si es oneTime
+            if (mission.trigger.oneTime) {
+                gameState.completedOriginMissions[mission.id] = true;
+            }
+
+            // Limpiar misión pendiente
+            gameState.pendingOriginMission = null;
+
+            closeModal();
+            updateUI();
         }
 
         // ==================== EVENTOS ALEATORIOS ====================
@@ -5046,6 +6891,8 @@
                 { condition: () => gameState.job && Math.random() < 0.12, effect: () => {
                     const oldJob = JOBS[gameState.job].name;
                     gameState.job = null;
+                    gameState.jobMonths = 0;
+                    gameState.promotionNotified = false;
                     gameState.happiness -= 20;
                     gameState.stress += 25;
                     addLog(`😱 ¡Te despidieron de ${oldJob}! La empresa hizo recortes.`, 'negative');
@@ -5120,77 +6967,268 @@
 
         // ==================== GAME OVER ====================
 
-        function checkGameOver() {
-            let gameOver = false;
-            let reason = '';
+        // ==================== SISTEMA DE FINALES ====================
 
+        const GAME_ENDINGS = {
+            // Finales negativos
+            death: {
+                type: 'bad',
+                title: '💀 GAME OVER',
+                icon: '☠️',
+                color: '#f44336'
+            },
+            depression: {
+                type: 'bad',
+                title: '😢 GAME OVER',
+                icon: '💔',
+                color: '#9c27b0'
+            },
+            bankruptcy: {
+                type: 'bad',
+                title: '📉 BANCARROTA',
+                icon: '💸',
+                color: '#ff9800'
+            },
+            prison_life: {
+                type: 'bad',
+                title: '⛓️ CADENA PERPETUA',
+                icon: '🔒',
+                color: '#607d8b'
+            },
+            // Finales neutrales
+            retirement_poor: {
+                type: 'neutral',
+                title: '👴 JUBILACIÓN MODESTA',
+                icon: '🪑',
+                color: '#9e9e9e'
+            },
+            // Finales positivos
+            millionaire: {
+                type: 'good',
+                title: '💰 MILLONARIO',
+                icon: '🤑',
+                color: '#4caf50'
+            },
+            entrepreneur: {
+                type: 'good',
+                title: '🏢 MAGNATE EMPRESARIAL',
+                icon: '👔',
+                color: '#2196f3'
+            },
+            family_life: {
+                type: 'good',
+                title: '👨‍👩‍👧‍👦 VIDA FAMILIAR PLENA',
+                icon: '🏡',
+                color: '#e91e63'
+            },
+            professional: {
+                type: 'good',
+                title: '🎓 PROFESIONAL EXITOSO',
+                icon: '⭐',
+                color: '#ff9800'
+            },
+            freedom: {
+                type: 'good',
+                title: '🦅 LIBERTAD FINANCIERA',
+                icon: '✨',
+                color: '#4caf50'
+            }
+        };
+
+        function checkGameOver() {
+            // ========== FINALES NEGATIVOS ==========
+
+            // Muerte por salud
             if (gameState.health <= 0) {
-                gameOver = true;
-                reason = 'Tu salud llegó a 0. El estrés y el descuido te pasaron factura.';
-            } else if (gameState.happiness <= 0) {
-                gameOver = true;
-                reason = 'Tu felicidad llegó a 0. La depresión te consumió.';
-            } else if (gameState.money < -5000) {
-                gameOver = true;
-                reason = 'Tus deudas son impagables. Caíste en bancarrota.';
-            } else if (gameState.age >= 65) {
-                if (gameState.money >= 1000000) {
-                    showVictory();
-                    return;
-                } else {
-                    gameOver = true;
-                    reason = 'Llegaste a los 65 sin alcanzar la libertad financiera.';
-                }
+                showEnding('death', 'Tu salud llegó a 0. El estrés y el descuido cobraron factura.');
+                return;
             }
 
-            if (gameOver) showGameOver(reason);
+            // Depresión severa
+            if (gameState.happiness <= 0) {
+                showEnding('depression', 'Tu felicidad llegó a 0. La depresión te consumió.');
+                return;
+            }
+
+            // Bancarrota
+            if (gameState.money < -5000) {
+                showEnding('bankruptcy', 'Tus deudas superaron los S/ 5,000. Caíste en bancarrota.');
+                return;
+            }
+
+            // Cadena perpetua (acumulación de cárcel)
+            if (gameState.prisonMonths >= 240) {
+                showEnding('prison_life', 'Acumulaste demasiados años en prisión. El sistema no te dejará salir.');
+                return;
+            }
+
+            // ========== FINALES POR EDAD ==========
+            if (gameState.age >= 65) {
+                checkRetirementEnding();
+                return;
+            }
+
+            // ========== FINALES ESPECIALES (antes de jubilación) ==========
+
+            // Millonario temprano
+            if (gameState.money >= 1000000 && gameState.age < 50) {
+                showEnding('millionaire', '¡Alcanzaste el millón antes de los 50! Eres oficialmente millonario.');
+                return;
+            }
+
+            // Magnate empresarial (3+ negocios exitosos)
+            if (gameState.businesses && gameState.businesses.length >= 3) {
+                const totalBusinessRevenue = gameState.businesses.reduce((sum, b) => sum + b.totalRevenue, 0);
+                if (totalBusinessRevenue >= 200000) {
+                    showEnding('entrepreneur', `Con ${gameState.businesses.length} negocios exitosos, eres un magnate empresarial.`);
+                    return;
+                }
+            }
         }
 
-        function showGameOver(reason) {
-            document.getElementById('gameOverReason').textContent = reason;
-            document.getElementById('gameOverStats').innerHTML = `
-                <h3>📊 Estadísticas de tu vida</h3>
-                <p><strong>Edad alcanzada:</strong> ${gameState.age} años</p>
-                <p><strong>Total ganado:</strong> ${formatMoney(gameState.stats.totalEarned)}</p>
-                <p><strong>Trabajos que tuviste:</strong> ${gameState.stats.jobsHad}</p>
-                <p><strong>Entrevistas pasadas:</strong> ${gameState.stats.interviewsPassed}</p>
-                <p><strong>Entrevistas fallidas:</strong> ${gameState.stats.interviewsFailed}</p>
-                <p><strong>Educación final:</strong> ${gameState.education}</p>
+        function checkRetirementEnding() {
+            let endingType = 'retirement_poor';
+            let reason = 'Llegaste a los 65 años. Tu vida laboral terminó.';
+
+            // Calcular ingresos pasivos
+            const businessIncome = gameState.businesses ? gameState.businesses.reduce((sum, b) => sum + b.lastRevenue, 0) : 0;
+
+            // Verificar tipo de final
+            if (gameState.money >= 1000000) {
+                endingType = 'millionaire';
+                reason = `Llegaste a la jubilación con ${formatMoney(gameState.money)}. ¡Eres millonario!`;
+            } else if (businessIncome >= 10000) {
+                endingType = 'freedom';
+                reason = `Tus negocios generan ${formatMoney(businessIncome)}/mes. Tienes libertad financiera.`;
+            } else if (gameState.relationships?.romantic?.relationshipType === 'Casados' &&
+                       gameState.children?.length >= 1 &&
+                       ['depto_2d', 'casa'].includes(gameState.housing)) {
+                endingType = 'family_life';
+                reason = 'Tienes una familia hermosa, un hogar y amor. La vida te sonríe.';
+            } else if (['universidad', 'maestria'].includes(gameState.education) &&
+                       gameState.stats.totalEarned >= 500000) {
+                endingType = 'professional';
+                reason = 'Tu carrera profesional fue exitosa. Dejaste un legado.';
+            } else if (gameState.money >= 100000) {
+                endingType = 'retirement_poor';
+                reason = 'Llegaste a la jubilación con ahorros modestos. Vivirás tranquilo.';
+            } else {
+                endingType = 'retirement_poor';
+                reason = 'Llegaste a los 65 con poco dinero. La pensión será tu única entrada.';
+            }
+
+            showEnding(endingType, reason);
+        }
+
+        function showEnding(endingId, reason) {
+            const ending = GAME_ENDINGS[endingId];
+            const isGood = ending.type === 'good';
+            const isNeutral = ending.type === 'neutral';
+
+            // Calcular estadísticas finales
+            const yearsLived = gameState.age - 18;
+            const monthsWorked = gameState.stats.monthsWorked;
+            const yearsWorked = Math.floor(monthsWorked / 12);
+            const businessCount = gameState.businesses?.length || 0;
+            const totalBusinessRevenue = gameState.businesses?.reduce((sum, b) => sum + b.totalRevenue, 0) || 0;
+
+            // Calcular "puntaje de vida"
+            let lifeScore = 0;
+            lifeScore += Math.min(50, gameState.money / 20000); // Max 50 pts por dinero
+            lifeScore += yearsWorked * 2; // 2 pts por año trabajado
+            lifeScore += gameState.stats.interviewsPassed * 3; // 3 pts por entrevista pasada
+            if (gameState.education === 'universidad') lifeScore += 30;
+            if (gameState.education === 'maestria') lifeScore += 50;
+            if (gameState.relationships?.romantic) lifeScore += 20;
+            if (gameState.children?.length) lifeScore += gameState.children.length * 10;
+            lifeScore += businessCount * 15;
+            lifeScore += gameState.totalSkillsUnlocked * 2;
+            lifeScore += Object.keys(gameState.completedChallenges || {}).length * 5;
+
+            const lifeRating = lifeScore >= 200 ? '⭐⭐⭐⭐⭐' :
+                              lifeScore >= 150 ? '⭐⭐⭐⭐' :
+                              lifeScore >= 100 ? '⭐⭐⭐' :
+                              lifeScore >= 50 ? '⭐⭐' : '⭐';
+
+            const html = `
+                <div style="text-align: center; padding: 30px; background: linear-gradient(180deg, ${ending.color}22, transparent);">
+                    <div style="font-size: 5em; margin-bottom: 20px;">${ending.icon}</div>
+                    <h1 style="color: ${ending.color}; margin-bottom: 15px;">${ending.title}</h1>
+                    <p style="font-size: 1.2em; color: #ddd; margin-bottom: 30px;">${reason}</p>
+
+                    <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; text-align: left; margin-bottom: 20px;">
+                        <h3 style="text-align: center; margin-bottom: 15px;">📊 Resumen de tu Vida</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>👤 <strong>${gameState.character.name}</strong></div>
+                            <div>📅 Viviste ${yearsLived} años</div>
+                            <div>💰 Patrimonio: ${formatMoney(gameState.money)}</div>
+                            <div>📈 Total ganado: ${formatMoney(gameState.stats.totalEarned)}</div>
+                            <div>💼 ${yearsWorked} años trabajados</div>
+                            <div>🎓 Educación: ${gameState.education}</div>
+                            <div>🏢 ${businessCount} negocios</div>
+                            <div>🌳 ${gameState.totalSkillsUnlocked || 0} habilidades</div>
+                            ${gameState.relationships?.romantic ? `<div>💕 ${gameState.relationships.romantic.relationshipType}</div>` : ''}
+                            ${gameState.children?.length ? `<div>👶 ${gameState.children.length} hijos</div>` : ''}
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 0.9em; color: #888; margin-bottom: 5px;">Puntuación de Vida</div>
+                        <div style="font-size: 1.5em;">${lifeRating}</div>
+                        <div style="font-size: 0.8em; color: #888;">${Math.floor(lifeScore)} puntos</div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="location.reload()">🔄 Nueva Vida</button>
+                        ${!isGood && gameState.credits >= 50 ? `
+                            <button class="btn btn-warning" onclick="continueGame()">
+                                ✨ Continuar (${50 + gameState.age * 2} créditos)
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
             `;
 
-            const continueCost = 50 + (gameState.age * 2);
-            document.getElementById('continueCost').textContent = `💎 ${continueCost} Créditos`;
-            document.getElementById('continueBtn').disabled = gameState.credits < continueCost;
-            document.getElementById('continueBtn').onclick = () => {
-                if (gameState.credits >= continueCost) {
-                    gameState.credits -= continueCost;
-                    gameState.age -= 2;
-                    gameState.year -= 2;
-                    gameState.health = 50;
-                    gameState.happiness = 50;
-                    gameState.energy = 50;
-                    gameState.stress = 30;
-                    gameState.money = Math.max(gameState.money, 500);
-                    addLog('Recibiste una segunda oportunidad... ✨', 'special');
-                    showScreen('gameScreen');
-                    updateUI();
-                }
-            };
+            document.getElementById('modalTitle').textContent = '';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
 
-            showScreen('gameOverScreen');
+            // Prevenir que se cierre el modal en finales
+            document.querySelector('.modal-overlay').onclick = null;
+            document.querySelector('.modal-close').style.display = 'none';
+        }
+
+        function continueGame() {
+            const continueCost = 50 + (gameState.age * 2);
+            if (gameState.credits >= continueCost) {
+                gameState.credits -= continueCost;
+                gameState.age = Math.max(18, gameState.age - 2);
+                gameState.year = Math.max(2024, gameState.year - 2);
+                gameState.health = 50;
+                gameState.happiness = 50;
+                gameState.energy = 50;
+                gameState.stress = 30;
+                gameState.money = Math.max(gameState.money, 500);
+                gameState.prisonMonths = 0;
+                addLog('✨ Recibiste una segunda oportunidad...', 'special');
+
+                // Restaurar modal normal
+                document.querySelector('.modal-overlay').onclick = closeModal;
+                document.querySelector('.modal-close').style.display = '';
+
+                closeModal();
+                updateUI();
+            }
+        }
+
+        // Mantener compatibilidad con pantallas antiguas (fallback)
+        function showGameOver(reason) {
+            showEnding('death', reason);
         }
 
         function showVictory() {
-            document.getElementById('victoryStats').innerHTML = `
-                <div class="game-over-stats">
-                    <h3>🎉 ¡Lo lograste!</h3>
-                    <p>Patrimonio final: ${formatMoney(gameState.money)}</p>
-                    <p>Llegaste a los ${gameState.age} años con libertad financiera.</p>
-                    <p>Dificultad: ${gameState.character.difficulty.name}</p>
-                    <p>Empezaste con: ${formatMoney(gameState.character.startMoney)}</p>
-                </div>
-            `;
-            showScreen('victoryScreen');
+            showEnding('millionaire', `¡Alcanzaste ${formatMoney(gameState.money)}! Eres millonario.`);
         }
 
         function showStats() {
