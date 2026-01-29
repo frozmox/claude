@@ -766,6 +766,8 @@
             width: 100%;
             height: 100%;
             cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
         }
 
         .modal-content {
@@ -4374,14 +4376,17 @@
 
         function calculateMonthlyIncome() {
             let total = 0;
-            // Salario del trabajo
-            if (gameState.job) {
+            const inPrison = gameState.prisonMonths > 0;
+
+            // En prisión no recibes salario (el trabajo se pierde al entrar)
+            if (gameState.job && !inPrison) {
                 const job = JOBS[gameState.job];
                 let salary = Array.isArray(job.salary) ? Math.floor((job.salary[0] + job.salary[1]) / 2) : job.salary;
                 const bonus = gameState.character.totalJobBonus / 100;
                 total += Math.floor(salary * (1 + bonus * 0.3));
             }
-            // Bono estatal por discapacidad (Programa CONTIGO)
+
+            // El bono estatal sí se recibe en prisión (es del estado)
             total += getStateDisabilityBonus();
             return total;
         }
@@ -6166,7 +6171,7 @@
                             ${gameState.job ? `
                                 <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                                     <span>💼 ${JOBS[gameState.job].name}</span>
-                                    <span style="color: #4CAF50">${formatMoney(income - getStateDisabilityBonus())}</span>
+                                    <span style="color: #4CAF50">${formatMoney(JOBS[gameState.job].salary)}</span>
                                 </div>
                             ` : `
                                 <p style="color: #888; text-align: center;">No tienes trabajo actualmente</p>
@@ -6174,6 +6179,27 @@
                                     <button class="btn btn-small btn-success" onclick="closeModal(); openJobMenu();">🔍 Buscar Empleo</button>
                                 </p>
                             `}
+                            ${gameState.businesses && gameState.businesses.length > 0 ? `
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                    <div style="font-weight: bold; margin-bottom: 8px; color: #9c27b0;">🏢 Ingresos de Negocios</div>
+                                    ${gameState.businesses.map(b => {
+                                        const data = BUSINESSES[b.id];
+                                        const isProfit = b.lastRevenue >= 0;
+                                        return `
+                                            <div style="display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.9em;">
+                                                <span>${data.icon} ${b.name}</span>
+                                                <span style="color: ${isProfit ? '#4CAF50' : '#f44336'}">${isProfit ? '+' : ''}${formatMoney(b.lastRevenue)}</span>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                    <div style="display: flex; justify-content: space-between; padding: 8px 0; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.1); font-weight: bold;">
+                                        <span>Total Negocios:</span>
+                                        <span style="color: ${(gameState.businessIncome || 0) >= 0 ? '#4CAF50' : '#f44336'}">
+                                            ${(gameState.businessIncome || 0) >= 0 ? '+' : ''}${formatMoney(gameState.businessIncome || 0)}
+                                        </span>
+                                    </div>
+                                </div>
+                            ` : ''}
                             ${getStateDisabilityBonus() > 0 ? `
                                 <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
                                     <span>🏛️ Bono CONTIGO (${gameState.character.healthConditionData.name})</span>
@@ -6181,7 +6207,7 @@
                                 </div>
                             ` : ''}
                             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);">
-                                <strong>Total Ingresos: <span style="color: #4CAF50">${formatMoney(income)}/mes</span></strong>
+                                <strong>Total Ingresos: <span style="color: #4CAF50">${formatMoney(income + (gameState.businessIncome || 0))}/mes</span></strong>
                             </div>
                         </div>
                         ${gameState.job && JOBS[gameState.job].illegal ? `
@@ -8154,6 +8180,13 @@
                 business.closedMonthsLeft = closureMonths;
                 business.reputation = Math.max(10, business.reputation - 30);
 
+                // Perder trabajo al ir a prisión
+                if (gameState.job) {
+                    addLog(`💼 Perdiste tu trabajo por ir a prisión.`, 'negative');
+                    gameState.job = null;
+                    gameState.jobMonths = 0;
+                }
+
                 // Guardar en historial
                 if (!gameState.businessFraudHistory) gameState.businessFraudHistory = [];
                 gameState.businessFraudHistory.push({
@@ -8342,6 +8375,9 @@
         function passMonth() {
             // Resetear el flag de descanso del turno
             gameState.hasRestedThisTurn = false;
+
+            // Resetear intentos de freelance del mes
+            gameState.freelanceAttemptsThisMonth = 0;
 
             // Recopilar eventos del mes para el resumen
             const monthlyEvents = [];
@@ -8761,8 +8797,12 @@
             const adviceList = getAdvice();
             const topAdvice = adviceList.slice(0, 3);
 
-            // Obtener últimos eventos del log
-            const recentEvents = gameState.eventLog.slice(-5).reverse();
+            // Obtener solo eventos del mes actual (filtrar por month y year)
+            const currentMonth = gameState.month;
+            const currentYear = gameState.year;
+            const recentEvents = gameState.eventLog.filter(e =>
+                e.month === currentMonth && e.year === currentYear
+            ).slice(0, 10); // Máximo 10 eventos del mes
 
             // Estado de alerta (prisión, enfermedad, etc.)
             let alertHtml = '';
@@ -10370,6 +10410,14 @@
                 return;
             }
 
+            // Inicializar contador de intentos del mes si no existe
+            if (!gameState.freelanceAttemptsThisMonth) {
+                gameState.freelanceAttemptsThisMonth = 0;
+            }
+
+            const attempts = gameState.freelanceAttemptsThisMonth;
+            const isHardMode = attempts >= 2;
+
             let html = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <div style="font-size: 2em;">💼</div>
@@ -10377,20 +10425,41 @@
                     <div style="color: #888; font-size: 0.85em;">Responde preguntas de tu especialidad y gana dinero</div>
                     <div style="color: #4CAF50; font-size: 0.8em; margin-top: 5px;">💡 Busca las respuestas en internet para aprender</div>
                 </div>
+
+                <!-- Contador de intentos -->
+                <div style="background: ${isHardMode ? 'rgba(244,67,54,0.2)' : 'rgba(33,150,243,0.1)'}; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center; border: 1px solid ${isHardMode ? '#f44336' : 'transparent'};">
+                    <div style="font-size: 0.9em;">
+                        ${isHardMode ? '⚠️ <strong style="color: #f44336;">MODO DIFÍCIL ACTIVADO</strong>' : `📊 Trabajos este mes: ${attempts}/2`}
+                    </div>
+                    ${isHardMode ? `
+                        <div style="color: #f44336; font-size: 0.8em; margin-top: 5px;">
+                            El mercado laboral está saturado. Las preguntas serán MUY difíciles y las recompensas menores.
+                        </div>
+                    ` : `
+                        <div style="color: #888; font-size: 0.8em; margin-top: 5px;">
+                            Después de 2 trabajos, la dificultad aumenta significativamente.
+                        </div>
+                    `}
+                </div>
             `;
 
             for (const [catId, category] of Object.entries(FREELANCE_CATEGORIES)) {
                 const canPlay = gameState.energy >= category.energyCost;
+                // Reducir recompensa en modo difícil
+                const rewardMin = isHardMode ? Math.floor(category.baseReward[0] * 0.5) : category.baseReward[0];
+                const rewardMax = isHardMode ? Math.floor(category.baseReward[1] * 0.6) : category.baseReward[1];
+
                 html += `
-                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; overflow: hidden; opacity: ${canPlay ? '1' : '0.5'};">
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; overflow: hidden; opacity: ${canPlay ? '1' : '0.5'}; ${isHardMode ? 'border: 1px solid rgba(244,67,54,0.3);' : ''}">
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; cursor: pointer;" onclick="toggleFreelanceCategory('${catId}')">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span style="font-size: 2em;">${category.icon}</span>
                                 <div>
                                     <div style="font-weight: bold;">${category.name}</div>
                                     <div style="color: #aaa; font-size: 0.85em;">${category.description}</div>
-                                    <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
-                                        💵 S/ ${category.baseReward[0]}-${category.baseReward[1]} | ⚡ -${category.energyCost}
+                                    <div style="color: ${isHardMode ? '#ff9800' : '#4CAF50'}; font-size: 0.8em; margin-top: 3px;">
+                                        💵 S/ ${rewardMin}-${rewardMax} | ⚡ -${category.energyCost}
+                                        ${isHardMode ? ' | 🔥 Muy Difícil' : ''}
                                     </div>
                                 </div>
                             </div>
@@ -10437,19 +10506,57 @@
             const category = FREELANCE_CATEGORIES[categoryId];
             if (!category || gameState.energy < category.energyCost) return;
 
-            currentFreelance = { categoryId, subcategoryId, category };
+            // Inicializar y contar intento
+            if (!gameState.freelanceAttemptsThisMonth) {
+                gameState.freelanceAttemptsThisMonth = 0;
+            }
+            gameState.freelanceAttemptsThisMonth++;
+
+            const isHardMode = gameState.freelanceAttemptsThisMonth > 2;
+
+            currentFreelance = { categoryId, subcategoryId, category, isHardMode };
             freelanceState = {
                 round: 0,
                 score: 0,
-                maxRounds: 5,
+                maxRounds: isHardMode ? 7 : 5, // Más preguntas en modo difícil
                 questionsUsed: [],
-                startTime: Date.now()
+                startTime: Date.now(),
+                isHardMode: isHardMode
             };
 
             gameState.energy -= category.energyCost;
             updateUI();
 
-            playFreelanceRound();
+            // Mostrar advertencia si es modo difícil
+            if (isHardMode) {
+                const html = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 3em; margin-bottom: 15px;">⚠️</div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #f44336; margin-bottom: 15px;">MODO DIFÍCIL</div>
+                        <div style="color: #aaa; margin-bottom: 20px;">
+                            Ya has hecho varios trabajos freelance este mes.<br>
+                            El mercado está saturado y la competencia es feroz.
+                        </div>
+                        <div style="background: rgba(244,67,54,0.2); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: left;">
+                            <div style="font-weight: bold; margin-bottom: 10px;">Cambios en modo difícil:</div>
+                            <ul style="margin-left: 20px; color: #aaa; font-size: 0.9em;">
+                                <li>Menos tiempo para responder (-40%)</li>
+                                <li>Solo preguntas difíciles</li>
+                                <li>7 preguntas en vez de 5</li>
+                                <li>Recompensa reducida (50-60%)</li>
+                            </ul>
+                        </div>
+                        <button class="btn btn-warning" onclick="playFreelanceRound()" style="width: 100%;">
+                            💪 Aceptar el desafío
+                        </button>
+                    </div>
+                `;
+                document.getElementById('modalTitle').textContent = '🔥 Trabajo Difícil';
+                document.getElementById('modalBody').innerHTML = html;
+                document.getElementById('modalOptions').innerHTML = '';
+            } else {
+                playFreelanceRound();
+            }
         }
 
         function playFreelanceRound() {
@@ -10459,8 +10566,16 @@
                 return;
             }
 
-            const { categoryId, subcategoryId, category } = currentFreelance;
-            const questions = TRIVIA_QUESTIONS[categoryId]?.[subcategoryId] || [];
+            const { categoryId, subcategoryId, category, isHardMode } = currentFreelance;
+            let questions = TRIVIA_QUESTIONS[categoryId]?.[subcategoryId] || [];
+
+            // En modo difícil, priorizar preguntas difíciles
+            if (isHardMode) {
+                const hardQuestions = questions.filter(q => q.difficulty >= 2);
+                if (hardQuestions.length >= 3) {
+                    questions = hardQuestions;
+                }
+            }
 
             // Seleccionar pregunta no usada
             const availableQuestions = questions.filter((_, i) => !freelanceState.questionsUsed.includes(i));
@@ -10478,7 +10593,11 @@
 
             const difficultyLabels = ['', '⭐ Fácil', '⭐⭐ Medio', '⭐⭐⭐ Difícil'];
             const difficultyColors = ['', '#4CAF50', '#ff9800', '#f44336'];
-            const timeLimit = 20 + (question.difficulty * 10); // 30, 40, 50 segundos según dificultad
+            // Menos tiempo en modo difícil
+            let timeLimit = 20 + (question.difficulty * 10); // 30, 40, 50 segundos según dificultad
+            if (isHardMode) {
+                timeLimit = Math.floor(timeLimit * 0.6); // 40% menos tiempo
+            }
             freelanceState.timeLimit = timeLimit;
 
             const html = `
@@ -10546,10 +10665,15 @@
         }
 
         function endFreelanceJob() {
-            const { category } = currentFreelance;
+            const { category, isHardMode } = currentFreelance;
             const maxPossibleScore = freelanceState.maxRounds * 2; // Asumiendo dificultad promedio 2
             const scoreRatio = Math.min(1, freelanceState.score / maxPossibleScore);
-            const baseReward = category.baseReward[0] + (category.baseReward[1] - category.baseReward[0]) * scoreRatio;
+            let baseReward = category.baseReward[0] + (category.baseReward[1] - category.baseReward[0]) * scoreRatio;
+
+            // Reducir recompensa en modo difícil
+            if (isHardMode) {
+                baseReward = baseReward * 0.55; // Solo 55% de recompensa
+            }
 
             // Bonus por dificultad promedio de preguntas contestadas
             const difficultyBonus = 1 + (freelanceState.score / freelanceState.maxRounds) * 0.3;
