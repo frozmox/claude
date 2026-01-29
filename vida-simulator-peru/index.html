@@ -13,11 +13,393 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: #0a0a12;
             min-height: 100vh;
             color: #fff;
         }
 
+        /* ========== DASHBOARD LAYOUT ========== */
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #12121f 0%, #0d0d18 100%);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.5em;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-header .subtitle {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 15px 0;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            padding: 0 15px;
+            margin-bottom: 20px;
+        }
+
+        .nav-section-title {
+            font-size: 0.7em;
+            text-transform: uppercase;
+            color: #555;
+            padding: 10px 15px;
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #aaa;
+            text-decoration: none;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(255,107,107,0.2), rgba(255,107,107,0.1));
+            color: #ff6b6b;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .nav-item .icon {
+            font-size: 1.2em;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item .label {
+            flex: 1;
+            font-size: 0.95em;
+        }
+
+        .nav-item .badge {
+            background: #ff6b6b;
+            color: white;
+            font-size: 0.7em;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .pass-month-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pass-month-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(76,175,80,0.4);
+        }
+
+        .pass-month-btn .icon {
+            font-size: 1.3em;
+        }
+
+        /* Main content area */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+        }
+
+        .main-header {
+            background: rgba(0,0,0,0.3);
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-info .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+        }
+
+        .header-info .name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .header-info .date {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .header-stat {
+            text-align: center;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .header-stat .value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .header-stat .label {
+            font-size: 0.75em;
+            color: #888;
+        }
+
+        .header-stat.money .value { color: #4CAF50; }
+        .header-stat.credits .value { color: #ffd700; }
+
+        .content-area {
+            padding: 25px;
+        }
+
+        /* Stats bars en el header */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .quick-stat {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .quick-stat .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .quick-stat .stat-label {
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        .quick-stat .stat-value {
+            font-weight: bold;
+        }
+
+        .quick-stat .stat-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .quick-stat .stat-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .quick-stat.health .stat-fill { background: linear-gradient(90deg, #f44336, #ff5722); }
+        .quick-stat.happiness .stat-fill { background: linear-gradient(90deg, #ffc107, #ffeb3b); }
+        .quick-stat.energy .stat-fill { background: linear-gradient(90deg, #2196F3, #03a9f4); }
+        .quick-stat.stress .stat-fill { background: linear-gradient(90deg, #9c27b0, #e91e63); }
+
+        /* Info cards grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .info-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 18px;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .info-card:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-3px);
+            border-color: rgba(255,107,107,0.3);
+        }
+
+        .info-card h3 {
+            font-size: 0.85em;
+            color: #888;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card .value {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .info-card .detail {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        /* Event log */
+        .event-log-container {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .event-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .event-log-header h3 {
+            font-size: 1em;
+            color: #aaa;
+        }
+
+        .event-log {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.03);
+            font-size: 0.9em;
+            border-left: 3px solid #555;
+        }
+
+        .log-entry.positive { border-left-color: #4CAF50; background: rgba(76,175,80,0.1); }
+        .log-entry.negative { border-left-color: #f44336; background: rgba(244,67,54,0.1); }
+        .log-entry.special { border-left-color: #ffd700; background: rgba(255,215,0,0.1); }
+        .log-entry.info { border-left-color: #2196F3; background: rgba(33,150,243,0.1); }
+
+        /* Mobile sidebar toggle */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            z-index: 200;
+            box-shadow: 0 5px 20px rgba(255,107,107,0.4);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .quick-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .header-stats {
+                display: none;
+            }
+        }
+
+        /* ========== ORIGINAL STYLES (adapted) ========== */
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -41,26 +423,38 @@
         .title-screen {
             text-align: center;
             padding: 50px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 50%, #0f3460 100%);
         }
 
         .title-screen h1 {
-            font-size: 3em;
+            font-size: 3.5em;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(255,107,107,0.5);
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
         }
 
         .title-screen .subtitle {
             font-size: 1.2em;
-            color: #aaa;
+            color: #888;
             margin-bottom: 40px;
         }
 
         .title-screen .quote {
             font-style: italic;
-            color: #888;
+            color: #666;
             margin-bottom: 40px;
             padding: 20px;
             border-left: 3px solid #ff6b6b;
+            max-width: 500px;
+            text-align: left;
         }
 
         .btn {
@@ -106,48 +500,6 @@
             cursor: not-allowed;
             transform: none;
         }
-
-        /* Panel de personaje */
-        .character-panel {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .character-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .character-name {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-
-        .character-age {
-            color: #aaa;
-        }
-
-        .character-money {
-            font-size: 1.3em;
-            color: #4CAF50;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .stat-bar {
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
             padding: 10px;
             position: relative;
             cursor: help;
@@ -282,19 +634,31 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             z-index: 1000;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            backdrop-filter: blur(5px);
         }
 
         .modal.active {
             display: flex;
         }
 
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
         .modal-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            background: linear-gradient(135deg, #12121f 0%, #1a1a2e 100%);
+            position: relative;
+            z-index: 1001;
             border-radius: 20px;
             padding: 30px;
             max-width: 600px;
@@ -312,6 +676,30 @@
         .modal-content h2 {
             margin-bottom: 20px;
             text-align: center;
+            padding-right: 30px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 35px;
+            height: 35px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1.5em;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,107,107,0.5);
+            transform: rotate(90deg);
         }
 
         .modal-options {
@@ -1160,247 +1548,196 @@
             </div>
         </div>
 
-        <!-- Pantalla Principal del Juego -->
+        <!-- Pantalla Principal del Juego - Dashboard Layout -->
         <div id="gameScreen" class="screen">
-            <!-- Panel de Personaje -->
-            <div class="character-panel">
-                <div class="character-header">
-                    <div>
-                        <div class="character-name" id="charName">Nombre</div>
-                        <div class="character-age" id="charAge">18 años - Enero 2024</div>
+            <div class="dashboard">
+                <!-- Sidebar -->
+                <aside class="sidebar" id="gameSidebar">
+                    <div class="sidebar-header">
+                        <h1>🇵🇪 VIDA PERÚ</h1>
+                        <div class="subtitle">Simulador de Vida</div>
                     </div>
-                    <div class="character-money" id="charMoney">S/ 0</div>
-                </div>
 
-                <div class="stats-grid">
-                    <div class="stat-bar tooltip-container">
-                        <label>
-                            <span>❤️ Salud</span>
-                            <span id="healthValue">100%</span>
-                        </label>
-                        <div class="bar">
-                            <div class="bar-fill health" id="healthBar" style="width: 100%"></div>
+                    <nav class="sidebar-nav">
+                        <div class="nav-section">
+                            <div class="nav-section-title">Principal</div>
+                            <div class="nav-item active" onclick="showDashboard()">
+                                <span class="icon">🏠</span>
+                                <span class="label">Inicio</span>
+                            </div>
+                            <div class="nav-item" onclick="showStats()">
+                                <span class="icon">👤</span>
+                                <span class="label">Mi Perfil</span>
+                            </div>
                         </div>
-                        <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 5px; min-width: 200px;">
-                            <h4>❤️ Salud</h4>
-                            <p>Tu salud física. Se degrada con el tiempo, estrés y condiciones médicas.</p>
-                            <p style="color: #f44336; margin-top: 5px;">⚠ 0% = Game Over</p>
+
+                        <div class="nav-section">
+                            <div class="nav-section-title">Vida</div>
+                            <div class="nav-item" onclick="openJobMenu()">
+                                <span class="icon">💼</span>
+                                <span class="label">Trabajo</span>
+                            </div>
+                            <div class="nav-item" onclick="openStudyMenu()">
+                                <span class="icon">📚</span>
+                                <span class="label">Educación</span>
+                            </div>
+                            <div class="nav-item" onclick="openHousingMenu()">
+                                <span class="icon">🏠</span>
+                                <span class="label">Vivienda</span>
+                            </div>
+                            <div class="nav-item" onclick="openRelationshipsMenu()">
+                                <span class="icon">💑</span>
+                                <span class="label">Relaciones</span>
+                            </div>
+                        </div>
+
+                        <div class="nav-section">
+                            <div class="nav-section-title">Acciones</div>
+                            <div class="nav-item" onclick="openActivitiesMenu()">
+                                <span class="icon">🎮</span>
+                                <span class="label">Actividades</span>
+                            </div>
+                            <div class="nav-item" onclick="openFinanceMenu()">
+                                <span class="icon">🏦</span>
+                                <span class="label">Finanzas</span>
+                            </div>
+                            <div class="nav-item" onclick="openCareerMenu()">
+                                <span class="icon">📈</span>
+                                <span class="label">Carrera</span>
+                            </div>
+                        </div>
+
+                        <div class="nav-section">
+                            <div class="nav-section-title">Sistema</div>
+                            <div class="nav-item" onclick="saveGame()">
+                                <span class="icon">💾</span>
+                                <span class="label">Guardar</span>
+                            </div>
+                        </div>
+                    </nav>
+
+                    <div class="sidebar-footer">
+                        <button class="pass-month-btn" onclick="passMonth()">
+                            <span class="icon">⏭️</span>
+                            <span>PASAR MES</span>
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Main Content -->
+                <main class="main-content">
+                    <!-- Header -->
+                    <header class="main-header">
+                        <div class="header-info">
+                            <div class="avatar" id="headerAvatar">👤</div>
+                            <div>
+                                <div class="name" id="charName">Nombre</div>
+                                <div class="date" id="charAge">18 años - Enero 2024</div>
+                            </div>
+                        </div>
+                        <div class="header-stats">
+                            <div class="header-stat money">
+                                <div class="value" id="charMoney">S/ 0</div>
+                                <div class="label">Dinero</div>
+                            </div>
+                            <div class="header-stat credits">
+                                <div class="value" id="headerCredits">💎 50</div>
+                                <div class="label">Créditos</div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <!-- Content Area -->
+                    <div class="content-area">
+                        <!-- Quick Stats -->
+                        <div class="quick-stats">
+                            <div class="quick-stat health">
+                                <div class="stat-header">
+                                    <span class="stat-label">❤️ Salud</span>
+                                    <span class="stat-value" id="healthValue">100%</span>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" id="healthBar" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            <div class="quick-stat happiness">
+                                <div class="stat-header">
+                                    <span class="stat-label">😊 Felicidad</span>
+                                    <span class="stat-value" id="happinessValue">100%</span>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" id="happinessBar" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            <div class="quick-stat energy">
+                                <div class="stat-header">
+                                    <span class="stat-label">⚡ Energía</span>
+                                    <span class="stat-value" id="energyValue">100%</span>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" id="energyBar" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            <div class="quick-stat stress">
+                                <div class="stat-header">
+                                    <span class="stat-label">😫 Estrés</span>
+                                    <span class="stat-value" id="stressValue">0%</span>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-fill" id="stressBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Cards -->
+                        <div class="info-grid">
+                            <div class="info-card" onclick="openCareerMenu()">
+                                <h3>💼 Trabajo</h3>
+                                <div class="value" id="jobName">Desempleado</div>
+                                <div class="detail" id="jobSalary">Sin ingresos</div>
+                            </div>
+                            <div class="info-card" onclick="openHousingMenu()">
+                                <h3>🏠 Vivienda</h3>
+                                <div class="value" id="housingName">Casa familiar</div>
+                                <div class="detail" id="housingCost">S/ 0/mes</div>
+                            </div>
+                            <div class="info-card" onclick="openStudyMenu()">
+                                <h3>📚 Educación</h3>
+                                <div class="value" id="educationLevel">Secundaria</div>
+                                <div class="detail" id="educationDetail">Completa</div>
+                            </div>
+                            <div class="info-card" onclick="openFinanceMenu()">
+                                <h3>💰 Balance</h3>
+                                <div class="value" id="monthlyBalance">S/ 0</div>
+                                <div class="detail" id="balanceDetail">Ingresos - Gastos</div>
+                            </div>
+                            <div class="info-card" onclick="openRelationshipsMenu()">
+                                <h3>💑 Relación</h3>
+                                <div class="value" id="relationshipStatus">Soltero/a</div>
+                                <div class="detail" id="relationshipDetail">Sin pareja</div>
+                            </div>
+                            <div class="info-card" onclick="showStats()">
+                                <h3>⭐ Stats</h3>
+                                <div class="value" id="physicalStatsPreview">-</div>
+                                <div class="detail" id="physicalStatsDetail">Ver perfil</div>
+                            </div>
+                        </div>
+
+                        <!-- Event Log -->
+                        <div class="event-log-container">
+                            <div class="event-log-header">
+                                <h3>📋 Últimos Eventos</h3>
+                            </div>
+                            <div class="event-log" id="eventLogContent">
+                                <div class="log-entry">Comenzaste tu nueva vida...</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="stat-bar tooltip-container">
-                        <label>
-                            <span>😊 Felicidad</span>
-                            <span id="happinessValue">100%</span>
-                        </label>
-                        <div class="bar">
-                            <div class="bar-fill happiness" id="happinessBar" style="width: 100%"></div>
-                        </div>
-                        <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 5px; min-width: 200px;">
-                            <h4>😊 Felicidad</h4>
-                            <p>Tu bienestar emocional. Mejora con relaciones, logros y entretenimiento.</p>
-                            <p style="color: #f44336; margin-top: 5px;">⚠ 0% = Game Over (depresión severa)</p>
-                        </div>
-                    </div>
-                    <div class="stat-bar tooltip-container">
-                        <label>
-                            <span>⚡ Energía</span>
-                            <span id="energyValue">100%</span>
-                        </label>
-                        <div class="bar">
-                            <div class="bar-fill energy" id="energyBar" style="width: 100%"></div>
-                        </div>
-                        <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 5px; min-width: 200px;">
-                            <h4>⚡ Energía</h4>
-                            <p>Tu energía para actividades. El trabajo y actividades la consumen. Se recupera cada mes.</p>
-                            <p style="color: #2196F3; margin-top: 5px;">ℹ Baja energía = menos productividad</p>
-                        </div>
-                    </div>
-                    <div class="stat-bar tooltip-container">
-                        <label>
-                            <span>😫 Estrés</span>
-                            <span id="stressValue">0%</span>
-                        </label>
-                        <div class="bar">
-                            <div class="bar-fill stress" id="stressBar" style="width: 0%"></div>
-                        </div>
-                        <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 5px; min-width: 200px;">
-                            <h4>😫 Estrés</h4>
-                            <p>Nivel de estrés. Aumenta con trabajos exigentes y problemas. El SPA y entretenimiento lo reducen.</p>
-                            <p style="color: #ff9800; margin-top: 5px;">⚠ Alto estrés daña la salud</p>
-                        </div>
-                    </div>
-                </div>
+                </main>
             </div>
 
-            <!-- Info Cards -->
-            <div class="info-grid">
-                <div class="info-card tooltip-container" onclick="openCareerMenu()" style="cursor: pointer;">
-                    <h3>💼 Trabajo</h3>
-                    <div class="value" id="jobName">Desempleado</div>
-                    <div class="detail" id="jobSalary">Sin ingresos</div>
-                    <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 10px;">
-                        <h4>💼 Tu Empleo Actual</h4>
-                        <p>Haz clic para ver tu carrera completa, oportunidades y metas profesionales.</p>
-                    </div>
-                </div>
-                <div class="info-card tooltip-container" onclick="openHousingMenu()" style="cursor: pointer;">
-                    <h3>🏠 Vivienda</h3>
-                    <div class="value" id="housingName">Casa familiar</div>
-                    <div class="detail" id="housingCost">S/ 0/mes</div>
-                    <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 10px;">
-                        <h4>🏠 Tu Vivienda</h4>
-                        <p>Tu lugar de residencia actual. Mejor vivienda = más felicidad pero más gastos.</p>
-                    </div>
-                </div>
-                <div class="info-card tooltip-container" onclick="openStudyMenu()" style="cursor: pointer;">
-                    <h3>📚 Educación</h3>
-                    <div class="value" id="educationLevel">Secundaria</div>
-                    <div class="detail" id="educationDetail">Completa</div>
-                    <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 10px;">
-                        <h4>📚 Tu Educación</h4>
-                        <p>Nivel educativo completado. Mejor educación = acceso a mejores trabajos.</p>
-                    </div>
-                </div>
-                <div class="info-card tooltip-container" onclick="openFinanceMenu()" style="cursor: pointer;">
-                    <h3>💰 Balance Mensual</h3>
-                    <div class="value" id="monthlyBalance">S/ 0</div>
-                    <div class="detail" id="balanceDetail">Ingresos - Gastos</div>
-                    <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 10px;">
-                        <h4>💰 Balance Económico</h4>
-                        <p>Diferencia entre ingresos y gastos mensuales. Verde = estás ahorrando.</p>
-                    </div>
-                </div>
-                <div class="info-card tooltip-container" onclick="openRelationshipsMenu()" style="cursor: pointer;">
-                    <h3>💑 Relación</h3>
-                    <div class="value" id="relationshipStatus">Soltero/a</div>
-                    <div class="detail" id="relationshipDetail">Sin pareja</div>
-                    <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 10px;">
-                        <h4>💑 Tu Vida Amorosa</h4>
-                        <p>Estado de tu relación romántica. El amor da felicidad pero también responsabilidades.</p>
-                    </div>
-                </div>
-                <div class="info-card tooltip-container" onclick="showStats()" style="cursor: pointer;">
-                    <h3>⭐ Stats Físicos</h3>
-                    <div class="value" id="physicalStatsPreview">-</div>
-                    <div class="detail" id="physicalStatsDetail">Ver perfil completo</div>
-                    <div class="tooltip" style="bottom: auto; top: 100%; margin-top: 10px;">
-                        <h4>⭐ Tus Stats</h4>
-                        <p>Resumen de fuerza, apariencia y carisma. Afectan tus probabilidades de empleo y romance.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Panel de Acciones -->
-            <div class="actions-panel">
-                <h2>¿Qué quieres hacer este mes?</h2>
-                <div class="actions-grid">
-                    <button class="action-btn" onclick="openJobMenu()">
-                        <span class="icon">💼</span>
-                        Trabajo
-                        <div class="tooltip">
-                            <h4>💼 Buscar Trabajo</h4>
-                            <p>Explora ofertas laborales disponibles. Cada trabajo tiene requisitos y probabilidad de contratación basada en tu perfil.</p>
-                            <p style="margin-top: 8px; color: #4CAF50;">✓ Los trabajos mejor pagados requieren más educación y habilidades</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="openStudyMenu()">
-                        <span class="icon">📚</span>
-                        Estudiar
-                        <div class="tooltip">
-                            <h4>📚 Educación</h4>
-                            <p>Mejora tu nivel educativo para acceder a mejores empleos. Desde cursos técnicos hasta maestrías.</p>
-                            <p style="margin-top: 8px; color: #ff9800;">⚠ Estudiar requiere tiempo y dinero mensual</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="openHousingMenu()">
-                        <span class="icon">🏠</span>
-                        Vivienda
-                        <div class="tooltip">
-                            <h4>🏠 Cambiar Vivienda</h4>
-                            <p>Desde vivir con familia hasta departamento propio. Mejor vivienda = más felicidad pero más gastos.</p>
-                            <p style="margin-top: 8px; color: #2196F3;">ℹ La vivienda afecta tu felicidad y estrés</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="openActivitiesMenu()">
-                        <span class="icon">🎮</span>
-                        Actividades
-                        <div class="tooltip">
-                            <h4>🎮 Actividades</h4>
-                            <p>Gimnasio, SPA, cursos, entretenimiento y más. Mejora tus stats físicos y habilidades.</p>
-                            <p style="margin-top: 8px; color: #4CAF50;">✓ El gimnasio mejora fuerza y resistencia</p>
-                            <p style="color: #e91e63;">✓ El SPA mejora apariencia</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="openFinanceMenu()">
-                        <span class="icon">🏦</span>
-                        Finanzas
-                        <div class="tooltip">
-                            <h4>🏦 Mis Finanzas</h4>
-                            <p>Revisa tu situación económica: ingresos, gastos, proyecciones y historial financiero.</p>
-                            <p style="margin-top: 8px; color: #ffd700;">💰 Meta: S/ 100,000 para libertad financiera</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="openRelationshipsMenu()">
-                        <span class="icon">💑</span>
-                        Relaciones
-                        <div class="tooltip">
-                            <h4>💑 Relaciones</h4>
-                            <p>Busca pareja, haz amigos y cuida tus relaciones familiares. El amor y la amistad dan felicidad.</p>
-                            <p style="margin-top: 8px; color: #e91e63;">❤ Tu atractivo afecta el éxito romántico</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="openCareerMenu()">
-                        <span class="icon">📈</span>
-                        Carrera
-                        <div class="tooltip">
-                            <h4>📈 Mi Carrera</h4>
-                            <p>Visualiza tu progreso profesional, habilidades, historial laboral y metas de carrera.</p>
-                            <p style="margin-top: 8px; color: #2196F3;">ℹ Ve oportunidades basadas en tu perfil</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="showStats()">
-                        <span class="icon">👤</span>
-                        Mi Perfil
-                        <div class="tooltip">
-                            <h4>👤 Mi Perfil</h4>
-                            <p>Información completa de tu personaje: identidad, stats físicos, habilidades y resumen de vida.</p>
-                            <p style="margin-top: 8px; color: #ff6b6b;">⭐ Ve tu progreso y logros</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="saveGame()">
-                        <span class="icon">💾</span>
-                        Guardar
-                        <div class="tooltip">
-                            <h4>💾 Guardar Partida</h4>
-                            <p>Guarda tu progreso en el navegador. Podrás continuar después.</p>
-                            <p style="margin-top: 8px; color: #ff9800;">⚠ Solo se guarda una partida</p>
-                        </div>
-                    </button>
-                    <button class="action-btn" onclick="passMonth()" style="background: linear-gradient(135deg, #4CAF50, #45a049);">
-                        <span class="icon">⏭️</span>
-                        Pasar Mes
-                        <div class="tooltip">
-                            <h4>⏭️ Pasar Mes</h4>
-                            <p>Avanza un mes en el tiempo. Se procesan: trabajo, gastos, estudios, eventos aleatorios y degradación de stats.</p>
-                            <p style="margin-top: 8px; color: #f44336;">⚠ No hay vuelta atrás</p>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Log de Eventos -->
-            <div class="event-log">
-                <h3>📋 Últimos Eventos</h3>
-                <div id="eventLogContent">
-                    <div class="log-entry neutral">Comenzaste tu nueva vida...</div>
-                </div>
-            </div>
-
-            <!-- Botones de guardado -->
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="btn btn-small btn-secondary" onclick="saveGame()">💾 Guardar</button>
-                <button class="btn btn-small btn-warning" onclick="showStats()">📊 Estadísticas</button>
-            </div>
+            <!-- Mobile Sidebar Toggle -->
+            <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
         </div>
 
         <!-- Pantalla de Game Over -->
@@ -1442,7 +1779,9 @@
 
     <!-- Modal -->
     <div class="modal" id="gameModal">
+        <div class="modal-overlay" onclick="closeModal()"></div>
         <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
             <h2 id="modalTitle">Título</h2>
             <div id="modalBody"></div>
             <div class="modal-options" id="modalOptions"></div>
@@ -2104,6 +2443,24 @@
             document.getElementById(screenId).classList.add('active');
         }
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('gameSidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function showDashboard() {
+            closeModal();
+            // Actualizar nav items
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector('.nav-item[onclick="showDashboard()"]').classList.add('active');
+        }
+
+        function setActiveNavItem(selector) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const item = document.querySelector(`.nav-item[onclick="${selector}"]`);
+            if (item) item.classList.add('active');
+        }
+
         function startNewGame() {
             gameState.character = generateCharacter();
             gameState.money = gameState.character.startMoney;
@@ -2250,6 +2607,20 @@
             document.getElementById('balanceDetail').textContent = `Ing: ${formatMoney(income)} - Gast: ${formatMoney(expenses)}`;
 
             document.getElementById('creditsAmount').textContent = gameState.credits;
+
+            // Actualizar header credits
+            const headerCredits = document.getElementById('headerCredits');
+            if (headerCredits) {
+                headerCredits.textContent = '💎 ' + gameState.credits;
+            }
+
+            // Actualizar avatar del header
+            const headerAvatar = document.getElementById('headerAvatar');
+            if (headerAvatar && gameState.character) {
+                const char = gameState.character;
+                headerAvatar.textContent = char.genderData.name === 'Hombre' ? '👨' :
+                                          char.genderData.name === 'Mujer' ? '👩' : '🧑';
+            }
 
             // Actualizar estado de relación
             if (gameState.relationships && gameState.relationships.romantic) {
