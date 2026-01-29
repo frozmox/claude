@@ -1625,6 +1625,14 @@
                                 <span class="icon">💎</span>
                                 <span class="label">Tienda</span>
                             </div>
+                            <div class="nav-item" onclick="openMiniGamesMenu()">
+                                <span class="icon">🎮</span>
+                                <span class="label">Mini-juegos</span>
+                            </div>
+                            <div class="nav-item" onclick="openAdvisorMenu()">
+                                <span class="icon">🤖</span>
+                                <span class="label">Consejero</span>
+                            </div>
                             <div class="nav-item" onclick="openSaveMenu()">
                                 <span class="icon">💾</span>
                                 <span class="label">Guardar/Cargar</span>
@@ -7861,6 +7869,448 @@
 
             updateUI();
             openShopMenu(); // Refrescar tienda
+        }
+
+        // ==================== SISTEMA DE CONSEJERO ====================
+
+        function getAdvice() {
+            const advice = [];
+            const gs = gameState;
+            const ps = gs.physicalStats;
+            const sk = gs.skills;
+
+            // Consejos de emergencia (prioridad alta)
+            if (gs.health < 30) {
+                advice.push({ priority: 1, icon: '🚨', category: 'Urgente', text: 'Tu salud está crítica. Ve al doctor o compra medicina en la tienda antes de que sea tarde.' });
+            }
+            if (gs.money < 500 && !gs.job) {
+                advice.push({ priority: 1, icon: '🚨', category: 'Urgente', text: 'Estás sin dinero y sin trabajo. Busca empleo urgente o haz cachuelos en Actividades.' });
+            }
+            if (gs.stress > 80) {
+                advice.push({ priority: 1, icon: '🚨', category: 'Urgente', text: 'Tu estrés está muy alto. Descansa, medita o sal con amigos antes de que afecte tu salud.' });
+            }
+            if (gs.prisonMonths > 0) {
+                advice.push({ priority: 1, icon: '🔒', category: 'Prisión', text: `Estás en prisión por ${gs.prisonMonths} meses. Puedes comprar una fianza en la Tienda con créditos.` });
+            }
+
+            // Consejos de trabajo
+            if (!gs.job && gs.prisonMonths === 0) {
+                advice.push({ priority: 2, icon: '💼', category: 'Trabajo', text: 'No tienes trabajo. Revisa las ofertas en Empleos. Mejora tu apariencia y habilidades para más opciones.' });
+            }
+            if (gs.job && gs.jobMonths >= 6 && !gs.promotionNotified) {
+                advice.push({ priority: 2, icon: '📈', category: 'Trabajo', text: 'Llevas tiempo en tu trabajo. Revisa si puedes ascender o buscar algo mejor.' });
+            }
+
+            // Consejos de finanzas
+            const income = calculateMonthlyIncome();
+            const expenses = calculateMonthlyExpenses();
+            if (income < expenses && gs.money < 5000) {
+                advice.push({ priority: 2, icon: '💸', category: 'Finanzas', text: `Gastas más de lo que ganas (${formatMoney(expenses - income)}/mes). Reduce gastos o busca mejor empleo.` });
+            }
+            if (gs.money > 20000 && !gs.businesses?.length) {
+                advice.push({ priority: 3, icon: '🏢', category: 'Finanzas', text: 'Tienes buenos ahorros. Considera emprender un negocio para generar ingresos pasivos.' });
+            }
+
+            // Consejos de habilidades
+            if (sk.english < 30 && gs.age < 25) {
+                advice.push({ priority: 3, icon: '🇬🇧', category: 'Habilidades', text: 'Tu inglés es bajo. Muchos trabajos bien pagados requieren inglés. Toma clases en Actividades.' });
+            }
+            if (sk.computing < 30) {
+                advice.push({ priority: 3, icon: '💻', category: 'Habilidades', text: 'La computación es esencial hoy. Estudia por tu cuenta (gratis) o toma cursos.' });
+            }
+
+            // Consejos de apariencia
+            if (ps.appearance < 40 || ps.clothing < 40) {
+                advice.push({ priority: 3, icon: '✨', category: 'Apariencia', text: 'Tu imagen personal es baja. Esto afecta tus probabilidades en entrevistas. Ve al spa o compra ropa.' });
+            }
+
+            // Consejos de educación
+            if (gs.education === 'secundaria' && gs.age < 30 && gs.money > 3000) {
+                advice.push({ priority: 3, icon: '🎓', category: 'Educación', text: 'Con estudios superiores accederás a mejores trabajos. Considera estudiar en Educación.' });
+            }
+
+            // Consejos de bienestar
+            if (!gs.gymMembership && ps.strength < 50) {
+                advice.push({ priority: 4, icon: '💪', category: 'Bienestar', text: 'El gimnasio mejora fuerza y resistencia, útil para muchos trabajos. Considera una membresía.' });
+            }
+
+            // Consejos de relaciones
+            if (!gs.relationships?.romantic && gs.age > 22) {
+                advice.push({ priority: 4, icon: '💕', category: 'Social', text: 'No tienes pareja. Sal con amigos o usa apps de citas en Relaciones para conocer gente.' });
+            }
+
+            // Consejo positivo si todo está bien
+            if (advice.length === 0) {
+                advice.push({ priority: 5, icon: '🌟', category: 'General', text: '¡Vas muy bien! Sigue así. Considera ahorrar para la jubilación o emprender.' });
+            }
+
+            return advice.sort((a, b) => a.priority - b.priority);
+        }
+
+        function openAdvisorMenu() {
+            const advice = getAdvice();
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 3em;">🤖</div>
+                    <div style="font-size: 1.2em; font-weight: bold; margin-top: 10px;">Consejero Virtual</div>
+                    <div style="color: #888; font-size: 0.9em;">Análisis de tu situación actual</div>
+                </div>
+            `;
+
+            for (const item of advice.slice(0, 5)) {
+                const priorityColors = { 1: '#f44336', 2: '#ff9800', 3: '#2196F3', 4: '#4CAF50', 5: '#9c27b0' };
+                const color = priorityColors[item.priority] || '#888';
+
+                html += `
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid ${color};">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <span style="font-size: 1.5em;">${item.icon}</span>
+                            <div>
+                                <div style="font-size: 0.8em; color: ${color}; font-weight: bold; margin-bottom: 5px;">${item.category}</div>
+                                <div style="color: #ddd;">${item.text}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div style="margin-top: 20px; padding: 15px; background: rgba(33,150,243,0.1); border-radius: 10px; text-align: center;">
+                    <div style="color: #888; font-size: 0.85em;">
+                        💡 Este consejero analiza tu estado y te da sugerencias. No es obligatorio seguirlas.
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '🤖 Consejero';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        // ==================== SISTEMA DE MINI-JUEGOS ====================
+
+        const MINI_GAMES = {
+            matematicas: {
+                name: "Matemáticas Rápidas",
+                description: "Resuelve operaciones para ganar dinero",
+                icon: "🔢",
+                reward: [50, 150],
+                energyCost: 15,
+                rounds: 5,
+                timePerRound: 10
+            },
+            memoria: {
+                name: "Memoria",
+                description: "Recuerda la secuencia de números",
+                icon: "🧠",
+                reward: [80, 200],
+                energyCost: 20,
+                rounds: 4,
+                timePerRound: 15
+            },
+            typing: {
+                name: "Velocidad de Escritura",
+                description: "Escribe las palabras correctamente",
+                icon: "⌨️",
+                reward: [60, 180],
+                energyCost: 15,
+                rounds: 5,
+                timePerRound: 8
+            }
+        };
+
+        let currentMiniGame = null;
+        let miniGameState = {};
+
+        function openMiniGamesMenu() {
+            if (gameState.prisonMonths > 0) {
+                showNotification('No puedes hacer mini-juegos en prisión', 'error');
+                return;
+            }
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2em;">🎮</div>
+                    <div style="font-size: 1.1em; margin-top: 10px;">Gana dinero extra con mini-juegos</div>
+                    <div style="color: #888; font-size: 0.85em;">Cada juego consume energía</div>
+                </div>
+            `;
+
+            for (const [gameId, game] of Object.entries(MINI_GAMES)) {
+                const canPlay = gameState.energy >= game.energyCost;
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; opacity: ${canPlay ? '1' : '0.5'};">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 2em;">${game.icon}</span>
+                            <div>
+                                <div style="font-weight: bold;">${game.name}</div>
+                                <div style="color: #aaa; font-size: 0.85em;">${game.description}</div>
+                                <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
+                                    💵 S/ ${game.reward[0]}-${game.reward[1]} | ⚡ -${game.energyCost}
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn ${canPlay ? 'btn-success' : ''}" onclick="startMiniGame('${gameId}')" ${canPlay ? '' : 'disabled'}>
+                            Jugar
+                        </button>
+                    </div>
+                `;
+            }
+
+            if (gameState.energy < 15) {
+                html += `<div style="color: #f44336; text-align: center; margin-top: 15px;">⚡ Necesitas más energía para jugar</div>`;
+            }
+
+            document.getElementById('modalTitle').textContent = '🎮 Mini-juegos';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function startMiniGame(gameId) {
+            const game = MINI_GAMES[gameId];
+            if (!game || gameState.energy < game.energyCost) return;
+
+            currentMiniGame = gameId;
+            miniGameState = {
+                round: 0,
+                score: 0,
+                maxRounds: game.rounds,
+                startTime: Date.now()
+            };
+
+            gameState.energy -= game.energyCost;
+            updateUI();
+
+            if (gameId === 'matematicas') {
+                playMathGame();
+            } else if (gameId === 'memoria') {
+                playMemoryGame();
+            } else if (gameId === 'typing') {
+                playTypingGame();
+            }
+        }
+
+        function playMathGame() {
+            miniGameState.round++;
+            if (miniGameState.round > miniGameState.maxRounds) {
+                endMiniGame();
+                return;
+            }
+
+            const ops = ['+', '-', '×'];
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            let a, b, answer;
+
+            if (op === '+') {
+                a = Math.floor(Math.random() * 50) + 10;
+                b = Math.floor(Math.random() * 50) + 10;
+                answer = a + b;
+            } else if (op === '-') {
+                a = Math.floor(Math.random() * 50) + 30;
+                b = Math.floor(Math.random() * 30) + 1;
+                answer = a - b;
+            } else {
+                a = Math.floor(Math.random() * 12) + 2;
+                b = Math.floor(Math.random() * 12) + 2;
+                answer = a * b;
+            }
+
+            miniGameState.currentAnswer = answer;
+            miniGameState.roundStart = Date.now();
+
+            const html = `
+                <div style="text-align: center;">
+                    <div style="color: #888; margin-bottom: 10px;">Ronda ${miniGameState.round}/${miniGameState.maxRounds}</div>
+                    <div style="font-size: 3em; margin: 30px 0;">${a} ${op} ${b} = ?</div>
+                    <input type="number" id="mathAnswer" style="font-size: 1.5em; padding: 10px 20px; width: 150px; text-align: center; border-radius: 10px; border: 2px solid #4CAF50; background: rgba(0,0,0,0.3); color: white;"
+                           onkeypress="if(event.key==='Enter') checkMathAnswer()">
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-success" onclick="checkMathAnswer()">Responder</button>
+                    </div>
+                    <div id="mathTimer" style="margin-top: 15px; color: #ff9800;">⏱️ 10 segundos</div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '🔢 Matemáticas Rápidas';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('mathAnswer').focus();
+
+            // Timer
+            miniGameState.timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - miniGameState.roundStart) / 1000);
+                const remaining = 10 - elapsed;
+                const timerEl = document.getElementById('mathTimer');
+                if (timerEl) {
+                    timerEl.textContent = `⏱️ ${remaining} segundos`;
+                    if (remaining <= 3) timerEl.style.color = '#f44336';
+                }
+                if (remaining <= 0) {
+                    clearInterval(miniGameState.timer);
+                    playMathGame();
+                }
+            }, 1000);
+        }
+
+        function checkMathAnswer() {
+            clearInterval(miniGameState.timer);
+            const userAnswer = parseInt(document.getElementById('mathAnswer').value);
+            if (userAnswer === miniGameState.currentAnswer) {
+                miniGameState.score++;
+                showNotification('¡Correcto!', 'success');
+            } else {
+                showNotification(`Incorrecto. Era ${miniGameState.currentAnswer}`, 'error');
+            }
+            setTimeout(playMathGame, 500);
+        }
+
+        function playMemoryGame() {
+            miniGameState.round++;
+            if (miniGameState.round > miniGameState.maxRounds) {
+                endMiniGame();
+                return;
+            }
+
+            // Generar secuencia de números
+            const length = 3 + miniGameState.round;
+            const sequence = Array.from({length}, () => Math.floor(Math.random() * 10));
+            miniGameState.currentAnswer = sequence.join('');
+
+            let html = `
+                <div style="text-align: center;">
+                    <div style="color: #888; margin-bottom: 10px;">Ronda ${miniGameState.round}/${miniGameState.maxRounds}</div>
+                    <div style="font-size: 1em; color: #ff9800; margin-bottom: 20px;">Memoriza estos números:</div>
+                    <div id="memoryDisplay" style="font-size: 3em; letter-spacing: 15px; margin: 30px 0;">${sequence.join(' ')}</div>
+                    <div id="memoryInput" style="display: none;">
+                        <input type="text" id="memoryAnswer" style="font-size: 1.5em; padding: 10px 20px; width: 200px; text-align: center; border-radius: 10px; border: 2px solid #4CAF50; background: rgba(0,0,0,0.3); color: white; letter-spacing: 5px;"
+                               onkeypress="if(event.key==='Enter') checkMemoryAnswer()">
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-success" onclick="checkMemoryAnswer()">Responder</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '🧠 Memoria';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+
+            // Ocultar después de unos segundos
+            setTimeout(() => {
+                const display = document.getElementById('memoryDisplay');
+                const input = document.getElementById('memoryInput');
+                if (display && input) {
+                    display.textContent = '¿Cuál era la secuencia?';
+                    display.style.fontSize = '1.5em';
+                    input.style.display = 'block';
+                    document.getElementById('memoryAnswer').focus();
+                }
+            }, 2000 + (miniGameState.round * 500));
+        }
+
+        function checkMemoryAnswer() {
+            const userAnswer = document.getElementById('memoryAnswer').value.replace(/\s/g, '');
+            if (userAnswer === miniGameState.currentAnswer) {
+                miniGameState.score++;
+                showNotification('¡Correcto!', 'success');
+            } else {
+                showNotification(`Incorrecto. Era ${miniGameState.currentAnswer}`, 'error');
+            }
+            setTimeout(playMemoryGame, 500);
+        }
+
+        function playTypingGame() {
+            miniGameState.round++;
+            if (miniGameState.round > miniGameState.maxRounds) {
+                endMiniGame();
+                return;
+            }
+
+            const words = ['trabajo', 'dinero', 'familia', 'empresa', 'cliente', 'oficina', 'computadora', 'telefono', 'proyecto', 'reunion', 'contrato', 'factura', 'empleado', 'gerente', 'sueldo', 'banco', 'ahorro', 'negocio', 'mercado', 'tienda'];
+            const word = words[Math.floor(Math.random() * words.length)];
+            miniGameState.currentAnswer = word;
+            miniGameState.roundStart = Date.now();
+
+            const html = `
+                <div style="text-align: center;">
+                    <div style="color: #888; margin-bottom: 10px;">Ronda ${miniGameState.round}/${miniGameState.maxRounds}</div>
+                    <div style="font-size: 1em; color: #ff9800; margin-bottom: 20px;">Escribe esta palabra:</div>
+                    <div style="font-size: 2.5em; margin: 30px 0; color: #4CAF50;">${word}</div>
+                    <input type="text" id="typingAnswer" style="font-size: 1.5em; padding: 10px 20px; width: 250px; text-align: center; border-radius: 10px; border: 2px solid #4CAF50; background: rgba(0,0,0,0.3); color: white;"
+                           onkeypress="if(event.key==='Enter') checkTypingAnswer()" autocomplete="off">
+                    <div id="typingTimer" style="margin-top: 15px; color: #ff9800;">⏱️ 8 segundos</div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '⌨️ Velocidad de Escritura';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('typingAnswer').focus();
+
+            miniGameState.timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - miniGameState.roundStart) / 1000);
+                const remaining = 8 - elapsed;
+                const timerEl = document.getElementById('typingTimer');
+                if (timerEl) {
+                    timerEl.textContent = `⏱️ ${remaining} segundos`;
+                    if (remaining <= 3) timerEl.style.color = '#f44336';
+                }
+                if (remaining <= 0) {
+                    clearInterval(miniGameState.timer);
+                    playTypingGame();
+                }
+            }, 1000);
+        }
+
+        function checkTypingAnswer() {
+            clearInterval(miniGameState.timer);
+            const userAnswer = document.getElementById('typingAnswer').value.toLowerCase().trim();
+            if (userAnswer === miniGameState.currentAnswer) {
+                miniGameState.score++;
+                showNotification('¡Correcto!', 'success');
+            } else {
+                showNotification('Incorrecto', 'error');
+            }
+            setTimeout(playTypingGame, 500);
+        }
+
+        function endMiniGame() {
+            const game = MINI_GAMES[currentMiniGame];
+            const accuracy = miniGameState.score / miniGameState.maxRounds;
+            const baseReward = game.reward[0] + (game.reward[1] - game.reward[0]) * accuracy;
+            const reward = Math.floor(baseReward);
+
+            gameState.money += reward;
+            gameState.stats.totalEarned += reward;
+
+            const html = `
+                <div style="text-align: center;">
+                    <div style="font-size: 4em; margin-bottom: 20px;">${accuracy >= 0.8 ? '🏆' : accuracy >= 0.5 ? '👍' : '😅'}</div>
+                    <div style="font-size: 1.5em; font-weight: bold; margin-bottom: 10px;">
+                        ${accuracy >= 0.8 ? '¡Excelente!' : accuracy >= 0.5 ? '¡Bien hecho!' : 'Sigue practicando'}
+                    </div>
+                    <div style="font-size: 1.2em; margin-bottom: 20px;">
+                        Aciertos: ${miniGameState.score}/${miniGameState.maxRounds}
+                    </div>
+                    <div style="font-size: 2em; color: #4CAF50; font-weight: bold;">
+                        +${formatMoney(reward)}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '🎮 Resultado';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = `
+                <button class="btn" onclick="openMiniGamesMenu()">Jugar otro</button>
+                <button class="btn btn-success" onclick="closeModal()">Cerrar</button>
+            `;
+
+            addLog(`🎮 Mini-juego: +${formatMoney(reward)}`, 'positive');
+            updateUI();
+            currentMiniGame = null;
         }
 
         // ==================== SISTEMA DE GUARDADO ====================
