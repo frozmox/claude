@@ -322,10 +322,12 @@
 
         /* Event log */
         .event-log-container {
-            background: rgba(255,255,255,0.03);
+            background: linear-gradient(135deg, rgba(33,150,243,0.1) 0%, rgba(156,39,176,0.1) 100%);
             border-radius: 12px;
             padding: 20px;
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 2px solid rgba(33,150,243,0.3);
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .event-log-header {
@@ -333,24 +335,104 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .event-log-header h3 {
-            font-size: 1em;
-            color: #aaa;
+            font-size: 1.1em;
+            color: #2196F3;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .event-log-expand-btn {
+            background: rgba(33,150,243,0.2);
+            border: 1px solid #2196F3;
+            color: #2196F3;
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s;
+        }
+
+        .event-log-expand-btn:hover {
+            background: rgba(33,150,243,0.4);
         }
 
         .event-log {
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #2196F3 transparent;
+        }
+
+        .event-log::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .event-log::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .event-log::-webkit-scrollbar-thumb {
+            background: #2196F3;
+            border-radius: 3px;
         }
 
         .log-entry {
-            padding: 10px 12px;
+            padding: 12px 15px;
             border-radius: 8px;
             margin-bottom: 8px;
-            background: rgba(255,255,255,0.03);
+            background: rgba(0,0,0,0.3);
             font-size: 0.9em;
+            border-left: 3px solid #666;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .log-entry:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .log-entry.positive {
+            border-left-color: #4CAF50;
+            background: rgba(76,175,80,0.15);
+        }
+
+        .log-entry.negative {
+            border-left-color: #f44336;
+            background: rgba(244,67,54,0.15);
+        }
+
+        .log-entry.special {
+            border-left-color: #9c27b0;
+            background: rgba(156,39,176,0.15);
+            animation: pulse 2s infinite;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ff9800;
+            background: rgba(255,152,0,0.15);
+        }
+
+        .log-entry.info {
+            border-left-color: #2196F3;
+            background: rgba(33,150,243,0.15);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .log-entry-time {
+            font-size: 0.75em;
+            color: #888;
+            margin-bottom: 3px;
             border-left: 3px solid #555;
         }
 
@@ -1552,14 +1634,14 @@
             <div class="title-screen">
                 <h1>🇵🇪 SUFRE PERUANO</h1>
                 <p class="subtitle">Simulador de Vida Realista</p>
-                <p style="color: #888; font-size: 0.8em; margin-top: 5px;">Versión 1.0.0</p>
+                <p style="color: #888; font-size: 0.8em; margin-top: 5px;">v1.1.0</p>
 
                 <div class="quote">
                     "No elegimos dónde nacemos, ni cómo nacemos.<br>
                     Solo elegimos qué hacemos con lo que nos tocó."
                 </div>
 
-                <button class="btn" onclick="startNewGame()">🎲 Nueva Vida</button>
+                <button class="btn" onclick="showDifficultySelection()">🎲 Nueva Vida</button>
                 <button class="btn btn-secondary" onclick="loadGame()">📂 Cargar Partida</button>
 
                 <p style="margin-top: 40px; color: #666; font-size: 0.9em;">
@@ -1568,6 +1650,88 @@
                     Trabaja, estudia, ahorra y sobrevive en un país donde<br>
                     el sistema está en tu contra. ¿Podrás romper el ciclo?
                 </p>
+            </div>
+        </div>
+
+        <!-- Pantalla de Selección de Dificultad -->
+        <div id="difficultyScreen" class="screen">
+            <div class="title-screen" style="max-width: 600px;">
+                <h2>🎮 Selecciona la Dificultad</h2>
+                <p style="color: #888; margin-bottom: 30px;">La dificultad afecta las gemas iniciales.<br>Mayor dificultad = más gemas de recompensa.</p>
+
+                <div style="display: grid; gap: 15px;">
+                    <div onclick="selectDifficulty('facil')" class="difficulty-option" style="background: linear-gradient(135deg, rgba(76,175,80,0.3), rgba(76,175,80,0.1)); border: 2px solid #4CAF50; border-radius: 15px; padding: 20px; cursor: pointer; transition: transform 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 1.3em; font-weight: bold; color: #4CAF50;">😊 FÁCIL</div>
+                                <div style="color: #aaa; font-size: 0.9em;">Empiezas con ventajas. Ideal para aprender.</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5em;">💎 0</div>
+                                <div style="color: #888; font-size: 0.8em;">Sin gemas</div>
+                            </div>
+                        </div>
+                        <div style="color: #888; font-size: 0.8em; margin-top: 10px;">+S/1000 inicial • +20 energía extra • Eventos menos frecuentes</div>
+                    </div>
+
+                    <div onclick="selectDifficulty('normal')" class="difficulty-option" style="background: linear-gradient(135deg, rgba(33,150,243,0.3), rgba(33,150,243,0.1)); border: 2px solid #2196F3; border-radius: 15px; padding: 20px; cursor: pointer; transition: transform 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 1.3em; font-weight: bold; color: #2196F3;">😐 NORMAL</div>
+                                <div style="color: #aaa; font-size: 0.9em;">La experiencia estándar del peruano promedio.</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5em;">💎 15</div>
+                                <div style="color: #888; font-size: 0.8em;">Gemas iniciales</div>
+                            </div>
+                        </div>
+                        <div style="color: #888; font-size: 0.8em; margin-top: 10px;">Condiciones balanceadas • Eventos normales</div>
+                    </div>
+
+                    <div onclick="selectDifficulty('dificil')" class="difficulty-option" style="background: linear-gradient(135deg, rgba(255,152,0,0.3), rgba(255,152,0,0.1)); border: 2px solid #ff9800; border-radius: 15px; padding: 20px; cursor: pointer; transition: transform 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 1.3em; font-weight: bold; color: #ff9800;">😰 DIFÍCIL</div>
+                                <div style="color: #aaa; font-size: 0.9em;">La vida te pone más obstáculos.</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5em;">💎 35</div>
+                                <div style="color: #888; font-size: 0.8em;">Gemas iniciales</div>
+                            </div>
+                        </div>
+                        <div style="color: #888; font-size: 0.8em; margin-top: 10px;">-S/500 inicial • Eventos más frecuentes • Mayor inflación</div>
+                    </div>
+
+                    <div onclick="selectDifficulty('muy_dificil')" class="difficulty-option" style="background: linear-gradient(135deg, rgba(244,67,54,0.3), rgba(244,67,54,0.1)); border: 2px solid #f44336; border-radius: 15px; padding: 20px; cursor: pointer; transition: transform 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 1.3em; font-weight: bold; color: #f44336;">🔥 MUY DIFÍCIL</div>
+                                <div style="color: #aaa; font-size: 0.9em;">Solo para masoquistas. Casi imposible.</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5em;">💎 75</div>
+                                <div style="color: #888; font-size: 0.8em;">Gemas iniciales</div>
+                            </div>
+                        </div>
+                        <div style="color: #888; font-size: 0.8em; margin-top: 10px;">Comienzas sin dinero • Eventos frecuentes y severos • Alta inflación</div>
+                    </div>
+
+                    <div onclick="selectDifficulty('extremo')" class="difficulty-option" style="background: linear-gradient(135deg, rgba(156,39,176,0.3), rgba(156,39,176,0.1)); border: 2px solid #9c27b0; border-radius: 15px; padding: 20px; cursor: pointer; transition: transform 0.2s;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-size: 1.3em; font-weight: bold; color: #9c27b0;">💀 EXTREMO</div>
+                                <div style="color: #aaa; font-size: 0.9em;">¿Crees que la tienes difícil? Prueba esto.</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.5em;">💎 150</div>
+                                <div style="color: #888; font-size: 0.8em;">Gemas iniciales</div>
+                            </div>
+                        </div>
+                        <div style="color: #888; font-size: 0.8em; margin-top: 10px;">Deudas iniciales • Salud reducida • Todo en tu contra</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-secondary" onclick="showScreen('titleScreen')" style="margin-top: 20px;">← Volver</button>
             </div>
         </div>
 
@@ -1692,6 +1856,7 @@
                             <div>
                                 <div class="name" id="charName">Nombre</div>
                                 <div class="date" id="charAge">18 años - Enero 2024</div>
+                                <div id="statusAlerts" style="display: none; margin-top: 5px;"></div>
                             </div>
                         </div>
                         <div class="header-stats">
@@ -1782,10 +1947,11 @@
                             </div>
                         </div>
 
-                        <!-- Event Log -->
+                        <!-- Event Log - Enhanced -->
                         <div class="event-log-container">
                             <div class="event-log-header">
-                                <h3>📋 Últimos Eventos</h3>
+                                <h3><span style="font-size: 1.2em;">📋</span> Últimos Eventos</h3>
+                                <button class="event-log-expand-btn" onclick="showFullEventLog()">Ver Todo</button>
                             </div>
                             <div class="event-log" id="eventLogContent">
                                 <div class="log-entry">Comenzaste tu nueva vida...</div>
@@ -1896,14 +2062,46 @@
         // ==================== DATOS DEL JUEGO ====================
 
         const LOCATIONS = {
-            lima_residencial: { name: "Lima - Zona Residencial", description: "Miraflores, San Isidro, La Molina", probability: 5, jobBonus: 30, costMultiplier: 1.5 },
-            lima_media: { name: "Lima - Clase Media", description: "Jesús María, Lince, Pueblo Libre", probability: 15, jobBonus: 15, costMultiplier: 1.2 },
-            lima_cono: { name: "Lima - Cono", description: "SJL, VMT, Comas, Ate", probability: 30, jobBonus: 0, costMultiplier: 0.8 },
-            lima_asentamiento: { name: "Lima - Asentamiento Humano", description: "Zonas periféricas", probability: 10, jobBonus: -20, costMultiplier: 0.5 },
-            provincia_grande: { name: "Provincia - Ciudad Grande", description: "Arequipa, Trujillo, Chiclayo", probability: 15, jobBonus: -10, costMultiplier: 0.7 },
-            provincia_pequena: { name: "Provincia - Ciudad Pequeña", description: "Ciudades menores", probability: 15, jobBonus: -25, costMultiplier: 0.5 },
-            sierra_rural: { name: "Sierra - Comunidad Rural", description: "Zonas andinas", probability: 7, jobBonus: -40, costMultiplier: 0.3 },
-            selva: { name: "Selva - Comunidad", description: "Zonas amazónicas", probability: 3, jobBonus: -50, costMultiplier: 0.3 }
+            lima_residencial: {
+                name: "Lima - Zona Residencial",
+                specificPlaces: ["Miraflores", "San Isidro", "La Molina", "San Borja", "Surco"],
+                probability: 5, jobBonus: 30, costMultiplier: 1.5
+            },
+            lima_media: {
+                name: "Lima - Clase Media",
+                specificPlaces: ["Jesús María", "Lince", "Pueblo Libre", "Magdalena", "San Miguel", "Breña"],
+                probability: 15, jobBonus: 15, costMultiplier: 1.2
+            },
+            lima_cono: {
+                name: "Lima - Cono",
+                specificPlaces: ["San Juan de Lurigancho", "Villa María del Triunfo", "Comas", "Ate", "Los Olivos", "San Martín de Porres", "Villa El Salvador", "Puente Piedra"],
+                probability: 30, jobBonus: 0, costMultiplier: 0.8
+            },
+            lima_asentamiento: {
+                name: "Lima - Asentamiento Humano",
+                specificPlaces: ["AA.HH. Huaycán", "AA.HH. Villa El Salvador", "AA.HH. Manchay", "Cerro San Cristóbal", "AA.HH. Nueva Esperanza"],
+                probability: 10, jobBonus: -20, costMultiplier: 0.5
+            },
+            provincia_grande: {
+                name: "Provincia - Ciudad Grande",
+                specificPlaces: ["Arequipa", "Trujillo", "Chiclayo", "Piura", "Cusco", "Iquitos", "Huancayo"],
+                probability: 15, jobBonus: -10, costMultiplier: 0.7
+            },
+            provincia_pequena: {
+                name: "Provincia - Ciudad Pequeña",
+                specificPlaces: ["Ayacucho", "Puno", "Tacna", "Tumbes", "Chimbote", "Ica", "Cajamarca", "Huánuco"],
+                probability: 15, jobBonus: -25, costMultiplier: 0.5
+            },
+            sierra_rural: {
+                name: "Sierra - Comunidad Rural",
+                specificPlaces: ["Comunidad en Apurímac", "Comunidad en Huancavelica", "Comunidad en Puno", "Comunidad en Cusco", "Comunidad en Junín"],
+                probability: 7, jobBonus: -40, costMultiplier: 0.3
+            },
+            selva: {
+                name: "Selva - Comunidad",
+                specificPlaces: ["Comunidad en Loreto", "Comunidad en Ucayali", "Comunidad en Madre de Dios", "Comunidad en San Martín", "Puerto Maldonado"],
+                probability: 3, jobBonus: -50, costMultiplier: 0.3
+            }
         };
 
         const SOCIAL_CLASSES = {
@@ -2545,7 +2743,19 @@
 
         // ==================== SISTEMA DE EMPRENDIMIENTOS ====================
         const BUSINESSES = {
-            // Negocios pequeños (bajo capital)
+            // ========== MICRO NEGOCIOS (1K - 5K) ==========
+            carretilla_jugos: {
+                name: "Carretilla de Jugos",
+                description: "Venta de jugos y extractos en la calle",
+                icon: "🧃",
+                category: "comida",
+                investmentCost: 1500,
+                monthlyExpenses: 400,
+                monthlyRevenue: [800, 2000],
+                riskFactor: 0.20,
+                requirements: {},
+                employeesMax: 0
+            },
             puesto_comida: {
                 name: "Puesto de comida",
                 description: "Venta de menú y comida callejera",
@@ -2558,6 +2768,19 @@
                 requirements: { cooking: 20 },
                 employeesMax: 2
             },
+            anticuchera: {
+                name: "Carreta de Anticuchos",
+                description: "Venta nocturna de anticuchos y papas",
+                icon: "🍢",
+                category: "comida",
+                investmentCost: 2500,
+                monthlyExpenses: 600,
+                monthlyRevenue: [1200, 3000],
+                riskFactor: 0.12,
+                requirements: { cooking: 15 },
+                employeesMax: 1
+            },
+            // ========== NEGOCIOS PEQUEÑOS (5K - 15K) ==========
             bodega: {
                 name: "Bodega/Tienda",
                 description: "Tienda de abarrotes de barrio",
@@ -2606,7 +2829,43 @@
                 requirements: { charisma: 40 },
                 employeesMax: 3
             },
-            // Negocios medianos
+            taller_costura: {
+                name: "Taller de Costura",
+                description: "Confección y arreglos de ropa",
+                icon: "🧵",
+                category: "servicios",
+                investmentCost: 7000,
+                monthlyExpenses: 900,
+                monthlyRevenue: [1800, 4000],
+                riskFactor: 0.08,
+                requirements: {},
+                employeesMax: 4
+            },
+            cevicheria_ambulante: {
+                name: "Cevichería Ambulante",
+                description: "Ceviche fresco en carretilla",
+                icon: "🦐",
+                category: "comida",
+                investmentCost: 4000,
+                monthlyExpenses: 1000,
+                monthlyRevenue: [2000, 5000],
+                riskFactor: 0.18,
+                requirements: { cooking: 30 },
+                employeesMax: 1
+            },
+            ferreteria_pequena: {
+                name: "Ferretería Pequeña",
+                description: "Venta de herramientas y materiales",
+                icon: "🔨",
+                category: "retail",
+                investmentCost: 12000,
+                monthlyExpenses: 1500,
+                monthlyRevenue: [3000, 7000],
+                riskFactor: 0.10,
+                requirements: { sales: 20 },
+                employeesMax: 2
+            },
+            // ========== NEGOCIOS MEDIANOS (15K - 50K) ==========
             restaurante: {
                 name: "Restaurante",
                 description: "Local con mesas y carta variada",
@@ -2655,7 +2914,55 @@
                 requirements: { english: 50 },
                 employeesMax: 4
             },
-            // Negocios grandes
+            polleria: {
+                name: "Pollería",
+                description: "Pollo a la brasa y parrillas",
+                icon: "🍗",
+                category: "comida",
+                investmentCost: 35000,
+                monthlyExpenses: 5000,
+                monthlyRevenue: [8000, 20000],
+                riskFactor: 0.15,
+                requirements: { cooking: 40, sales: 30 },
+                employeesMax: 8
+            },
+            gimnasio: {
+                name: "Gimnasio",
+                description: "Centro de fitness y entrenamiento",
+                icon: "🏋️",
+                category: "servicios",
+                investmentCost: 40000,
+                monthlyExpenses: 6000,
+                monthlyRevenue: [10000, 25000],
+                riskFactor: 0.15,
+                requirements: { sales: 35 },
+                employeesMax: 5
+            },
+            farmacia: {
+                name: "Farmacia/Botica",
+                description: "Venta de medicamentos",
+                icon: "💊",
+                category: "salud",
+                investmentCost: 45000,
+                monthlyExpenses: 7000,
+                monthlyRevenue: [12000, 28000],
+                riskFactor: 0.08,
+                requirements: { sales: 40 },
+                employeesMax: 4
+            },
+            chifa: {
+                name: "Chifa",
+                description: "Restaurante de comida china-peruana",
+                icon: "🥡",
+                category: "comida",
+                investmentCost: 30000,
+                monthlyExpenses: 4500,
+                monthlyRevenue: [7000, 18000],
+                riskFactor: 0.15,
+                requirements: { cooking: 45, sales: 25 },
+                employeesMax: 6
+            },
+            // ========== NEGOCIOS GRANDES (50K - 150K) ==========
             importadora: {
                 name: "Importadora",
                 description: "Importación y venta mayorista",
@@ -2679,6 +2986,152 @@
                 riskFactor: 0.18,
                 requirements: { computing: 70, english: 50 },
                 employeesMax: 10
+            },
+            hostal: {
+                name: "Hostal",
+                description: "Alojamiento económico",
+                icon: "🏨",
+                category: "inmobiliario",
+                investmentCost: 100000,
+                monthlyExpenses: 15000,
+                monthlyRevenue: [25000, 60000],
+                riskFactor: 0.12,
+                requirements: { sales: 50, english: 30 },
+                employeesMax: 8
+            },
+            clinica_dental: {
+                name: "Clínica Dental",
+                description: "Servicios odontológicos",
+                icon: "🦷",
+                category: "salud",
+                investmentCost: 120000,
+                monthlyExpenses: 18000,
+                monthlyRevenue: [30000, 70000],
+                riskFactor: 0.10,
+                requirements: { sales: 40 },
+                employeesMax: 6
+            },
+            concesionaria_autos: {
+                name: "Concesionaria de Autos",
+                description: "Venta de vehículos usados y nuevos",
+                icon: "🚗",
+                category: "retail",
+                investmentCost: 150000,
+                monthlyExpenses: 20000,
+                monthlyRevenue: [35000, 90000],
+                riskFactor: 0.18,
+                requirements: { sales: 70, charisma: 50 },
+                employeesMax: 10
+            },
+            // ========== NEGOCIOS MUY GRANDES (150K - 500K) ==========
+            supermercado: {
+                name: "Supermercado",
+                description: "Gran superficie de venta minorista",
+                icon: "🏬",
+                category: "retail",
+                investmentCost: 300000,
+                monthlyExpenses: 45000,
+                monthlyRevenue: [80000, 180000],
+                riskFactor: 0.12,
+                requirements: { sales: 80 },
+                employeesMax: 25
+            },
+            hotel: {
+                name: "Hotel 3 Estrellas",
+                description: "Hotel con servicios completos",
+                icon: "🌟",
+                category: "inmobiliario",
+                investmentCost: 400000,
+                monthlyExpenses: 60000,
+                monthlyRevenue: [100000, 200000],
+                riskFactor: 0.15,
+                requirements: { sales: 70, english: 60 },
+                employeesMax: 30
+            },
+            clinica: {
+                name: "Clínica Médica",
+                description: "Centro médico integral",
+                icon: "🏥",
+                category: "salud",
+                investmentCost: 500000,
+                monthlyExpenses: 80000,
+                monthlyRevenue: [150000, 350000],
+                riskFactor: 0.10,
+                requirements: { sales: 60 },
+                employeesMax: 40
+            },
+            constructora: {
+                name: "Constructora",
+                description: "Construcción de viviendas y edificios",
+                icon: "🏗️",
+                category: "construccion",
+                investmentCost: 350000,
+                monthlyExpenses: 50000,
+                monthlyRevenue: [80000, 250000],
+                riskFactor: 0.22,
+                requirements: { technical: 70, sales: 60 },
+                employeesMax: 50
+            },
+            // ========== MEGA NEGOCIOS (500K+) - CASI INALCANZABLES ==========
+            centro_comercial: {
+                name: "Centro Comercial",
+                description: "Mall con múltiples tiendas y servicios",
+                icon: "🏢",
+                category: "inmobiliario",
+                investmentCost: 2000000,
+                monthlyExpenses: 300000,
+                monthlyRevenue: [500000, 1200000],
+                riskFactor: 0.15,
+                requirements: { sales: 90 },
+                employeesMax: 100
+            },
+            banco: {
+                name: "Caja Municipal",
+                description: "Entidad financiera local",
+                icon: "🏦",
+                category: "finanzas",
+                investmentCost: 5000000,
+                monthlyExpenses: 800000,
+                monthlyRevenue: [1500000, 4000000],
+                riskFactor: 0.08,
+                requirements: { sales: 95, english: 80 },
+                employeesMax: 200
+            },
+            franquicia_internacional: {
+                name: "Franquicia Internacional",
+                description: "McDonald's, KFC, Starbucks, etc.",
+                icon: "🌐",
+                category: "comida",
+                investmentCost: 800000,
+                monthlyExpenses: 120000,
+                monthlyRevenue: [200000, 500000],
+                riskFactor: 0.08,
+                requirements: { sales: 85, english: 70 },
+                employeesMax: 40
+            },
+            aerolínea_regional: {
+                name: "Aerolínea Regional",
+                description: "Vuelos domésticos y regionales",
+                icon: "✈️",
+                category: "transporte",
+                investmentCost: 10000000,
+                monthlyExpenses: 2000000,
+                monthlyRevenue: [3000000, 8000000],
+                riskFactor: 0.25,
+                requirements: { sales: 99, english: 90 },
+                employeesMax: 300
+            },
+            minera: {
+                name: "Empresa Minera",
+                description: "Extracción de minerales",
+                icon: "⛏️",
+                category: "mineria",
+                investmentCost: 15000000,
+                monthlyExpenses: 3000000,
+                monthlyRevenue: [5000000, 15000000],
+                riskFactor: 0.20,
+                requirements: { technical: 90 },
+                employeesMax: 500
             }
         };
 
@@ -3123,11 +3576,73 @@
         };
 
         const EDUCATION_OPTIONS = {
-            secundaria: { name: "Secundaria", duration: 0, cost: 0 },
-            instituto: { name: "Instituto Técnico", duration: 24, costPerMonth: 400, result: "tecnico" },
-            uni_publica: { name: "Universidad Pública", duration: 60, costPerMonth: 50, result: "universidad", difficulty: "alta" },
-            uni_privada_media: { name: "Universidad Privada (Media)", duration: 60, costPerMonth: 1500, result: "universidad" },
-            uni_privada_cara: { name: "Universidad Privada (Top)", duration: 60, costPerMonth: 3500, result: "universidad", prestige: true }
+            // Educación básica
+            primaria: {
+                name: "Terminar Primaria",
+                description: "Completa tu educación primaria en CEBA (Centro de Educación Básica Alternativa)",
+                duration: 12,
+                costPerMonth: 50,
+                result: "primaria",
+                category: "basica",
+                requiresEducation: "primaria_incompleta"
+            },
+            secundaria_completa: {
+                name: "Terminar Secundaria",
+                description: "Completa tu secundaria en CEBA para acceder a mejores oportunidades",
+                duration: 24,
+                costPerMonth: 80,
+                result: "secundaria",
+                category: "basica",
+                requiresEducation: ["primaria", "secundaria_incompleta"]
+            },
+            // Educación superior
+            instituto: {
+                name: "Instituto Técnico",
+                description: "Carrera técnica de 2 años (SENATI, TECSUP, etc.)",
+                duration: 24,
+                costPerMonth: 400,
+                result: "tecnico",
+                category: "superior",
+                requiresEducation: "secundaria"
+            },
+            uni_publica: {
+                name: "Universidad Pública",
+                description: "San Marcos, UNI, Agraria, etc. Requiere examen de admisión.",
+                duration: 60,
+                costPerMonth: 50,
+                result: "universidad",
+                difficulty: "alta",
+                category: "superior",
+                requiresEducation: "secundaria"
+            },
+            uni_privada_media: {
+                name: "Universidad Privada (Media)",
+                description: "UPC, UPN, Continental, César Vallejo, etc.",
+                duration: 60,
+                costPerMonth: 1500,
+                result: "universidad",
+                category: "superior",
+                requiresEducation: "secundaria"
+            },
+            uni_privada_cara: {
+                name: "Universidad Privada (Top)",
+                description: "PUCP, Universidad de Lima, Pacífico, UTEC",
+                duration: 60,
+                costPerMonth: 3500,
+                result: "universidad",
+                prestige: true,
+                category: "superior",
+                requiresEducation: "secundaria"
+            },
+            maestria: {
+                name: "Maestría",
+                description: "Posgrado para especializarte y mejorar tu sueldo",
+                duration: 24,
+                costPerMonth: 2500,
+                result: "maestria",
+                category: "posgrado",
+                requiresEducation: "universidad"
+            }
         };
 
         // Preguntas de entrevista
@@ -3455,6 +3970,8 @@
             const socialClassData = SOCIAL_CLASSES[socialClass];
             const location = weightedRandom(LOCATIONS);
             const locationData = LOCATIONS[location];
+            // Seleccionar un lugar específico dentro de la ubicación
+            const specificPlace = locationData.specificPlaces[Math.floor(Math.random() * locationData.specificPlaces.length)];
             const orientation = weightedRandom(ORIENTATIONS);
             const orientationData = ORIENTATIONS[orientation];
             const healthCondition = weightedRandom(HEALTH_CONDITIONS);
@@ -3534,7 +4051,7 @@
             return {
                 name: `${firstName} ${lastName}`,
                 firstName, lastName, gender, genderData, appearance, appearanceData,
-                socialClass, socialClassData, location, locationData, orientation, orientationData,
+                socialClass, socialClassData, location, locationData, specificPlace, orientation, orientationData,
                 healthCondition, healthConditionData, familySituation, familySituationData,
                 startMoney, totalJobBonus, difficulty, difficultyScore,
                 physicalStats, initialSkills
@@ -3566,18 +4083,83 @@
             if (item) item.classList.add('active');
         }
 
+        function showDifficultySelection() {
+            showScreen('difficultyScreen');
+        }
+
+        // Configuración de dificultades
+        const DIFFICULTY_SETTINGS = {
+            facil: {
+                name: 'Fácil',
+                gems: 0,
+                moneyBonus: 1000,
+                energyBonus: 20,
+                eventFrequency: 0.5, // 50% menos eventos negativos
+                inflationMultiplier: 0.5
+            },
+            normal: {
+                name: 'Normal',
+                gems: 15,
+                moneyBonus: 0,
+                energyBonus: 0,
+                eventFrequency: 1,
+                inflationMultiplier: 1
+            },
+            dificil: {
+                name: 'Difícil',
+                gems: 35,
+                moneyBonus: -500,
+                energyBonus: -10,
+                eventFrequency: 1.3,
+                inflationMultiplier: 1.5
+            },
+            muy_dificil: {
+                name: 'Muy Difícil',
+                gems: 75,
+                moneyBonus: -1000,
+                energyBonus: -20,
+                eventFrequency: 1.7,
+                inflationMultiplier: 2
+            },
+            extremo: {
+                name: 'Extremo',
+                gems: 150,
+                moneyBonus: -2000,
+                energyBonus: -30,
+                eventFrequency: 2.5,
+                inflationMultiplier: 3,
+                startWithDebt: true
+            }
+        };
+
+        let selectedDifficulty = 'normal';
+
+        function selectDifficulty(difficulty) {
+            selectedDifficulty = difficulty;
+            startNewGame();
+        }
+
         function startNewGame() {
+            const diffSettings = DIFFICULTY_SETTINGS[selectedDifficulty];
+            gameState.selectedDifficulty = selectedDifficulty;
+            gameState.difficultySettings = diffSettings;
+
             gameState.character = generateCharacter();
-            gameState.money = gameState.character.startMoney;
-            gameState.credits = 50;
-            gameState.health = 100 + (gameState.character.healthConditionData.energyPenalty || 0);
+            gameState.money = Math.max(0, gameState.character.startMoney + diffSettings.moneyBonus);
+            gameState.credits = diffSettings.gems;
+            gameState.health = 100 + (gameState.character.healthConditionData.energyPenalty || 0) + (diffSettings.startWithDebt ? -20 : 0);
             gameState.happiness = 100 + (gameState.character.familySituationData.happinessBonus || 0) +
                                   (gameState.character.healthConditionData.happinessPenalty || 0);
-            gameState.energy = 100 + (gameState.character.healthConditionData.energyPenalty || 0);
-            gameState.stress = 0;
+            gameState.energy = Math.min(100, 100 + (gameState.character.healthConditionData.energyPenalty || 0) + diffSettings.energyBonus);
+            gameState.stress = diffSettings.startWithDebt ? 30 : 0;
             gameState.age = 18;
             gameState.month = 1;
             gameState.year = 2024;
+
+            // Deuda inicial para dificultad extrema
+            if (diffSettings.startWithDebt) {
+                gameState.debt = 3000;
+            }
             gameState.job = null;
             gameState.housing = "familia";
             gameState.education = gameState.character.socialClassData.education.includes("secundaria") ? "secundaria" : "primaria";
@@ -3632,8 +4214,8 @@
                 </div>
                 <div class="profile-section">
                     <h4>📍 Ubicación</h4>
-                    <p><strong>${char.locationData.name}</strong></p>
-                    <p style="color: #888; font-size: 0.9em;">${char.locationData.description}</p>
+                    <p><strong>${char.specificPlace}</strong></p>
+                    <p style="color: #888; font-size: 0.9em;">${char.locationData.name}</p>
                 </div>
                 <div class="profile-section">
                     <h4>🏠 Origen</h4>
@@ -3658,7 +4240,7 @@
         }
 
         function startLife() {
-            addLog("Comenzaste tu nueva vida en " + gameState.character.locationData.name, "neutral");
+            addLog("Comenzaste tu nueva vida en " + gameState.character.specificPlace + " (" + gameState.character.locationData.name + ")", "neutral");
             updateUI();
             showScreen('gameScreen');
             document.getElementById('creditsDisplay').style.display = 'block';
@@ -3676,6 +4258,31 @@
             const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
             document.getElementById('charAge').textContent = `${gameState.age} años - ${months[gameState.month - 1]} ${gameState.year}`;
             document.getElementById('charMoney').textContent = formatMoney(gameState.money);
+
+            // Actualizar alertas de estado (prisión, enfermedad, etc.)
+            const statusAlerts = [];
+            if (gameState.prisonMonths > 0) {
+                statusAlerts.push(`<span style="background: #f44336; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-right: 5px;">🔒 Prisión: ${gameState.prisonMonths}m</span>`);
+            }
+            if (gameState.hasHIV) {
+                statusAlerts.push(`<span style="background: #9c27b0; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-right: 5px;">🏥 VIH+</span>`);
+            }
+            if (gameState.hasCancer) {
+                statusAlerts.push(`<span style="background: #e91e63; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-right: 5px;">🏥 Cáncer</span>`);
+            }
+            if (gameState.hasSTI) {
+                statusAlerts.push(`<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-right: 5px;">⚠️ ${gameState.hasSTI}</span>`);
+            }
+            if (gameState.onParole) {
+                statusAlerts.push(`<span style="background: #607d8b; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-right: 5px;">⚖️ Condicional</span>`);
+            }
+            const alertsEl = document.getElementById('statusAlerts');
+            if (statusAlerts.length > 0) {
+                alertsEl.innerHTML = statusAlerts.join('');
+                alertsEl.style.display = 'block';
+            } else {
+                alertsEl.style.display = 'none';
+            }
 
             document.getElementById('healthValue').textContent = Math.floor(gameState.health) + '%';
             document.getElementById('healthBar').style.width = gameState.health + '%';
@@ -3811,9 +4418,85 @@
         }
 
         function addLog(message, type = 'neutral') {
-            gameState.eventLog.unshift({ message, type, month: gameState.month, year: gameState.year });
-            if (gameState.eventLog.length > 20) gameState.eventLog.pop();
-            document.getElementById('eventLogContent').innerHTML = gameState.eventLog.map(e => `<div class="log-entry ${e.type}">${e.message}</div>`).join('');
+            const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            gameState.eventLog.unshift({
+                message,
+                type,
+                month: gameState.month,
+                year: gameState.year,
+                monthName: monthNames[gameState.month - 1]
+            });
+            if (gameState.eventLog.length > 50) gameState.eventLog.pop(); // Guardar más eventos
+
+            // Mostrar solo los últimos 10 en el panel lateral
+            const recentEvents = gameState.eventLog.slice(0, 10);
+            document.getElementById('eventLogContent').innerHTML = recentEvents.map(e => `
+                <div class="log-entry ${e.type}">
+                    <div class="log-entry-time">${e.monthName} ${e.year}</div>
+                    <div>${e.message}</div>
+                </div>
+            `).join('');
+        }
+
+        function showFullEventLog() {
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+            // Agrupar eventos por año
+            const eventsByYear = {};
+            gameState.eventLog.forEach(e => {
+                if (!eventsByYear[e.year]) eventsByYear[e.year] = [];
+                eventsByYear[e.year].push(e);
+            });
+
+            let html = `
+                <div style="max-height: 60vh; overflow-y: auto;">
+                    <div style="margin-bottom: 15px; padding: 10px; background: rgba(33,150,243,0.2); border-radius: 8px; text-align: center;">
+                        <span style="font-size: 1.2em;">📊</span>
+                        <span style="margin-left: 8px;">Total: ${gameState.eventLog.length} eventos registrados</span>
+                    </div>
+            `;
+
+            // Mostrar eventos agrupados por año (más reciente primero)
+            const years = Object.keys(eventsByYear).sort((a, b) => b - a);
+            for (const year of years) {
+                html += `
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-weight: bold; color: #2196F3; margin-bottom: 10px; padding: 5px 10px; background: rgba(33,150,243,0.2); border-radius: 8px;">
+                            📅 Año ${year}
+                        </div>
+                `;
+
+                for (const event of eventsByYear[year]) {
+                    const typeColors = {
+                        positive: '#4CAF50',
+                        negative: '#f44336',
+                        special: '#9c27b0',
+                        warning: '#ff9800',
+                        info: '#2196F3',
+                        neutral: '#888'
+                    };
+                    const color = typeColors[event.type] || typeColors.neutral;
+
+                    html += `
+                        <div style="padding: 10px 15px; margin-bottom: 6px; background: rgba(0,0,0,0.3); border-radius: 8px; border-left: 3px solid ${color};">
+                            <div style="font-size: 0.75em; color: #888; margin-bottom: 3px;">
+                                ${monthNames[event.month - 1]} ${event.year}
+                            </div>
+                            <div style="color: #fff;">${event.message}</div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            document.getElementById('modalTitle').textContent = '📋 Historial Completo de Eventos';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = `
+                <button class="btn" onclick="closeModal()">Cerrar</button>
+            `;
+            document.getElementById('gameModal').classList.add('active');
         }
 
         // ==================== SISTEMA DE TRABAJOS MEJORADO ====================
@@ -4557,10 +5240,10 @@
                 // FÍSICO
                 { id: 'gym_session', icon: '🏋️', name: gameState.gymMembership ? 'Entrenar (Membresía)' : 'Ir al gimnasio',
                   category: 'fisico', cost: gameState.gymMembership ? 0 : 25,
-                  tooltip: `Mejora fuerza (+2) y resistencia (+2). ${gameState.gymMembership ? 'Membresía activa.' : ''}`,
+                  tooltip: `💪 Fuerza +2 | 🏃 Resistencia +2 | ❤️ Salud +5 | 🧘 Estrés -10. Fitness actual: ${Math.round((gameState.personalStats.strength + gameState.personalStats.endurance) / 2)}%${gameState.gymMembership ? ' (Membresía activa)' : ''}`,
                   effects: { health: 5, energy: -30 }, bonusStrength: 2, bonusEndurance: 2 },
                 { id: 'gym_membership', icon: '💳', name: 'Membresía Gym (3 meses)', category: 'fisico', cost: 150,
-                  tooltip: 'Entrena gratis por 3 meses. ¡Ahorra dinero!',
+                  tooltip: '¡3 meses de entrenamiento gratis! Mejora: Fuerza, Resistencia, Salud, reduce Estrés. Accede a mejores trabajos físicos.',
                   effects: {}, special: 'gym_membership', hidden: gameState.gymMembership },
                 { id: 'doctor', icon: '🏥', name: 'Ir al doctor', category: 'fisico', cost: 100,
                   tooltip: 'Chequeo médico. Mejora tu salud (+15).',
@@ -4774,6 +5457,13 @@
         }
 
         function doActivity(activityId) {
+            // Verificar si descansó este turno (bloquea actividades excepto rest que tiene su propia lógica)
+            if (gameState.hasRestedThisTurn && activityId !== 'rest') {
+                showNotification('⚠️ Ya descansaste este mes. Pasa el mes para continuar.', 'warning');
+                closeModal();
+                return;
+            }
+
             let result = { icon: '✅', title: 'Actividad completada', message: '', changes: [] };
             const ps = gameState.physicalStats;
             const sk = gameState.skills;
@@ -4801,12 +5491,24 @@
                     break;
 
                 case 'rest':
-                    gameState.energy += 30;
-                    gameState.health += 5;
-                    gameState.stress -= 15;
-                    result = { icon: '😴', title: 'Día de descanso', message: 'Dormiste hasta tarde. Se sintió bien.',
-                        changes: [{ text: '+30 Energía', positive: true }, { text: '+5 Salud', positive: true }, { text: '-15 Estrés', positive: true }] };
-                    addLog('Descansaste todo el día en casa', 'neutral');
+                    // Verificar si ya descansó este turno
+                    if (gameState.hasRestedThisTurn) {
+                        showNotification('Ya descansaste este mes. Pasa el mes para poder descansar de nuevo.', 'warning');
+                        closeModal();
+                        return;
+                    }
+                    // Mostrar advertencia antes de descansar
+                    if (!confirm('⚠️ AVISO: Si descansas, termina tu turno.\n\nNo podrás hacer otras actividades hasta pasar el mes.\n\n¿Deseas descansar?')) {
+                        closeModal();
+                        return;
+                    }
+                    gameState.hasRestedThisTurn = true;
+                    gameState.energy += 40;
+                    gameState.health += 10;
+                    gameState.stress -= 20;
+                    result = { icon: '😴', title: 'Día de descanso completo', message: 'Dormiste hasta tarde y te relajaste todo el día. No puedes hacer más actividades este mes.',
+                        changes: [{ text: '+40 Energía', positive: true }, { text: '+10 Salud', positive: true }, { text: '-20 Estrés', positive: true }, { text: '⚠️ Turno terminado', positive: false }] };
+                    addLog('Descansaste todo el día. Turno terminado.', 'neutral');
                     break;
 
                 case 'meditate':
@@ -4820,25 +5522,131 @@
 
                 // ========== GIMNASIO ==========
                 case 'gym_session':
+                    const prevStrength = ps.strength;
+                    const prevEndurance = ps.endurance;
                     if (!gameState.gymMembership) gameState.money -= 25;
                     gameState.health += 5;
                     gameState.energy -= 20;
                     gameState.stress -= 10;
                     ps.strength = Math.min(100, ps.strength + 2);
                     ps.endurance = Math.min(100, ps.endurance + 2);
-                    result = { icon: '💪', title: '¡Buen entrenamiento!', message: `Te sientes más fuerte. Fuerza: ${ps.strength}, Resistencia: ${ps.endurance}`,
+
+                    // Calcular nivel de fitness general
+                    const fitnessLevel = Math.round((ps.strength + ps.endurance) / 2);
+                    const fitnessCategory = fitnessLevel < 30 ? 'Principiante' :
+                                           fitnessLevel < 50 ? 'Intermedio' :
+                                           fitnessLevel < 70 ? 'Avanzado' :
+                                           fitnessLevel < 90 ? 'Atleta' : 'Elite';
+                    const fitnessEmoji = fitnessLevel < 30 ? '🌱' :
+                                        fitnessLevel < 50 ? '💪' :
+                                        fitnessLevel < 70 ? '🏋️' :
+                                        fitnessLevel < 90 ? '🥇' : '🏆';
+
+                    // Mensaje detallado con progreso visual
+                    const strengthBar = `${'█'.repeat(Math.floor(ps.strength / 10))}${'░'.repeat(10 - Math.floor(ps.strength / 10))}`;
+                    const enduranceBar = `${'█'.repeat(Math.floor(ps.endurance / 10))}${'░'.repeat(10 - Math.floor(ps.endurance / 10))}`;
+
+                    result = {
+                        icon: '💪',
+                        title: '¡Buen entrenamiento!',
+                        message: `
+                            <div style="text-align: left;">
+                                <div style="margin-bottom: 10px; padding: 10px; background: rgba(76,175,80,0.2); border-radius: 8px; text-align: center;">
+                                    <span style="font-size: 1.5em;">${fitnessEmoji}</span>
+                                    <div style="font-weight: bold;">Nivel Fitness: ${fitnessCategory}</div>
+                                    <div style="font-size: 0.85em; color: #4CAF50;">${fitnessLevel}%</div>
+                                </div>
+                                <div style="margin-bottom: 8px;">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span>💪 Fuerza:</span>
+                                        <span>${prevStrength} → <strong style="color: #4CAF50;">${ps.strength}</strong></span>
+                                    </div>
+                                    <div style="font-family: monospace; color: #f44336;">${strengthBar}</div>
+                                </div>
+                                <div style="margin-bottom: 8px;">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span>🏃 Resistencia:</span>
+                                        <span>${prevEndurance} → <strong style="color: #4CAF50;">${ps.endurance}</strong></span>
+                                    </div>
+                                    <div style="font-family: monospace; color: #2196F3;">${enduranceBar}</div>
+                                </div>
+                                <div style="font-size: 0.85em; color: #888; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333;">
+                                    🎯 Beneficios: Acceso a trabajos físicos mejor pagados, mejor salud, mayor atractivo.
+                                </div>
+                            </div>
+                        `,
                         changes: [{ text: '+2 Fuerza', positive: true }, { text: '+2 Resistencia', positive: true }, { text: '+5 Salud', positive: true },
-                                 { text: '-20 Energía', positive: false }, gameState.gymMembership ? null : { text: '-S/ 25', positive: false }].filter(Boolean) };
-                    addLog('Entrenaste en el gimnasio 💪', 'positive');
+                                 { text: '-20 Energía', positive: false }, gameState.gymMembership ? null : { text: '-S/ 25', positive: false }].filter(Boolean)
+                    };
+                    addLog(`Entrenaste en el gimnasio 💪 (Fuerza: ${ps.strength}, Resistencia: ${ps.endurance})`, 'positive');
                     break;
 
                 case 'gym_membership':
                     gameState.money -= 150;
                     gameState.gymMembership = true;
                     gameState.gymMonthsLeft = 3;
-                    result = { icon: '🏋️', title: '¡Membresía activada!', message: 'Tienes 3 meses de gimnasio. Ahora puedes entrenar gratis.',
-                        changes: [{ text: '3 meses de gym', positive: true }, { text: '-S/ 150', positive: false }] };
-                    addLog('Compraste membresía de gimnasio por 3 meses', 'info');
+
+                    // Calcular nivel actual de fitness
+                    const currentFitness = Math.round((ps.strength + ps.endurance) / 2);
+
+                    result = {
+                        icon: '🏋️',
+                        title: '¡Membresía de Gimnasio Activada!',
+                        message: `
+                            <div style="text-align: left;">
+                                <div style="background: rgba(76,175,80,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                    <div style="text-align: center; margin-bottom: 10px;">
+                                        <span style="font-size: 2em;">💳</span>
+                                        <div style="font-size: 1.2em; font-weight: bold; margin-top: 5px;">3 Meses de Acceso</div>
+                                    </div>
+                                </div>
+                                <div style="font-weight: bold; margin-bottom: 10px;">¿Qué mejora el gimnasio?</div>
+                                <div style="display: grid; gap: 8px; font-size: 0.9em;">
+                                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(244,67,54,0.1); border-radius: 6px;">
+                                        <span style="font-size: 1.3em;">💪</span>
+                                        <div>
+                                            <div style="font-weight: bold;">Fuerza +2 por sesión</div>
+                                            <div style="font-size: 0.85em; color: #888;">Acceso a trabajos físicos mejor pagados</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(33,150,243,0.1); border-radius: 6px;">
+                                        <span style="font-size: 1.3em;">🏃</span>
+                                        <div>
+                                            <div style="font-weight: bold;">Resistencia +2 por sesión</div>
+                                            <div style="font-size: 0.85em; color: #888;">Menos cansancio en trabajos físicos</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(76,175,80,0.1); border-radius: 6px;">
+                                        <span style="font-size: 1.3em;">❤️</span>
+                                        <div>
+                                            <div style="font-weight: bold;">Salud +5 por sesión</div>
+                                            <div style="font-size: 0.85em; color: #888;">Mejor salud general y menos enfermedades</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(233,30,99,0.1); border-radius: 6px;">
+                                        <span style="font-size: 1.3em;">✨</span>
+                                        <div>
+                                            <div style="font-weight: bold;">Mejor apariencia física</div>
+                                            <div style="font-size: 0.85em; color: #888;">Mayor atractivo y mejores relaciones</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(156,39,176,0.1); border-radius: 6px;">
+                                        <span style="font-size: 1.3em;">🧘</span>
+                                        <div>
+                                            <div style="font-weight: bold;">Estrés -10 por sesión</div>
+                                            <div style="font-size: 0.85em; color: #888;">El ejercicio reduce el estrés</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="text-align: center; margin-top: 15px; padding: 10px; background: rgba(255,193,7,0.2); border-radius: 8px;">
+                                    <div style="font-size: 0.85em;">Tu nivel fitness actual: <strong>${currentFitness}%</strong></div>
+                                    <div style="font-size: 0.8em; color: #888;">Entrena regularmente para subir de nivel</div>
+                                </div>
+                            </div>
+                        `,
+                        changes: [{ text: '3 meses de gym gratis', positive: true }, { text: '-S/ 150', positive: false }]
+                    };
+                    addLog('Compraste membresía de gimnasio por 3 meses 🏋️', 'info');
                     break;
 
                 // ========== APARIENCIA ==========
@@ -5046,11 +5854,24 @@
         function openStudyMenu() {
             if (gameState.studying) {
                 const study = EDUCATION_OPTIONS[gameState.studying];
-                document.getElementById('modalTitle').textContent = '📚 Estudios';
+                const totalCost = study.costPerMonth * study.duration;
+                const progress = Math.round((1 - gameState.studyMonthsLeft / study.duration) * 100);
+
+                document.getElementById('modalTitle').textContent = '📚 Estudios en Curso';
                 document.getElementById('modalBody').innerHTML = `
-                    <p>Actualmente estudiando: <strong>${study.name}</strong></p>
-                    <p>Meses restantes: <strong>${gameState.studyMonthsLeft}</strong></p>
-                    <p>Costo mensual: <strong>${formatMoney(study.costPerMonth)}</strong></p>
+                    <div style="background: rgba(33,150,243,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 10px;">📖 ${study.name}</div>
+                        <div style="color: #aaa; font-size: 0.9em; margin-bottom: 10px;">${study.description || ''}</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                            <div>⏱️ Meses restantes: <strong>${gameState.studyMonthsLeft}</strong></div>
+                            <div>💰 Costo mensual: <strong>${formatMoney(study.costPerMonth)}</strong></div>
+                            <div>📊 Progreso: <strong>${progress}%</strong></div>
+                            <div>🎯 Resultado: <strong>${study.result}</strong></div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); height: 10px; border-radius: 5px; margin-top: 10px; overflow: hidden;">
+                            <div style="background: #4CAF50; height: 100%; width: ${progress}%; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
                 `;
                 document.getElementById('modalOptions').innerHTML = `
                     <button class="modal-option" onclick="dropOutStudy()">
@@ -5062,40 +5883,146 @@
                 return;
             }
 
-            let html = '<p style="margin-bottom: 15px;">Educación actual: <strong>' + (gameState.education) + '</strong></p>';
+            // Mostrar nivel educativo actual con mejor formato
+            const educationLabels = {
+                'primaria_incompleta': '❌ Primaria Incompleta',
+                'primaria': '📕 Primaria Completa',
+                'secundaria_incompleta': '📙 Secundaria Incompleta',
+                'secundaria': '📗 Secundaria Completa',
+                'tecnico': '📘 Técnico',
+                'universidad': '🎓 Universidad',
+                'maestria': '🎓 Maestría'
+            };
 
-            for (let studyId in EDUCATION_OPTIONS) {
-                const study = EDUCATION_OPTIONS[studyId];
-                if (study.duration === 0) continue;
+            const currentEduLabel = educationLabels[gameState.education] || gameState.education;
+            const needsBasicEducation = ['primaria_incompleta', 'secundaria_incompleta', 'primaria'].includes(gameState.education);
 
-                let canStudy = true;
-                let reason = '';
+            let html = `
+                <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center;">
+                    <div style="font-size: 0.85em; color: #888;">Nivel educativo actual</div>
+                    <div style="font-size: 1.1em; font-weight: bold; margin-top: 5px;">${currentEduLabel}</div>
+                </div>
+            `;
 
-                if (studyId.includes('instituto') && gameState.education === 'tecnico') {
-                    canStudy = false;
-                    reason = 'Ya tienes estudios técnicos';
-                }
-                if (studyId.includes('uni') && ['universidad', 'maestria'].includes(gameState.education)) {
-                    canStudy = false;
-                    reason = 'Ya tienes estudios universitarios';
-                }
-                if (study.costPerMonth > gameState.money) {
-                    canStudy = false;
-                    reason = 'No tienes para la matrícula';
-                }
+            // Mostrar advertencia si necesita educación básica
+            if (needsBasicEducation && gameState.education !== 'primaria') {
+                html += `
+                    <div style="background: rgba(255,152,0,0.2); border: 1px solid #FF9800; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5em;">⚠️</span>
+                            <div>
+                                <div style="font-weight: bold; color: #FF9800;">Educación Básica Incompleta</div>
+                                <div style="font-size: 0.85em; color: #aaa;">Debes completar tu educación básica para acceder a carreras técnicas o universitarias.</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Agrupar opciones por categoría
+            const categories = {
+                basica: { name: '📚 Educación Básica', description: 'Completa tu primaria o secundaria' },
+                superior: { name: '🎓 Educación Superior', description: 'Carreras técnicas y universitarias' },
+                posgrado: { name: '👨‍🎓 Posgrado', description: 'Maestrías y especializaciones' }
+            };
+
+            for (const [catId, catInfo] of Object.entries(categories)) {
+                const optionsInCategory = Object.entries(EDUCATION_OPTIONS).filter(([id, opt]) => opt.category === catId);
+                if (optionsInCategory.length === 0) continue;
+
+                // Verificar si hay opciones disponibles en esta categoría
+                const hasAvailableOptions = optionsInCategory.some(([studyId, study]) => {
+                    return canStudyOption(studyId, study).can;
+                });
 
                 html += `
-                    <button class="modal-option" onclick="${canStudy ? `startStudying('${studyId}')` : ''}" ${canStudy ? '' : 'disabled'}>
-                        <div class="option-title">${study.name}</div>
-                        <div class="option-desc">${canStudy ? `${study.duration} meses | ${formatMoney(study.costPerMonth)}/mes` : reason}</div>
-                    </button>
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="font-weight: bold; color: #ddd;">${catInfo.name}</div>
+                            ${hasAvailableOptions ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7em;">Disponible</span>' : ''}
+                        </div>
+                        <div style="color: #888; font-size: 0.8em; margin-bottom: 10px;">${catInfo.description}</div>
                 `;
+
+                for (const [studyId, study] of optionsInCategory) {
+                    const check = canStudyOption(studyId, study);
+                    const totalCost = study.costPerMonth * study.duration;
+                    const years = Math.floor(study.duration / 12);
+                    const months = study.duration % 12;
+                    const durationText = years > 0 ? `${years} año${years > 1 ? 's' : ''}${months > 0 ? ` ${months}m` : ''}` : `${months} meses`;
+
+                    html += `
+                        <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px; opacity: ${check.can ? '1' : '0.5'}; border-left: 3px solid ${check.can ? '#4CAF50' : '#666'};">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: bold;">${study.name}</div>
+                                    <div style="color: #aaa; font-size: 0.8em; margin-top: 3px;">${study.description || ''}</div>
+                                    <div style="display: flex; gap: 15px; font-size: 0.85em; margin-top: 8px; flex-wrap: wrap;">
+                                        <span style="color: #2196F3;">⏱️ ${durationText}</span>
+                                        <span style="color: #FF9800;">💰 ${formatMoney(study.costPerMonth)}/mes</span>
+                                        <span style="color: #9C27B0;">💵 Total: ${formatMoney(totalCost)}</span>
+                                    </div>
+                                    ${study.difficulty ? `<div style="font-size: 0.75em; color: #f44336; margin-top: 5px;">⚠️ Dificultad ${study.difficulty} - Requiere examen de admisión</div>` : ''}
+                                    ${study.prestige ? `<div style="font-size: 0.75em; color: #9C27B0; margin-top: 5px;">⭐ Universidad de prestigio - Mejores oportunidades laborales</div>` : ''}
+                                    ${!check.can ? `<div style="color: #f44336; font-size: 0.8em; margin-top: 5px; font-weight: bold;">❌ ${check.reason}</div>` : ''}
+                                </div>
+                                <div style="margin-left: 10px;">
+                                    ${check.can ? `<button class="btn btn-small btn-success" onclick="startStudying('${studyId}')">Inscribirse</button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
             }
 
             document.getElementById('modalTitle').textContent = '📚 Estudiar';
             document.getElementById('modalBody').innerHTML = html;
             document.getElementById('modalOptions').innerHTML = '';
             document.getElementById('gameModal').classList.add('active');
+        }
+
+        // Helper function to check if player can study an option
+        function canStudyOption(studyId, study) {
+            let can = true;
+            let reason = '';
+
+            // Verificar requisitos de educación previa
+            if (study.requiresEducation) {
+                const reqEdu = Array.isArray(study.requiresEducation) ? study.requiresEducation : [study.requiresEducation];
+                if (!reqEdu.includes(gameState.education)) {
+                    can = false;
+                    if (study.category === 'basica') {
+                        reason = 'No necesitas este nivel';
+                    } else {
+                        reason = 'Requiere: ' + reqEdu.join(' o ');
+                    }
+                }
+            }
+
+            // Verificar si ya tiene este nivel o superior
+            const educationOrder = ['primaria_incompleta', 'primaria', 'secundaria_incompleta', 'secundaria', 'tecnico', 'universidad', 'maestria'];
+            const currentIndex = educationOrder.indexOf(gameState.education);
+            const resultIndex = educationOrder.indexOf(study.result);
+
+            if (resultIndex <= currentIndex && study.result !== 'maestria') {
+                can = false;
+                reason = 'Ya tienes este nivel educativo o superior';
+            }
+
+            // Para maestría, verificar que tenga universidad
+            if (studyId === 'maestria' && gameState.education !== 'universidad') {
+                can = false;
+                reason = 'Requiere título universitario';
+            }
+
+            // Verificar dinero
+            if (study.costPerMonth > gameState.money) {
+                can = false;
+                reason = 'No tienes dinero para la matrícula';
+            }
+
+            return { can, reason };
         }
 
         function startStudying(studyId) {
@@ -6861,46 +7788,75 @@
                 html += `</div>`;
             }
 
-            // Mostrar negocios disponibles
+            // Mostrar negocios disponibles por nivel de inversión
             html += `<h4 style="margin-bottom: 10px;">🛒 Negocios Disponibles</h4>`;
-            html += `<p style="color: #888; font-size: 0.85em; margin-bottom: 10px;">Invierte en tu propio negocio y genera ingresos pasivos.</p>`;
+            html += `<p style="color: #888; font-size: 0.85em; margin-bottom: 15px;">Invierte en tu propio negocio y genera ingresos pasivos. Ordenados por nivel de inversión.</p>`;
 
-            // Agrupar por categoría
-            const categories = {
-                comida: { name: 'Comida', icon: '🍽️' },
-                retail: { name: 'Retail', icon: '🛒' },
-                servicios: { name: 'Servicios', icon: '🔧' },
-                tecnologia: { name: 'Tecnología', icon: '💻' },
-                educacion: { name: 'Educación', icon: '📚' },
-                comercio: { name: 'Comercio', icon: '📦' }
-            };
+            // Definir niveles de inversión
+            const investmentTiers = [
+                { id: 'micro', name: 'Micro Negocios', range: '< S/ 5,000', min: 0, max: 5000, color: '#4CAF50', icon: '🌱' },
+                { id: 'pequeno', name: 'Negocios Pequeños', range: 'S/ 5K - 15K', min: 5000, max: 15000, color: '#8BC34A', icon: '🌿' },
+                { id: 'mediano', name: 'Negocios Medianos', range: 'S/ 15K - 50K', min: 15000, max: 50000, color: '#FFC107', icon: '🌳' },
+                { id: 'grande', name: 'Negocios Grandes', range: 'S/ 50K - 150K', min: 50000, max: 150000, color: '#FF9800', icon: '🏛️' },
+                { id: 'muy_grande', name: 'Negocios Muy Grandes', range: 'S/ 150K - 500K', min: 150000, max: 500000, color: '#F44336', icon: '🏢' },
+                { id: 'mega', name: 'Mega Negocios', range: '> S/ 500K', min: 500000, max: Infinity, color: '#9C27B0', icon: '👑' }
+            ];
 
+            // Agrupar negocios por tier
             html += `<div>`;
 
-            for (const [catId, catInfo] of Object.entries(categories)) {
-                const businessesInCat = Object.entries(BUSINESSES).filter(([id, b]) => b.category === catId);
-                if (businessesInCat.length === 0) continue;
+            for (const tier of investmentTiers) {
+                const businessesInTier = Object.entries(BUSINESSES).filter(([id, b]) =>
+                    b.investmentCost >= tier.min && b.investmentCost < tier.max
+                ).sort((a, b) => a[1].investmentCost - b[1].investmentCost);
 
-                html += `<div style="margin-bottom: 15px;">`;
-                html += `<div style="color: #888; font-size: 0.9em; margin-bottom: 8px;">${catInfo.icon} ${catInfo.name}</div>`;
+                if (businessesInTier.length === 0) continue;
 
-                for (const [businessId, business] of businessesInCat) {
+                const canAffordAny = businessesInTier.some(([id]) => canStartBusiness(id).can);
+
+                html += `
+                    <div style="margin-bottom: 20px; border: 1px solid ${tier.color}30; border-radius: 12px; padding: 12px; background: ${tier.color}10;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid ${tier.color}30;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 1.3em;">${tier.icon}</span>
+                                <div>
+                                    <div style="font-weight: bold; color: ${tier.color};">${tier.name}</div>
+                                    <div style="font-size: 0.75em; color: #888;">${tier.range} | ${businessesInTier.length} opciones</div>
+                                </div>
+                            </div>
+                            ${canAffordAny ? '<span style="background: #4CAF50; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7em;">Accesible</span>' : ''}
+                        </div>
+                `;
+
+                for (const [businessId, business] of businessesInTier) {
                     const check = canStartBusiness(businessId);
                     const revenueRange = `${formatMoney(business.monthlyRevenue[0])} - ${formatMoney(business.monthlyRevenue[1])}`;
+                    const roi = Math.round(((business.monthlyRevenue[0] + business.monthlyRevenue[1]) / 2 - business.monthlyExpenses) / business.investmentCost * 100);
+
+                    // Calcular empleados máximos
+                    const maxEmps = business.employeesMax;
+                    const reqText = Object.entries(business.requirements || {}).map(([k, v]) => `${k}: ${v}`).join(', ') || 'Ninguno';
 
                     html += `
-                        <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px; opacity: ${check.can ? '1' : '0.6'};">
+                        <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-bottom: 8px; opacity: ${check.can ? '1' : '0.5'}; border-left: 3px solid ${tier.color};">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div style="flex: 1;">
-                                    <div style="font-weight: bold;">${business.icon} ${business.name}</div>
-                                    <div style="color: #aaa; font-size: 0.8em;">${business.description}</div>
-                                    <div style="font-size: 0.85em; margin-top: 5px;">
-                                        <span style="color: #f44336;">💵 Inversión: ${formatMoney(business.investmentCost)}</span>
-                                        <span style="margin-left: 10px; color: #4CAF50;">📈 ${revenueRange}/mes</span>
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <span style="font-size: 1.3em;">${business.icon}</span>
+                                        <span style="font-weight: bold;">${business.name}</span>
+                                        <span style="background: ${tier.color}40; color: ${tier.color}; padding: 1px 6px; border-radius: 8px; font-size: 0.7em;">ROI ~${roi}%</span>
                                     </div>
-                                    ${!check.can ? `<div style="color: #f44336; font-size: 0.8em; margin-top: 3px;">❌ ${check.reason}</div>` : ''}
+                                    <div style="color: #aaa; font-size: 0.8em; margin-top: 3px;">${business.description}</div>
+                                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; font-size: 0.8em; margin-top: 8px;">
+                                        <span style="color: #f44336;">💵 ${formatMoney(business.investmentCost)}</span>
+                                        <span style="color: #4CAF50;">📈 ${revenueRange}/mes</span>
+                                        <span style="color: #FF9800;">💸 Gastos: ${formatMoney(business.monthlyExpenses)}/mes</span>
+                                        <span style="color: #2196F3;">👥 Max: ${maxEmps} empleados</span>
+                                    </div>
+                                    <div style="font-size: 0.75em; color: #666; margin-top: 5px;">Requisitos: ${reqText}</div>
+                                    ${!check.can ? `<div style="color: #f44336; font-size: 0.8em; margin-top: 5px; font-weight: bold;">❌ ${check.reason}</div>` : ''}
                                 </div>
-                                <div>
+                                <div style="margin-left: 10px;">
                                     ${check.can ? `
                                         <button class="btn btn-small btn-success" onclick="startBusiness('${businessId}')">Invertir</button>
                                     ` : ''}
@@ -7113,6 +8069,12 @@
         // ==================== PASO DEL TIEMPO ====================
 
         function passMonth() {
+            // Resetear el flag de descanso del turno
+            gameState.hasRestedThisTurn = false;
+
+            // Recopilar eventos del mes para el resumen
+            const monthlyEvents = [];
+
             // Si estás en la cárcel, pasar tiempo
             if (gameState.prisonMonths > 0) {
                 gameState.prisonMonths--;
@@ -7454,9 +8416,9 @@
                 gameState.happiness -= 2;
             }
 
-            // Recuperación natural
-            gameState.energy += 10;
-            gameState.stress -= 5;
+            // Recuperación natural (aumentada)
+            gameState.energy += 25; // Recuperación significativa al pasar mes
+            gameState.stress -= 8;
             gameState.health -= 0.5;
 
             // ========== PASO DEL TIEMPO ==========
@@ -7515,9 +8477,113 @@
             // Crear resumen del mes
             const monthName = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][gameState.month-1];
             const moneyChange = gameState.money - prevMoney;
+
+            // Mostrar popup de resumen mensual
+            showMonthlySummary(monthName, moneyChange);
+        }
+
+        function showMonthlySummary(monthName, moneyChange) {
+            const moneyClass = moneyChange >= 0 ? '#4CAF50' : '#f44336';
             const moneyText = moneyChange >= 0 ? `+${formatMoney(moneyChange)}` : formatMoney(moneyChange);
 
-            showNotification(`${monthName} ${gameState.year} | ${moneyText}`, moneyChange >= 0 ? 'info' : 'warning');
+            // Obtener recomendaciones del consejero
+            const adviceList = getAdvice();
+            const topAdvice = adviceList.slice(0, 3);
+
+            // Obtener últimos eventos del log
+            const recentEvents = gameState.eventLog.slice(-5).reverse();
+
+            // Estado de alerta (prisión, enfermedad, etc.)
+            let alertHtml = '';
+            if (gameState.prisonMonths > 0) {
+                alertHtml += `<div style="background: rgba(244,67,54,0.3); padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #f44336;">
+                    🔒 <strong>EN PRISIÓN</strong> - ${gameState.prisonMonths} meses restantes
+                </div>`;
+            }
+            if (gameState.hasHIV) {
+                alertHtml += `<div style="background: rgba(156,39,176,0.3); padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #9c27b0;">
+                    🏥 <strong>VIH+</strong> - Tratamiento requerido
+                </div>`;
+            }
+            if (gameState.hasCancer) {
+                alertHtml += `<div style="background: rgba(244,67,54,0.3); padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #f44336;">
+                    🏥 <strong>Cáncer: ${gameState.hasCancer}</strong> - Tratamiento en curso
+                </div>`;
+            }
+            if (gameState.health < 30) {
+                alertHtml += `<div style="background: rgba(255,152,0,0.3); padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff9800;">
+                    ⚠️ <strong>SALUD CRÍTICA</strong> - Visita al doctor urgente
+                </div>`;
+            }
+            if (gameState.money < 0) {
+                alertHtml += `<div style="background: rgba(244,67,54,0.3); padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #f44336;">
+                    💸 <strong>DEUDA</strong> - Saldo negativo: ${formatMoney(gameState.money)}
+                </div>`;
+            }
+
+            const html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2.5em;">📅</div>
+                    <div style="font-size: 1.8em; font-weight: bold;">${monthName} ${gameState.year}</div>
+                    <div style="font-size: 1.3em; color: ${moneyClass}; margin-top: 10px;">${moneyText}</div>
+                </div>
+
+                ${alertHtml}
+
+                <!-- Stats rápidos -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; text-align: center;">
+                    <div style="background: rgba(76,175,80,0.1); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 1.5em;">❤️</div>
+                        <div style="font-size: 0.9em; color: #888;">Salud</div>
+                        <div style="font-weight: bold; color: ${gameState.health < 30 ? '#f44336' : '#4CAF50'};">${Math.floor(gameState.health)}%</div>
+                    </div>
+                    <div style="background: rgba(255,193,7,0.1); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 1.5em;">😊</div>
+                        <div style="font-size: 0.9em; color: #888;">Felicidad</div>
+                        <div style="font-weight: bold;">${Math.floor(gameState.happiness)}%</div>
+                    </div>
+                    <div style="background: rgba(33,150,243,0.1); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 1.5em;">⚡</div>
+                        <div style="font-size: 0.9em; color: #888;">Energía</div>
+                        <div style="font-weight: bold;">${Math.floor(gameState.energy)}%</div>
+                    </div>
+                    <div style="background: rgba(244,67,54,0.1); padding: 10px; border-radius: 8px;">
+                        <div style="font-size: 1.5em;">😰</div>
+                        <div style="font-size: 0.9em; color: #888;">Estrés</div>
+                        <div style="font-weight: bold; color: ${gameState.stress > 70 ? '#f44336' : 'inherit'};">${Math.floor(gameState.stress)}%</div>
+                    </div>
+                </div>
+
+                <!-- Eventos recientes -->
+                ${recentEvents.length > 0 ? `
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">📋 Eventos del mes</div>
+                        <div style="max-height: 100px; overflow-y: auto;">
+                            ${recentEvents.map(e => `<div style="font-size: 0.85em; color: #aaa; margin-bottom: 5px;">${e.text}</div>`).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Recomendaciones -->
+                ${topAdvice.length > 0 ? `
+                    <div style="background: rgba(33,150,243,0.1); padding: 15px; border-radius: 10px; border-left: 3px solid #2196F3;">
+                        <div style="font-weight: bold; margin-bottom: 10px;">💡 Recomendaciones</div>
+                        ${topAdvice.map(a => `
+                            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-size: 1.2em;">${a.icon}</span>
+                                <span style="font-size: 0.9em; color: #ccc;">${a.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('modalTitle').textContent = '📊 Resumen del Mes';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = `
+                <button class="btn btn-success" onclick="closeModal()" style="width: 100%;">Continuar</button>
+            `;
+            document.getElementById('gameModal').classList.add('active');
         }
 
         // ==================== MISIONES DE ORIGEN ====================
@@ -8169,7 +9235,7 @@
                             <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
                                 <h4 style="color: #ff6b6b; margin-bottom: 10px;">🎭 Identidad</h4>
                                 <p><strong>Etnia:</strong> ${char.appearanceData.name}</p>
-                                <p><strong>Lugar de origen:</strong> ${char.locationData.name}</p>
+                                <p><strong>Lugar de origen:</strong> ${char.specificPlace} (${char.locationData.name})</p>
                                 <p><strong>Clase social origen:</strong> ${char.socialClassData.name}</p>
                                 <p><strong>Situación familiar:</strong> ${char.familySituationData.name}</p>
                             </div>
@@ -8262,7 +9328,7 @@
                     <div id="tab-vida" class="tab-content">
                         <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
                             <h4 style="color: #ff6b6b; margin-bottom: 10px;">📖 Resumen de Vida</h4>
-                            <p>Naciste en <strong>${char.locationData.name}</strong> en una familia de <strong>${char.socialClassData.name}</strong>.</p>
+                            <p>Naciste en <strong>${char.specificPlace}</strong> en una familia de <strong>${char.socialClassData.name}</strong>.</p>
                             <p>Tu situación familiar era: <strong>${char.familySituationData.name}</strong>.</p>
                             <p>Empezaste la vida con <strong>${formatMoney(char.startMoney)}</strong>.</p>
                             ${char.healthConditionData.name !== 'Sin condiciones' ? `<p>Naciste con <strong>${char.healthConditionData.name}</strong>.</p>` : ''}
@@ -8517,33 +9583,12 @@
         // ==================== MENÚ DE CACHUELOS ====================
 
         function openCachueloMenu() {
-            const ps = gameState.physicalStats;
-            const canDoPhysical = gameState.energy >= 25;
-
             let html = `
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="font-size: 2em;">💰</div>
-                    <div style="font-size: 1.1em; margin-top: 10px;">Elige cómo ganar dinero extra</div>
+                    <div style="font-size: 2em;">💼</div>
+                    <div style="font-size: 1.1em; margin-top: 10px;">Gana dinero extra con trabajos freelance</div>
+                    <div style="color: #888; font-size: 0.85em;">Responde preguntas de diferentes industrias y aprende mientras ganas</div>
                 </div>
-
-                <!-- Cachuelo físico -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; margin-bottom: 10px; opacity: ${canDoPhysical ? '1' : '0.5'};">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 2em;">🔨</span>
-                        <div>
-                            <div style="font-weight: bold;">Trabajo físico</div>
-                            <div style="color: #aaa; font-size: 0.85em;">Ayudar en mudanzas, cargar cosas, etc.</div>
-                            <div style="color: #4CAF50; font-size: 0.8em; margin-top: 3px;">
-                                💵 S/ 50-150 + bonus fuerza | ⚡ -25
-                            </div>
-                        </div>
-                    </div>
-                    <button class="btn ${canDoPhysical ? 'btn-success' : ''}" onclick="doActivity('side_hustle_physical')" ${canDoPhysical ? '' : 'disabled'}>
-                        Hacer
-                    </button>
-                </div>
-
-                <div style="color: #888; text-align: center; margin: 15px 0;">─ o trabaja freelance ─</div>
 
                 <!-- Botón para ir a Freelance -->
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: linear-gradient(135deg, rgba(33,150,243,0.2), rgba(156,39,176,0.2)); border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(33,150,243,0.3);">
@@ -8701,6 +9746,7 @@
                 subcategories: {
                     javascript: { name: "JavaScript", icon: "🟨" },
                     python: { name: "Python", icon: "🐍" },
+                    vba_excel: { name: "VBA y Excel", icon: "📊" },
                     general: { name: "General", icon: "🖥️" }
                 },
                 energyCost: 25,
@@ -8814,6 +9860,24 @@
                     { q: "¿Cómo se escribe un comentario?", options: ["// comentario", "# comentario", "/* comentario */", "-- comentario"], answer: 1, difficulty: 1 },
                     { q: "¿Qué es un diccionario en Python?", options: ["Lista ordenada", "Pares clave-valor", "Solo números", "Texto"], answer: 1, difficulty: 2 },
                     { q: "¿Qué framework web es popular en Python?", options: ["React", "Angular", "Django", "Vue"], answer: 2, difficulty: 2 }
+                ],
+                vba_excel: [
+                    { q: "¿Qué función de Excel suma valores?", options: ["SUMAR()", "SUMA()", "ADD()", "TOTAL()"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué hace la función BUSCARV?", options: ["Busca valores verticalmente en tabla", "Crea gráficos", "Ordena datos", "Formatea celdas"], answer: 0, difficulty: 1 },
+                    { q: "¿Cuál es la fórmula para promediar?", options: ["MEDIA()", "PROMEDIO()", "AVG()", "AVERAGE()"], answer: 1, difficulty: 1 },
+                    { q: "¿Qué hace SI() en Excel?", options: ["Suma condicionalmente", "Evalúa condición y retorna valor", "Busca texto", "Cuenta celdas"], answer: 1, difficulty: 1 },
+                    { q: "¿Cómo se inicia una macro en VBA?", options: ["Sub nombre()", "Function nombre()", "Macro nombre()", "Start nombre()"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué hace CONCATENAR o CONCAT?", options: ["Suma números", "Une textos", "Separa celdas", "Elimina espacios"], answer: 1, difficulty: 1 },
+                    { q: "¿Cuál es la referencia absoluta?", options: ["A1", "$A$1", "A$1", "Solo $A1"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué hace CONTAR.SI?", options: ["Suma con condición", "Cuenta celdas que cumplen condición", "Promedio con condición", "Busca valor"], answer: 1, difficulty: 2 },
+                    { q: "¿Cómo se declara una variable en VBA?", options: ["var x", "Dim x As", "let x =", "int x"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué función extrae parte de un texto?", options: ["CORTAR()", "EXTRAE() o MID()", "PARTE()", "TEXTO()"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué hace SUMAR.SI?", options: ["Suma todas las celdas", "Suma celdas que cumplen condición", "Cuenta celdas", "Promedia valores"], answer: 1, difficulty: 1 },
+                    { q: "¿Cuál es la función para buscar horizontal?", options: ["BUSCARV", "BUSCARH", "BUSCAR", "COINCIDIR"], answer: 1, difficulty: 2 },
+                    { q: "¿Qué hace el loop For...Next en VBA?", options: ["Bucle condicional", "Bucle con contador", "Función matemática", "Declaración de variable"], answer: 1, difficulty: 2 },
+                    { q: "¿Cómo se crea un rango con nombre?", options: ["Menú Fórmulas > Definir nombre", "Click derecho > Nombre", "Menú Datos > Rango", "No se puede"], answer: 0, difficulty: 2 },
+                    { q: "¿Qué hace INDEX y MATCH juntos?", options: ["Gráficos", "Búsqueda flexible más potente que BUSCARV", "Formato condicional", "Filtrar datos"], answer: 1, difficulty: 3 },
+                    { q: "¿Cómo se hace un comentario en VBA?", options: ["// comentario", "' comentario", "# comentario", "/* comentario */"], answer: 1, difficulty: 2 }
                 ],
                 general: [
                     { q: "¿Qué significa API?", options: ["Application Programming Interface", "Advanced Protocol Internet", "Automated Program Integration", "Application Process Input"], answer: 0, difficulty: 1 },
