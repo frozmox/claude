@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Perulandia RPG - Simulador de Vida</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <title>Perulandia - Simulador de Vida</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,224 +13,699 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a12;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
             color: #fff;
+            overflow-x: hidden;
         }
 
-        #game-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-        }
-
-        canvas {
-            max-width: 100%;
-            max-height: 100%;
-            z-index: 1;
-            position: relative;
-            display: block !important;
-        }
-
-        /* HUD Overlay */
-        #hud {
-            position: absolute;
+        /* ============ PANTALLA DE CARGA ============ */
+        #loading-screen {
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            padding: 10px 15px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        .hud-left, .hud-right {
-            pointer-events: auto;
-        }
-
-        .hud-left {
+            bottom: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             display: flex;
             flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        #loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-logo {
+            font-size: 3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500, #ff6b6b);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 2s ease infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% center; }
+            50% { background-position: 100% center; }
+            100% { background-position: 0% center; }
+        }
+
+        .loading-subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .loading-bar {
+            width: 250px;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffa500);
+            border-radius: 10px;
+            animation: loadingAnim 2s ease-in-out forwards;
+        }
+
+        @keyframes loadingAnim {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* ============ CREACION DE PERSONAJE ============ */
+        #char-creation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        #char-creation.active {
+            display: flex;
+        }
+
+        .creation-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .creation-card h1 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .creation-card .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1em;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            background: rgba(255,107,107,0.1);
+        }
+
+        .form-group select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,107,107,0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #aaa;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+
+        /* ============ TUTORIAL ============ */
+        #tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        #tutorial-overlay.active {
+            display: flex;
+        }
+
+        .tutorial-card {
+            background: linear-gradient(135deg, #1f1f3a 0%, #2a2a4a 100%);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .tutorial-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .tutorial-card h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .tutorial-card p {
+            color: #aaa;
+            line-height: 1.7;
+            margin-bottom: 25px;
+            font-size: 1.05em;
+        }
+
+        .tutorial-steps {
+            display: flex;
+            justify-content: center;
             gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .tutorial-step {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .tutorial-step.active {
+            background: #ff6b6b;
+            width: 30px;
+            border-radius: 5px;
+        }
+
+        /* ============ JUEGO PRINCIPAL ============ */
+        #game-screen {
+            display: none;
+            min-height: 100vh;
+        }
+
+        #game-screen.active {
+            display: block;
+        }
+
+        /* Header */
+        .game-header {
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .player-info {
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: rgba(0,0,0,0.6);
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
+            gap: 15px;
         }
 
         .player-avatar {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2em;
+            font-size: 1.5em;
+            font-weight: 600;
+            border: 3px solid rgba(255,255,255,0.2);
         }
 
-        .player-details {
-            display: flex;
-            flex-direction: column;
+        .player-details h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 2px;
         }
 
-        .player-name {
-            font-weight: bold;
-            font-size: 0.95em;
-        }
-
-        .player-date {
-            font-size: 0.75em;
+        .player-details span {
+            font-size: 0.85em;
             color: #888;
         }
 
-        .stat-bars {
+        .header-stats {
             display: flex;
-            flex-direction: column;
-            gap: 4px;
-            background: rgba(0,0,0,0.6);
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            min-width: 160px;
-        }
-
-        .stat-bar {
-            display: flex;
+            gap: 20px;
             align-items: center;
-            gap: 6px;
         }
 
-        .stat-icon {
-            font-size: 0.8em;
-            width: 18px;
-        }
-
-        .stat-fill-container {
-            flex: 1;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .stat-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-
-        .stat-fill.health { background: linear-gradient(90deg, #f44336, #ff5722); }
-        .stat-fill.happiness { background: linear-gradient(90deg, #ffc107, #ffeb3b); }
-        .stat-fill.energy { background: linear-gradient(90deg, #2196F3, #03a9f4); }
-        .stat-fill.stress { background: linear-gradient(90deg, #9c27b0, #e91e63); }
-
-        .stat-value {
-            font-size: 0.7em;
-            width: 28px;
-            text-align: right;
-            color: #aaa;
-        }
-
-        .hud-right {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: flex-end;
-        }
-
-        .money-display {
-            background: rgba(0,0,0,0.6);
-            padding: 8px 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(76,175,80,0.3);
+        .stat-item {
             display: flex;
             align-items: center;
             gap: 8px;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            border-radius: 12px;
         }
 
-        .money-amount {
+        .stat-item .icon {
             font-size: 1.2em;
-            font-weight: bold;
+        }
+
+        .stat-item .value {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .money-stat .value {
             color: #4CAF50;
         }
 
-        .time-display {
-            background: rgba(0,0,0,0.6);
-            padding: 8px 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center;
+        /* Main Content */
+        .game-content {
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            gap: 20px;
+            padding: 20px;
+            min-height: calc(100vh - 80px);
         }
 
-        .time-clock {
-            font-size: 1.3em;
-            font-weight: bold;
-            font-family: monospace;
-        }
-
-        .time-period {
-            font-size: 0.75em;
-            color: #888;
-        }
-
-        /* Bottom HUD */
-        #hud-bottom {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 10px 15px;
-            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+        /* Panel Izquierdo - Stats */
+        .left-panel {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            pointer-events: none;
-            z-index: 100;
+            flex-direction: column;
+            gap: 15px;
         }
 
-        .action-btn {
-            pointer-events: auto;
-            background: linear-gradient(135deg, rgba(255,107,107,0.8), rgba(238,90,90,0.8));
-            border: none;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 25px;
+        .panel-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .panel-card h4 {
             font-size: 0.9em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
+            color: #888;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-bar-item {
+            margin-bottom: 15px;
+        }
+
+        .stat-bar-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .stat-bar-header .label {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.9em;
         }
 
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        .stat-bar-header .value {
+            font-size: 0.85em;
+            color: #888;
         }
 
-        .action-btn.secondary {
-            background: linear-gradient(135deg, rgba(100,100,100,0.8), rgba(80,80,80,0.8));
+        .stat-bar-track {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        .action-btn.success {
-            background: linear-gradient(135deg, rgba(76,175,80,0.8), rgba(56,142,60,0.8));
+        .stat-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .stat-bar-fill.health { background: linear-gradient(90deg, #e74c3c, #ff6b6b); }
+        .stat-bar-fill.happiness { background: linear-gradient(90deg, #f39c12, #f1c40f); }
+        .stat-bar-fill.energy { background: linear-gradient(90deg, #3498db, #5dade2); }
+        .stat-bar-fill.stress { background: linear-gradient(90deg, #9b59b6, #a569bd); }
+
+        /* Objetivos */
+        .objective-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        .objective-item.completed {
+            border-left-color: #4CAF50;
+            opacity: 0.6;
+        }
+
+        .objective-icon {
+            font-size: 1.3em;
+        }
+
+        .objective-text {
+            flex: 1;
+            font-size: 0.9em;
+        }
+
+        .objective-check {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+        }
+
+        .objective-item.completed .objective-check {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        /* Centro - Mapa */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .location-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .location-header h2 {
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .time-display {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .time-display .clock {
+            font-size: 1.4em;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        .time-display .date {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        /* Mapa de Ubicaciones */
+        .map-container {
+            flex: 1;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            padding: 25px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 15px;
+            min-height: 450px;
+        }
+
+        .location-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .location-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--loc-color) 0%, transparent 100%);
+            opacity: 0.1;
+            transition: opacity 0.3s ease;
+        }
+
+        .location-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--loc-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .location-card:hover::before {
+            opacity: 0.2;
+        }
+
+        .location-card.current {
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.1);
+        }
+
+        .location-icon {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .location-name {
+            font-weight: 600;
+            font-size: 0.95em;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .location-desc {
+            font-size: 0.8em;
+            color: #888;
+            position: relative;
+            z-index: 1;
+        }
+
+        .location-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 0.7em;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Panel Derecho - Actividades */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .activity-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .activity-card:hover {
+            background: rgba(255,107,107,0.1);
+            border-color: rgba(255,107,107,0.3);
+            transform: translateX(5px);
+        }
+
+        .activity-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .activity-card.disabled:hover {
+            transform: none;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .activity-icon {
+            font-size: 1.5em;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .activity-effects {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .effect-tag {
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .effect-tag.positive { color: #4CAF50; background: rgba(76,175,80,0.15); }
+        .effect-tag.negative { color: #e74c3c; background: rgba(231,76,60,0.15); }
+        .effect-tag.neutral { color: #3498db; background: rgba(52,152,219,0.15); }
+
+        .activity-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        /* Log de Eventos */
+        .event-log {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85em;
+            border-left: 3px solid #666;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .event-item.positive { border-left-color: #4CAF50; }
+        .event-item.negative { border-left-color: #e74c3c; }
+        .event-item.special { border-left-color: #f1c40f; }
+        .event-item.info { border-left-color: #3498db; }
+
+        .event-time {
+            color: #666;
+            font-size: 0.8em;
+            white-space: nowrap;
         }
 
         /* Modal */
@@ -241,6 +716,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
             display: none;
             justify-content: center;
             align-items: center;
@@ -253,475 +729,173 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-radius: 15px;
+            background: linear-gradient(135deg, #1f1f3a 0%, #2a2a4a 100%);
+            border-radius: 20px;
             max-width: 500px;
             width: 100%;
             max-height: 80vh;
             overflow-y: auto;
             border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
 
         .modal-header {
-            padding: 20px;
+            padding: 25px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .modal-header h2 {
+        .modal-header h3 {
             font-size: 1.3em;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .modal-close {
-            background: none;
+            background: rgba(255,255,255,0.1);
             border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             color: #888;
-            font-size: 1.5em;
+            font-size: 1.2em;
             cursor: pointer;
-            padding: 5px;
-            line-height: 1;
+            transition: all 0.3s ease;
         }
 
         .modal-close:hover {
-            color: #fff;
+            background: rgba(255,107,107,0.2);
+            color: #ff6b6b;
         }
 
         .modal-body {
-            padding: 20px;
+            padding: 25px;
         }
 
-        .modal-actions {
-            padding: 15px 20px;
+        .modal-footer {
+            padding: 20px 25px;
             border-top: 1px solid rgba(255,255,255,0.1);
             display: flex;
             gap: 10px;
             justify-content: flex-end;
         }
 
-        /* Location menu */
-        .location-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
+        .modal-footer .btn {
+            width: auto;
+            padding: 12px 25px;
         }
 
-        .location-item {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-
-        .location-item:hover {
-            background: rgba(255,107,107,0.1);
-            border-color: rgba(255,107,107,0.3);
-            transform: translateY(-2px);
-        }
-
-        .location-item .icon {
-            font-size: 2em;
-            margin-bottom: 8px;
-        }
-
-        .location-item .name {
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-
-        .location-item .desc {
-            font-size: 0.75em;
-            color: #888;
-            margin-top: 4px;
-        }
-
-        /* Activity options */
-        .activity-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .activity-item {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 12px 15px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .activity-item:hover {
-            background: rgba(255,107,107,0.1);
-            border-color: rgba(255,107,107,0.3);
-        }
-
-        .activity-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .activity-icon {
-            font-size: 1.3em;
-        }
-
-        .activity-details h4 {
-            font-size: 0.95em;
-            margin-bottom: 2px;
-        }
-
-        .activity-details p {
-            font-size: 0.75em;
-            color: #888;
-        }
-
-        .activity-cost {
-            text-align: right;
-        }
-
-        .activity-cost .time {
-            font-size: 0.8em;
-            color: #2196F3;
-        }
-
-        .activity-cost .money {
-            font-size: 0.8em;
-            color: #4CAF50;
-        }
-
-        /* Notifications */
+        /* Notificaciones */
         #notifications {
             position: fixed;
-            top: 80px;
-            right: 15px;
+            top: 100px;
+            right: 20px;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            z-index: 500;
+            z-index: 999;
             pointer-events: none;
         }
 
         .notification {
             background: rgba(0,0,0,0.9);
-            border-radius: 10px;
-            padding: 12px 15px;
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInRight 0.3s ease;
             border-left: 4px solid #4CAF50;
-            animation: slideIn 0.3s ease;
-            max-width: 300px;
+            max-width: 350px;
         }
 
-        .notification.warning { border-left-color: #ff9800; }
-        .notification.error { border-left-color: #f44336; }
-        .notification.info { border-left-color: #2196F3; }
+        .notification.warning { border-left-color: #f39c12; }
+        .notification.error { border-left-color: #e74c3c; }
+        .notification.info { border-left-color: #3498db; }
 
-        @keyframes slideIn {
+        @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Mobile controls */
-        #mobile-controls {
-            display: none;
-            position: absolute;
-            bottom: 100px;
-            left: 20px;
-            z-index: 100;
-            pointer-events: auto;
+        .notification-icon {
+            font-size: 1.3em;
         }
 
-        .dpad {
-            width: 120px;
-            height: 120px;
-            position: relative;
-        }
-
-        .dpad-btn {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 1.2em;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dpad-btn:active {
-            background: rgba(255,107,107,0.5);
-        }
-
-        .dpad-up { top: 0; left: 40px; }
-        .dpad-down { bottom: 0; left: 40px; }
-        .dpad-left { top: 40px; left: 0; }
-        .dpad-right { top: 40px; right: 0; }
-
-        @media (max-width: 768px) {
-            #mobile-controls {
-                display: block;
-            }
-
-            .stat-bars {
-                min-width: 120px;
-            }
-
-            .money-display, .time-display {
-                padding: 6px 10px;
-            }
-
-            .money-amount {
-                font-size: 1em;
-            }
-        }
-
-        /* Loading screen */
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #0a0a12;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        #loading-screen h1 {
-            font-size: 2.5em;
-            background: linear-gradient(135deg, #ff6b6b, #ffa500);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-        }
-
-        #loading-screen p {
-            color: #888;
-            margin-bottom: 30px;
-        }
-
-        .loading-bar {
-            width: 200px;
-            height: 6px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .loading-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff6b6b, #ffa500);
-            width: 0%;
-            animation: loading 2s ease-in-out forwards;
-        }
-
-        @keyframes loading {
-            0% { width: 0%; }
-            50% { width: 70%; }
-            100% { width: 100%; }
-        }
-
-        /* Character creation screen */
-        #char-creation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1500;
-            padding: 20px;
-        }
-
-        #char-creation.active {
-            display: flex;
-        }
-
-        .creation-panel {
-            background: rgba(0,0,0,0.5);
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .creation-panel h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #ff6b6b, #ffa500);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .creation-panel .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 25px;
-        }
-
-        .creation-option {
-            margin-bottom: 20px;
-        }
-
-        .creation-option label {
-            display: block;
-            margin-bottom: 8px;
-            color: #aaa;
+        .notification-text {
             font-size: 0.9em;
         }
 
-        .creation-option input,
-        .creation-option select {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1em;
-        }
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .game-content {
+                grid-template-columns: 1fr;
+            }
 
-        .creation-option input:focus,
-        .creation-option select:focus {
-            outline: none;
-            border-color: #ff6b6b;
-        }
-
-        .start-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
-            border: none;
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .start-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255,107,107,0.4);
-        }
-
-        .random-btn {
-            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
-            margin-top: 10px;
-        }
-
-        /* Event log panel */
-        #event-log-panel {
-            position: absolute;
-            bottom: 80px;
-            right: 15px;
-            width: 280px;
-            max-height: 200px;
-            background: rgba(0,0,0,0.8);
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.1);
-            overflow: hidden;
-            z-index: 90;
-            pointer-events: auto;
-        }
-
-        .event-log-header {
-            padding: 8px 12px;
-            background: rgba(255,255,255,0.05);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .event-log-header h4 {
-            font-size: 0.85em;
-            color: #aaa;
-        }
-
-        .event-log-toggle {
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-
-        .event-log-content {
-            padding: 10px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-
-        .log-entry {
-            padding: 6px 8px;
-            margin-bottom: 5px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 5px;
-            font-size: 0.8em;
-            border-left: 2px solid #666;
-        }
-
-        .log-entry.positive { border-left-color: #4CAF50; }
-        .log-entry.negative { border-left-color: #f44336; }
-        .log-entry.special { border-left-color: #ffd700; }
-        .log-entry.info { border-left-color: #2196F3; }
-
-        @media (max-width: 768px) {
-            #event-log-panel {
+            .left-panel, .right-panel {
                 display: none;
             }
+
+            .header-stats {
+                display: none;
+            }
+        }
+
+        /* Animaciones */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
         }
     </style>
 </head>
 <body>
-    <!-- Loading Screen -->
+    <!-- Pantalla de Carga -->
     <div id="loading-screen">
-        <h1>PERULANDIA RPG</h1>
-        <p>Simulador de Vida Peruano</p>
+        <div class="loading-logo">PERULANDIA</div>
+        <div class="loading-subtitle">Simulador de Vida Peruano</div>
         <div class="loading-bar">
-            <div class="loading-fill"></div>
+            <div class="loading-progress"></div>
         </div>
     </div>
 
-    <!-- Character Creation -->
+    <!-- Creacion de Personaje -->
     <div id="char-creation">
-        <div class="creation-panel">
-            <h1>PERULANDIA RPG</h1>
-            <p class="subtitle">Crea tu personaje y comienza tu aventura en el Peru</p>
+        <div class="creation-card">
+            <h1>PERULANDIA</h1>
+            <p class="subtitle">Crea tu personaje y vive la experiencia peruana</p>
 
-            <div class="creation-option">
-                <label>Nombre</label>
-                <input type="text" id="char-name" placeholder="Tu nombre...">
+            <div class="form-group">
+                <label>Tu Nombre</label>
+                <input type="text" id="char-name" placeholder="Ingresa tu nombre...">
             </div>
 
-            <div class="creation-option">
+            <div class="form-group">
                 <label>Genero</label>
                 <select id="char-gender">
                     <option value="hombre">Hombre</option>
@@ -729,153 +903,200 @@
                 </select>
             </div>
 
-            <div class="creation-option">
-                <label>Lugar de Nacimiento</label>
+            <div class="form-group">
+                <label>Ciudad de Origen</label>
                 <select id="char-location">
-                    <option value="lima_media">Lima - Clase Media</option>
-                    <option value="lima_cono">Lima - Cono</option>
-                    <option value="lima_residencial">Lima - Zona Residencial</option>
-                    <option value="lima_asentamiento">Lima - Asentamiento Humano</option>
-                    <option value="provincia_grande">Provincia - Ciudad Grande</option>
-                    <option value="provincia_pequena">Provincia - Ciudad Pequena</option>
-                    <option value="sierra_rural">Sierra - Comunidad Rural</option>
-                    <option value="selva">Selva - Comunidad</option>
+                    <option value="lima_centro">Lima - Centro</option>
+                    <option value="lima_norte">Lima - Norte</option>
+                    <option value="lima_sur">Lima - Sur</option>
+                    <option value="arequipa">Arequipa</option>
+                    <option value="trujillo">Trujillo</option>
+                    <option value="cusco">Cusco</option>
+                    <option value="piura">Piura</option>
                 </select>
             </div>
 
-            <div class="creation-option">
-                <label>Clase Social</label>
+            <div class="form-group">
+                <label>Situacion Economica Inicial</label>
                 <select id="char-class">
-                    <option value="clase_media_baja">Clase Media-Baja</option>
-                    <option value="clase_baja">Clase Baja</option>
-                    <option value="clase_media">Clase Media</option>
-                    <option value="pobreza_extrema">Pobreza Extrema</option>
-                    <option value="clase_media_alta">Clase Media-Alta</option>
-                    <option value="clase_alta">Clase Alta</option>
+                    <option value="humilde">Familia Humilde (S/500)</option>
+                    <option value="trabajadora">Familia Trabajadora (S/2,000)</option>
+                    <option value="media">Clase Media (S/5,000)</option>
+                    <option value="acomodada">Familia Acomodada (S/15,000)</option>
                 </select>
             </div>
 
-            <button class="start-btn" onclick="startGame()">Comenzar Aventura</button>
-            <button class="start-btn random-btn" onclick="randomCharacter()">Personaje Aleatorio</button>
+            <button class="btn btn-primary" onclick="startGame()">Comenzar Mi Historia</button>
+            <button class="btn btn-secondary" onclick="randomCharacter()">Personaje Aleatorio</button>
         </div>
     </div>
 
-    <!-- Game Container -->
-    <div id="game-container">
-        <!-- HUD Top -->
-        <div id="hud">
-            <div class="hud-left">
-                <div class="player-info">
-                    <div class="player-avatar" id="player-avatar">M</div>
-                    <div class="player-details">
-                        <div class="player-name" id="player-name">Jugador</div>
-                        <div class="player-date" id="player-date">Enero 2024 - 18 anos</div>
-                    </div>
-                </div>
-                <div class="stat-bars">
-                    <div class="stat-bar">
-                        <span class="stat-icon">❤️</span>
-                        <div class="stat-fill-container">
-                            <div class="stat-fill health" id="health-bar" style="width: 100%"></div>
-                        </div>
-                        <span class="stat-value" id="health-value">100</span>
-                    </div>
-                    <div class="stat-bar">
-                        <span class="stat-icon">😊</span>
-                        <div class="stat-fill-container">
-                            <div class="stat-fill happiness" id="happiness-bar" style="width: 70%"></div>
-                        </div>
-                        <span class="stat-value" id="happiness-value">70</span>
-                    </div>
-                    <div class="stat-bar">
-                        <span class="stat-icon">⚡</span>
-                        <div class="stat-fill-container">
-                            <div class="stat-fill energy" id="energy-bar" style="width: 100%"></div>
-                        </div>
-                        <span class="stat-value" id="energy-value">100</span>
-                    </div>
-                    <div class="stat-bar">
-                        <span class="stat-icon">😰</span>
-                        <div class="stat-fill-container">
-                            <div class="stat-fill stress" id="stress-bar" style="width: 20%"></div>
-                        </div>
-                        <span class="stat-value" id="stress-value">20</span>
-                    </div>
-                </div>
+    <!-- Tutorial -->
+    <div id="tutorial-overlay">
+        <div class="tutorial-card">
+            <div class="tutorial-icon" id="tutorial-icon">🎮</div>
+            <h2 id="tutorial-title">Bienvenido a Perulandia</h2>
+            <p id="tutorial-text">En este juego vivirás la vida de un peruano común. Toma decisiones, trabaja, estudia, y construye tu futuro.</p>
+            <div class="tutorial-steps">
+                <div class="tutorial-step active"></div>
+                <div class="tutorial-step"></div>
+                <div class="tutorial-step"></div>
+                <div class="tutorial-step"></div>
             </div>
-            <div class="hud-right">
-                <div class="money-display">
-                    <span>S/</span>
-                    <span class="money-amount" id="money-amount">1,500</span>
-                </div>
-                <div class="time-display">
-                    <div class="time-clock" id="time-clock">08:00</div>
-                    <div class="time-period" id="time-period">Manana</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Event Log -->
-        <div id="event-log-panel">
-            <div class="event-log-header">
-                <h4>Eventos</h4>
-                <button class="event-log-toggle" onclick="toggleEventLog()">-</button>
-            </div>
-            <div class="event-log-content" id="event-log"></div>
-        </div>
-
-        <!-- Mobile D-Pad -->
-        <div id="mobile-controls">
-            <div class="dpad">
-                <button class="dpad-btn dpad-up" ontouchstart="movePlayer('up')" onmousedown="movePlayer('up')">↑</button>
-                <button class="dpad-btn dpad-down" ontouchstart="movePlayer('down')" onmousedown="movePlayer('down')">↓</button>
-                <button class="dpad-btn dpad-left" ontouchstart="movePlayer('left')" onmousedown="movePlayer('left')">←</button>
-                <button class="dpad-btn dpad-right" ontouchstart="movePlayer('right')" onmousedown="movePlayer('right')">→</button>
-            </div>
-        </div>
-
-        <!-- HUD Bottom -->
-        <div id="hud-bottom">
-            <button class="action-btn secondary" onclick="openInventory()">
-                <span>🎒</span>
-                <span>Inventario</span>
-            </button>
-            <button class="action-btn" onclick="interact()">
-                <span>👆</span>
-                <span>Interactuar</span>
-            </button>
-            <button class="action-btn success" onclick="passTime()">
-                <span>⏰</span>
-                <span>Pasar Tiempo</span>
-            </button>
+            <button class="btn btn-primary" onclick="nextTutorial()">Continuar</button>
         </div>
     </div>
 
-    <!-- Notifications -->
-    <div id="notifications"></div>
+    <!-- Juego Principal -->
+    <div id="game-screen">
+        <!-- Header -->
+        <header class="game-header">
+            <div class="player-info">
+                <div class="player-avatar" id="player-avatar">M</div>
+                <div class="player-details">
+                    <h3 id="player-name">Jugador</h3>
+                    <span id="player-age">18 años - Enero 2024</span>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item money-stat">
+                    <span class="icon">💰</span>
+                    <span class="value" id="header-money">S/ 2,000</span>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">❤️</span>
+                    <span class="value" id="header-health">100</span>
+                </div>
+                <div class="stat-item">
+                    <span class="icon">⚡</span>
+                    <span class="value" id="header-energy">100</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenido Principal -->
+        <main class="game-content">
+            <!-- Panel Izquierdo -->
+            <aside class="left-panel">
+                <div class="panel-card">
+                    <h4>Estado</h4>
+                    <div class="stat-bar-item">
+                        <div class="stat-bar-header">
+                            <span class="label">❤️ Salud</span>
+                            <span class="value" id="stat-health">100</span>
+                        </div>
+                        <div class="stat-bar-track">
+                            <div class="stat-bar-fill health" id="bar-health" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-bar-item">
+                        <div class="stat-bar-header">
+                            <span class="label">😊 Felicidad</span>
+                            <span class="value" id="stat-happiness">70</span>
+                        </div>
+                        <div class="stat-bar-track">
+                            <div class="stat-bar-fill happiness" id="bar-happiness" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-bar-item">
+                        <div class="stat-bar-header">
+                            <span class="label">⚡ Energia</span>
+                            <span class="value" id="stat-energy">100</span>
+                        </div>
+                        <div class="stat-bar-track">
+                            <div class="stat-bar-fill energy" id="bar-energy" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-bar-item">
+                        <div class="stat-bar-header">
+                            <span class="label">😰 Estres</span>
+                            <span class="value" id="stat-stress">20</span>
+                        </div>
+                        <div class="stat-bar-track">
+                            <div class="stat-bar-fill stress" id="bar-stress" style="width: 20%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <h4>Objetivos Actuales</h4>
+                    <div id="objectives-list">
+                        <div class="objective-item">
+                            <span class="objective-icon">💼</span>
+                            <span class="objective-text">Conseguir tu primer trabajo</span>
+                            <span class="objective-check"></span>
+                        </div>
+                        <div class="objective-item">
+                            <span class="objective-icon">🏠</span>
+                            <span class="objective-text">Ahorrar S/5,000</span>
+                            <span class="objective-check"></span>
+                        </div>
+                        <div class="objective-item">
+                            <span class="objective-icon">📚</span>
+                            <span class="objective-text">Inscribirte en un instituto</span>
+                            <span class="objective-check"></span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Panel Central - Mapa -->
+            <section class="center-panel">
+                <div class="location-header">
+                    <h2><span id="current-location-icon">🏠</span> <span id="current-location-name">Tu Hogar</span></h2>
+                    <div class="time-display">
+                        <span class="clock" id="game-time">08:00</span>
+                        <span class="date" id="game-date">Lunes, 1 Enero 2024</span>
+                    </div>
+                </div>
+
+                <div class="map-container" id="map-container">
+                    <!-- Las ubicaciones se generan dinamicamente -->
+                </div>
+            </section>
+
+            <!-- Panel Derecho -->
+            <aside class="right-panel">
+                <div class="panel-card">
+                    <h4>Acciones Disponibles</h4>
+                    <div class="activity-list" id="activity-list">
+                        <!-- Se genera dinamicamente -->
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <h4>Eventos Recientes</h4>
+                    <div class="event-log" id="event-log">
+                        <!-- Se genera dinamicamente -->
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
 
     <!-- Modal -->
     <div class="modal-overlay" id="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modal-title">Titulo</h2>
+                <h3 id="modal-title">Titulo</h3>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body" id="modal-body"></div>
-            <div class="modal-actions" id="modal-actions"></div>
+            <div class="modal-footer" id="modal-footer"></div>
         </div>
     </div>
 
+    <!-- Notificaciones -->
+    <div id="notifications"></div>
+
     <script>
-        // ==================== GAME STATE ====================
+        // ==================== ESTADO DEL JUEGO ====================
         const gameState = {
             character: {
                 name: 'Jugador',
                 gender: 'hombre',
-                location: 'lima_media',
-                socialClass: 'clase_media_baja',
-                age: 18,
-                appearance: 'mestizo'
+                origin: 'lima_centro',
+                age: 18
             },
             stats: {
                 health: 100,
@@ -883,441 +1104,383 @@
                 energy: 100,
                 stress: 20
             },
-            money: 1500,
-            date: { month: 1, year: 2024 },
-            time: { hour: 8, minute: 0 },
+            money: 2000,
+            date: { day: 1, month: 1, year: 2024, hour: 8 },
             currentLocation: 'home',
             job: null,
-            education: 'secundaria_completa',
-            events: [],
-            inventory: []
+            education: 'secundaria',
+            skills: {},
+            objectives: [
+                { id: 'first_job', text: 'Conseguir tu primer trabajo', icon: '💼', completed: false },
+                { id: 'save_5000', text: 'Ahorrar S/5,000', icon: '🏠', completed: false },
+                { id: 'enroll_institute', text: 'Inscribirte en un instituto', icon: '📚', completed: false }
+            ],
+            events: []
         };
 
-        // ==================== LOCATIONS DATA ====================
+        // ==================== UBICACIONES ====================
         const LOCATIONS = {
             home: {
-                name: 'Tu Casa',
+                name: 'Tu Hogar',
                 icon: '🏠',
-                x: 400, y: 300,
-                color: 0x4CAF50,
-                activities: ['sleep', 'eat', 'relax', 'study_home']
+                color: '#4CAF50',
+                desc: 'Descansa y recupera energia',
+                activities: ['sleep', 'eat_home', 'relax', 'study_home']
             },
-            work: {
-                name: 'Zona de Trabajo',
+            work_zone: {
+                name: 'Zona Laboral',
                 icon: '🏢',
-                x: 600, y: 200,
-                color: 0x2196F3,
-                activities: ['work', 'job_search']
+                color: '#2196F3',
+                desc: 'Busca trabajo o trabaja',
+                activities: ['work', 'job_search', 'freelance']
             },
             university: {
-                name: 'Universidad/Instituto',
+                name: 'Instituto/Universidad',
                 icon: '🎓',
-                x: 200, y: 200,
-                color: 0x9C27B0,
-                activities: ['study', 'enroll']
+                color: '#9C27B0',
+                desc: 'Estudia y mejora tus habilidades',
+                activities: ['study', 'enroll', 'library']
             },
             market: {
-                name: 'Mercado/Tienda',
+                name: 'Mercado/Centro Comercial',
                 icon: '🛒',
-                x: 200, y: 400,
-                color: 0xFF9800,
-                activities: ['buy_food', 'buy_items']
+                color: '#FF9800',
+                desc: 'Compra comida y articulos',
+                activities: ['buy_food', 'buy_clothes', 'buy_electronics']
+            },
+            hospital: {
+                name: 'Hospital/Clinica',
+                icon: '🏥',
+                color: '#E91E63',
+                desc: 'Atencion medica',
+                activities: ['checkup', 'treatment', 'pharmacy']
             },
             bank: {
                 name: 'Banco',
                 icon: '🏦',
-                x: 600, y: 400,
-                color: 0x3F51B5,
-                activities: ['savings', 'loan', 'investments']
-            },
-            hospital: {
-                name: 'Hospital/Posta',
-                icon: '🏥',
-                x: 100, y: 300,
-                color: 0xE91E63,
-                activities: ['checkup', 'treatment']
-            },
-            park: {
-                name: 'Parque',
-                icon: '🌳',
-                x: 700, y: 300,
-                color: 0x8BC34A,
-                activities: ['exercise', 'socialize', 'relax_park']
+                color: '#607D8B',
+                desc: 'Servicios financieros',
+                activities: ['savings', 'loan', 'pay_bills']
             },
             plaza: {
-                name: 'Plaza Central',
-                icon: '⛲',
-                x: 400, y: 150,
-                color: 0x795548,
-                activities: ['socialize', 'events', 'street_food']
+                name: 'Plaza/Parque',
+                icon: '🌳',
+                color: '#8BC34A',
+                desc: 'Socializa y relajate',
+                activities: ['walk', 'exercise', 'meet_people', 'street_food']
+            },
+            entertainment: {
+                name: 'Centro de Entretenimiento',
+                icon: '🎬',
+                color: '#FF5722',
+                desc: 'Diversion y ocio',
+                activities: ['cinema', 'restaurant', 'nightclub']
+            },
+            gym: {
+                name: 'Gimnasio',
+                icon: '💪',
+                color: '#795548',
+                desc: 'Mejora tu salud fisica',
+                activities: ['workout', 'yoga', 'swimming']
             }
         };
 
-        // ==================== ACTIVITIES DATA ====================
+        // ==================== ACTIVIDADES ====================
         const ACTIVITIES = {
-            sleep: { name: 'Dormir', icon: '😴', time: 8, energy: 80, stress: -20, cost: 0 },
-            eat: { name: 'Comer en casa', icon: '🍽️', time: 1, energy: 20, health: 5, cost: 15 },
-            relax: { name: 'Relajarse', icon: '📺', time: 2, happiness: 15, stress: -10, energy: -5, cost: 0 },
-            study_home: { name: 'Estudiar en casa', icon: '📚', time: 3, energy: -15, stress: 10, cost: 0 },
-            work: { name: 'Trabajar', icon: '💼', time: 8, energy: -40, stress: 25, money: 50, cost: 0 },
-            job_search: { name: 'Buscar trabajo', icon: '🔍', time: 3, energy: -20, stress: 15, cost: 15 },
-            study: { name: 'Asistir a clases', icon: '📖', time: 4, energy: -25, stress: 15, cost: 100 },
-            enroll: { name: 'Matricularse', icon: '✍️', time: 2, cost: 500 },
-            buy_food: { name: 'Comprar comida', icon: '🛒', time: 1, cost: 50 },
-            buy_items: { name: 'Comprar items', icon: '🎁', time: 1, cost: 100 },
-            savings: { name: 'Ver ahorros', icon: '💰', time: 1, cost: 0 },
-            loan: { name: 'Solicitar prestamo', icon: '📝', time: 2, cost: 0 },
-            investments: { name: 'Invertir', icon: '📈', time: 1, cost: 0 },
-            checkup: { name: 'Chequeo medico', icon: '🩺', time: 2, health: 20, cost: 50 },
-            treatment: { name: 'Tratamiento', icon: '💊', time: 3, health: 40, cost: 200 },
-            exercise: { name: 'Hacer ejercicio', icon: '🏃', time: 2, health: 15, energy: -25, happiness: 10, stress: -15, cost: 0 },
-            socialize: { name: 'Socializar', icon: '👥', time: 2, happiness: 20, energy: -10, cost: 20 },
-            relax_park: { name: 'Pasear', icon: '🚶', time: 1, happiness: 10, stress: -10, cost: 0 },
-            events: { name: 'Ver eventos', icon: '📅', time: 1, cost: 0 },
-            street_food: { name: 'Comer en la calle', icon: '🌮', time: 1, energy: 15, happiness: 10, health: -5, cost: 10 }
+            // Hogar
+            sleep: { name: 'Dormir', icon: '😴', time: 8, effects: { energy: 80, stress: -30 }, cost: 0 },
+            eat_home: { name: 'Comer en casa', icon: '🍳', time: 1, effects: { energy: 20, health: 5 }, cost: 15 },
+            relax: { name: 'Ver TV / Relajarse', icon: '📺', time: 2, effects: { happiness: 15, stress: -15, energy: -5 }, cost: 0 },
+            study_home: { name: 'Estudiar en casa', icon: '📚', time: 3, effects: { energy: -15, stress: 10 }, cost: 0, skill: 'knowledge' },
+
+            // Trabajo
+            work: { name: 'Trabajar', icon: '💼', time: 8, effects: { energy: -40, stress: 20 }, cost: 0, earnings: true },
+            job_search: { name: 'Buscar trabajo', icon: '🔍', time: 3, effects: { energy: -15, stress: 10 }, cost: 10 },
+            freelance: { name: 'Trabajo freelance', icon: '💻', time: 4, effects: { energy: -25, stress: 15, money: 80 }, cost: 0 },
+
+            // Educacion
+            study: { name: 'Asistir a clases', icon: '📖', time: 4, effects: { energy: -20, stress: 15 }, cost: 50, skill: 'education' },
+            enroll: { name: 'Inscribirse', icon: '✍️', time: 2, effects: {}, cost: 500 },
+            library: { name: 'Ir a la biblioteca', icon: '📚', time: 3, effects: { energy: -10, stress: -5 }, cost: 0, skill: 'knowledge' },
+
+            // Compras
+            buy_food: { name: 'Comprar comida', icon: '🥬', time: 1, effects: { energy: 10 }, cost: 50 },
+            buy_clothes: { name: 'Comprar ropa', icon: '👕', time: 2, effects: { happiness: 15 }, cost: 150 },
+            buy_electronics: { name: 'Comprar electronico', icon: '📱', time: 1, effects: { happiness: 25 }, cost: 500 },
+
+            // Salud
+            checkup: { name: 'Chequeo medico', icon: '🩺', time: 2, effects: { health: 20 }, cost: 80 },
+            treatment: { name: 'Tratamiento', icon: '💊', time: 3, effects: { health: 50 }, cost: 250 },
+            pharmacy: { name: 'Comprar medicinas', icon: '💉', time: 1, effects: { health: 15 }, cost: 40 },
+
+            // Banco
+            savings: { name: 'Revisar ahorros', icon: '💰', time: 1, effects: {}, cost: 0 },
+            loan: { name: 'Solicitar prestamo', icon: '📝', time: 2, effects: {}, cost: 0 },
+            pay_bills: { name: 'Pagar servicios', icon: '📄', time: 1, effects: { stress: -10 }, cost: 100 },
+
+            // Plaza
+            walk: { name: 'Pasear', icon: '🚶', time: 1, effects: { happiness: 10, stress: -10 }, cost: 0 },
+            exercise: { name: 'Ejercicio al aire libre', icon: '🏃', time: 2, effects: { health: 15, energy: -20, happiness: 10, stress: -15 }, cost: 0 },
+            meet_people: { name: 'Conocer gente', icon: '👥', time: 2, effects: { happiness: 20, energy: -10 }, cost: 20 },
+            street_food: { name: 'Comer en la calle', icon: '🌮', time: 1, effects: { energy: 15, happiness: 10, health: -5 }, cost: 12 },
+
+            // Entretenimiento
+            cinema: { name: 'Ir al cine', icon: '🎬', time: 3, effects: { happiness: 25, stress: -20, energy: -5 }, cost: 25 },
+            restaurant: { name: 'Comer en restaurante', icon: '🍽️', time: 2, effects: { happiness: 20, energy: 15, health: 5 }, cost: 45 },
+            nightclub: { name: 'Salir de fiesta', icon: '🎉', time: 5, effects: { happiness: 35, energy: -40, stress: -25, health: -10 }, cost: 80 },
+
+            // Gimnasio
+            workout: { name: 'Entrenamiento', icon: '🏋️', time: 2, effects: { health: 20, energy: -30, stress: -15, happiness: 10 }, cost: 30 },
+            yoga: { name: 'Yoga/Meditacion', icon: '🧘', time: 1, effects: { stress: -25, happiness: 15, energy: -10 }, cost: 20 },
+            swimming: { name: 'Natacion', icon: '🏊', time: 2, effects: { health: 25, energy: -25, happiness: 15 }, cost: 25 }
         };
 
-        // ==================== PHASER GAME ====================
-        let game;
-        let player;
-        let cursors;
-        let locationSprites = {};
-        let currentNearLocation = null;
-
-        const config = {
-            type: Phaser.CANVAS,
-            width: 800,
-            height: 600,
-            parent: 'game-container',
-            backgroundColor: '#1a1a2e',
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { y: 0 },
-                    debug: false
-                }
-            },
-            scene: {
-                preload: preload,
-                create: create,
-                update: update
-            },
-            scale: {
-                mode: Phaser.Scale.FIT,
-                autoCenter: Phaser.Scale.CENTER_BOTH
-            },
-            render: {
-                pixelArt: false,
-                antialias: true
-            }
+        // ==================== TRABAJOS ====================
+        const JOBS = {
+            mesero: { name: 'Mesero', salary: 50, requirements: {}, stress: 15 },
+            cajero: { name: 'Cajero', salary: 55, requirements: {}, stress: 12 },
+            vendedor: { name: 'Vendedor', salary: 60, requirements: {}, stress: 18 },
+            repartidor: { name: 'Repartidor', salary: 65, requirements: {}, stress: 20 },
+            asistente: { name: 'Asistente Administrativo', salary: 80, requirements: { education: 'tecnico' }, stress: 15 },
+            programador_jr: { name: 'Programador Junior', salary: 120, requirements: { education: 'tecnico', skill_tech: 30 }, stress: 20 },
+            contador: { name: 'Contador', salary: 150, requirements: { education: 'universitario' }, stress: 18 }
         };
 
-        function preload() {
-            // No external assets - all graphics created with Phaser shapes
-            console.log('Preload completado - sin assets externos');
+        let tutorialStep = 0;
+        const tutorialContent = [
+            { icon: '🎮', title: 'Bienvenido a Perulandia', text: 'En este juego vivirás la vida de un peruano común. Toma decisiones, trabaja, estudia, y construye tu futuro. ¡Tu destino está en tus manos!' },
+            { icon: '🗺️', title: 'Explora la Ciudad', text: 'Haz clic en las diferentes ubicaciones del mapa para moverte por la ciudad. Cada lugar tiene actividades únicas que puedes realizar.' },
+            { icon: '📊', title: 'Cuida tus Estadísticas', text: 'Mantén tu salud, energía y felicidad altas. El estrés afecta tu rendimiento. ¡Equilibra trabajo y descanso!' },
+            { icon: '🎯', title: 'Cumple Objetivos', text: 'Completa los objetivos para progresar. Consigue trabajo, ahorra dinero, estudia y mejora tu vida. ¡Buena suerte!' }
+        ];
+
+        // ==================== INICIALIZACION ====================
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('char-creation').classList.add('active');
+            }, 2500);
+        };
+
+        function randomCharacter() {
+            const maleNames = ['Carlos', 'Jose', 'Luis', 'Miguel', 'Juan', 'Pedro', 'Diego', 'Andres', 'Marco', 'Fernando'];
+            const femaleNames = ['Maria', 'Ana', 'Rosa', 'Carmen', 'Lucia', 'Sofia', 'Valentina', 'Isabella', 'Camila', 'Daniela'];
+
+            const gender = Math.random() > 0.5 ? 'hombre' : 'mujer';
+            const names = gender === 'hombre' ? maleNames : femaleNames;
+            const name = names[Math.floor(Math.random() * names.length)];
+
+            document.getElementById('char-name').value = name;
+            document.getElementById('char-gender').value = gender;
+
+            const locations = ['lima_centro', 'lima_norte', 'arequipa', 'cusco'];
+            document.getElementById('char-location').value = locations[Math.floor(Math.random() * locations.length)];
+
+            const classes = ['humilde', 'trabajadora', 'media'];
+            document.getElementById('char-class').value = classes[Math.floor(Math.random() * classes.length)];
         }
 
-        function create() {
-            const scene = this;
-            console.log('Phaser scene create() iniciado');
+        function startGame() {
+            const name = document.getElementById('char-name').value || 'Jugador';
+            const gender = document.getElementById('char-gender').value;
+            const origin = document.getElementById('char-location').value;
+            const socialClass = document.getElementById('char-class').value;
 
-            // Create solid background first
-            const bg = this.add.rectangle(400, 300, 800, 600, 0x1a1a2e);
-            bg.setDepth(-10);
+            gameState.character.name = name;
+            gameState.character.gender = gender;
+            gameState.character.origin = origin;
 
-            // Create ground pattern
-            const graphics = this.add.graphics();
-            graphics.setDepth(-5);
+            const classMoney = {
+                humilde: 500,
+                trabajadora: 2000,
+                media: 5000,
+                acomodada: 15000
+            };
+            gameState.money = classMoney[socialClass];
 
-            // Draw grid pattern for ground
-            graphics.lineStyle(1, 0x3a3a5a, 0.5);
-            for (let x = 0; x < 800; x += 50) {
-                graphics.lineBetween(x, 0, x, 600);
+            document.getElementById('char-creation').classList.remove('active');
+            document.getElementById('tutorial-overlay').classList.add('active');
+
+            updateTutorial();
+        }
+
+        function updateTutorial() {
+            const content = tutorialContent[tutorialStep];
+            document.getElementById('tutorial-icon').textContent = content.icon;
+            document.getElementById('tutorial-title').textContent = content.title;
+            document.getElementById('tutorial-text').textContent = content.text;
+
+            document.querySelectorAll('.tutorial-step').forEach((step, i) => {
+                step.classList.toggle('active', i === tutorialStep);
+            });
+        }
+
+        function nextTutorial() {
+            tutorialStep++;
+            if (tutorialStep >= tutorialContent.length) {
+                document.getElementById('tutorial-overlay').classList.remove('active');
+                document.getElementById('game-screen').classList.add('active');
+                initGame();
+            } else {
+                updateTutorial();
             }
-            for (let y = 0; y < 600; y += 50) {
-                graphics.lineBetween(0, y, 800, y);
-            }
+        }
 
-            // Add some floor decoration
-            graphics.fillStyle(0x2a2a4a, 0.3);
-            for (let x = 25; x < 800; x += 100) {
-                for (let y = 25; y < 600; y += 100) {
-                    graphics.fillCircle(x, y, 3);
-                }
-            }
+        function initGame() {
+            renderMap();
+            updateUI();
+            addEvent(`¡Bienvenido a Perulandia, ${gameState.character.name}!`, 'special');
+            addEvent(`Comienzas tu vida en ${getOriginName(gameState.character.origin)}`, 'info');
+            goToLocation('home');
+        }
 
-            // Create location buildings
+        function getOriginName(origin) {
+            const names = {
+                lima_centro: 'Lima Centro',
+                lima_norte: 'Lima Norte',
+                lima_sur: 'Lima Sur',
+                arequipa: 'Arequipa',
+                trujillo: 'Trujillo',
+                cusco: 'Cusco',
+                piura: 'Piura'
+            };
+            return names[origin] || 'Peru';
+        }
+
+        // ==================== RENDER ====================
+        function renderMap() {
+            const container = document.getElementById('map-container');
+            container.innerHTML = '';
+
             Object.keys(LOCATIONS).forEach(locId => {
                 const loc = LOCATIONS[locId];
+                const card = document.createElement('div');
+                card.className = `location-card ${gameState.currentLocation === locId ? 'current' : ''}`;
+                card.style.setProperty('--loc-color', loc.color);
+                card.onclick = () => goToLocation(locId);
 
-                // Building shadow
-                const shadow = this.add.rectangle(loc.x + 5, loc.y + 5, 70, 70, 0x000000, 0.3);
-                shadow.setDepth(0);
+                card.innerHTML = `
+                    <span class="location-icon">${loc.icon}</span>
+                    <span class="location-name">${loc.name}</span>
+                    <span class="location-desc">${loc.desc}</span>
+                    ${gameState.currentLocation === locId ? '<span class="location-badge">Aquí</span>' : ''}
+                `;
 
-                // Building
-                const building = this.add.rectangle(loc.x, loc.y, 70, 70, loc.color);
-                building.setStrokeStyle(2, 0xffffff, 0.5);
-                building.setDepth(1);
-
-                // Icon
-                const icon = this.add.text(loc.x, loc.y - 10, loc.icon, {
-                    fontSize: '28px'
-                }).setOrigin(0.5);
-                icon.setDepth(2);
-
-                // Name
-                const nameText = this.add.text(loc.x, loc.y + 25, loc.name, {
-                    fontSize: '10px',
-                    color: '#ffffff',
-                    backgroundColor: 'rgba(0,0,0,0.7)',
-                    padding: { x: 4, y: 2 }
-                }).setOrigin(0.5);
-                nameText.setDepth(2);
-
-                locationSprites[locId] = { building, icon, name: nameText, x: loc.x, y: loc.y };
+                container.appendChild(card);
             });
-
-            console.log('Locations creadas:', Object.keys(locationSprites).length);
-
-            // Create player
-            player = this.add.container(400, 350);
-            player.setDepth(10);
-
-            // Player shadow
-            const playerShadow = this.add.ellipse(0, 20, 28, 10, 0x000000, 0.4);
-            player.add(playerShadow);
-
-            // Player body
-            const playerBody = this.add.rectangle(0, 0, 26, 38, 0xff6b6b);
-            playerBody.setStrokeStyle(2, 0xee5a5a);
-            player.add(playerBody);
-
-            // Player head
-            const playerHead = this.add.circle(0, -24, 12, 0xffcc80);
-            playerHead.setStrokeStyle(2, 0xe6b86a);
-            player.add(playerHead);
-
-            // Player hair
-            const playerHair = this.add.arc(0, -28, 12, Phaser.Math.DegToRad(180), Phaser.Math.DegToRad(360), false, 0x333333);
-            player.add(playerHair);
-
-            // Player eyes
-            const leftEye = this.add.circle(-4, -25, 2, 0x000000);
-            const rightEye = this.add.circle(4, -25, 2, 0x000000);
-            player.add(leftEye);
-            player.add(rightEye);
-
-            // Smile
-            const smile = this.add.arc(0, -21, 4, Phaser.Math.DegToRad(0), Phaser.Math.DegToRad(180), false, 0x000000);
-            player.add(smile);
-
-            // Add physics to player
-            this.physics.world.enable(player);
-            player.body.setCollideWorldBounds(true);
-            player.body.setSize(26, 38);
-
-            // Player indicator arrow (above player)
-            const arrow = this.add.triangle(400, 280, 0, 12, 6, 0, 12, 12, 0x4CAF50);
-            arrow.setOrigin(0.5);
-            arrow.setDepth(11);
-            this.tweens.add({
-                targets: arrow,
-                y: 275,
-                duration: 500,
-                yoyo: true,
-                repeat: -1
-            });
-            player.arrow = arrow;
-
-            console.log('Player creado en posición:', player.x, player.y);
-
-            // Input
-            cursors = this.input.keyboard.createCursorKeys();
-
-            // WASD keys
-            this.wasd = {
-                up: this.input.keyboard.addKey('W'),
-                down: this.input.keyboard.addKey('S'),
-                left: this.input.keyboard.addKey('A'),
-                right: this.input.keyboard.addKey('D')
-            };
-
-            // Space for interaction
-            this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-            this.spaceKey.on('down', interact);
-
-            // Location indicator text
-            this.locationText = this.add.text(400, 570, '', {
-                fontSize: '14px',
-                color: '#ffffff',
-                backgroundColor: 'rgba(0,0,0,0.7)',
-                padding: { x: 10, y: 5 }
-            }).setOrigin(0.5);
-            this.locationText.setDepth(100);
-
-            // Instructions text
-            const instructions = this.add.text(400, 30, 'Usa WASD o flechas para moverte | ESPACIO para interactuar', {
-                fontSize: '12px',
-                color: '#888888',
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                padding: { x: 10, y: 5 }
-            }).setOrigin(0.5);
-            instructions.setDepth(100);
-
-            console.log('Phaser scene create() completado');
         }
 
-        function update() {
-            if (!player || !player.body) return;
+        function renderActivities() {
+            const container = document.getElementById('activity-list');
+            const location = LOCATIONS[gameState.currentLocation];
+            container.innerHTML = '';
 
-            const speed = 200;
-            player.body.setVelocity(0);
-
-            // Movement
-            if (cursors.left.isDown || this.wasd.left.isDown) {
-                player.body.setVelocityX(-speed);
-            } else if (cursors.right.isDown || this.wasd.right.isDown) {
-                player.body.setVelocityX(speed);
-            }
-
-            if (cursors.up.isDown || this.wasd.up.isDown) {
-                player.body.setVelocityY(-speed);
-            } else if (cursors.down.isDown || this.wasd.down.isDown) {
-                player.body.setVelocityY(speed);
-            }
-
-            // Update player arrow position to follow player
-            if (player.arrow) {
-                player.arrow.x = player.x;
-                // Keep base y relative to player, the tween handles the bounce
-                if (!player.arrow.baseY || player.arrow.baseY !== player.y - 70) {
-                    player.arrow.baseY = player.y - 70;
-                }
-            }
-
-            // Check proximity to locations
-            let nearLocation = null;
-            let minDist = 60;
-
-            Object.keys(locationSprites).forEach(locId => {
-                const loc = locationSprites[locId];
-                const dist = Phaser.Math.Distance.Between(player.x, player.y, loc.x, loc.y);
-
-                if (dist < minDist) {
-                    nearLocation = locId;
-                    minDist = dist;
-                }
-
-                // Visual feedback
-                if (dist < 60) {
-                    loc.building.setStrokeStyle(3, 0xffd700, 1);
-                } else {
-                    loc.building.setStrokeStyle(2, 0xffffff, 0.5);
-                }
-            });
-
-            currentNearLocation = nearLocation;
-
-            // Update location text
-            if (nearLocation && LOCATIONS[nearLocation]) {
-                this.locationText.setText(`Presiona ESPACIO para entrar a: ${LOCATIONS[nearLocation].name}`);
-                this.locationText.setVisible(true);
-            } else {
-                this.locationText.setVisible(false);
-            }
-        }
-
-        // ==================== MOBILE CONTROLS ====================
-        function movePlayer(direction) {
-            if (!player || !player.body) return;
-
-            const speed = 200;
-            const duration = 100;
-
-            switch(direction) {
-                case 'up':
-                    player.body.setVelocityY(-speed);
-                    setTimeout(() => player.body.setVelocityY(0), duration);
-                    break;
-                case 'down':
-                    player.body.setVelocityY(speed);
-                    setTimeout(() => player.body.setVelocityY(0), duration);
-                    break;
-                case 'left':
-                    player.body.setVelocityX(-speed);
-                    setTimeout(() => player.body.setVelocityX(0), duration);
-                    break;
-                case 'right':
-                    player.body.setVelocityX(speed);
-                    setTimeout(() => player.body.setVelocityX(0), duration);
-                    break;
-            }
-        }
-
-        // ==================== GAME FUNCTIONS ====================
-        function interact() {
-            if (currentNearLocation && LOCATIONS[currentNearLocation]) {
-                openLocationMenu(currentNearLocation);
-            } else {
-                showNotification('Acercate a un lugar para interactuar', 'info');
-            }
-        }
-
-        function openLocationMenu(locationId) {
-            const location = LOCATIONS[locationId];
-            gameState.currentLocation = locationId;
-
-            let activitiesHtml = '<div class="activity-list">';
+            if (!location) return;
 
             location.activities.forEach(actId => {
                 const act = ACTIVITIES[actId];
                 if (!act) return;
 
                 const canAfford = gameState.money >= act.cost;
-                const hasEnergy = gameState.stats.energy >= (act.energy < 0 ? Math.abs(act.energy) : 0);
+                const hasEnergy = gameState.stats.energy >= (act.effects.energy < 0 ? Math.abs(act.effects.energy) : 0);
                 const disabled = !canAfford || !hasEnergy;
 
-                activitiesHtml += `
-                    <div class="activity-item ${disabled ? 'disabled' : ''}"
-                         onclick="${disabled ? '' : `doActivity('${actId}')`}"
-                         style="${disabled ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
-                        <div class="activity-info">
-                            <span class="activity-icon">${act.icon}</span>
-                            <div class="activity-details">
-                                <h4>${act.name}</h4>
-                                <p>${getActivityEffects(act)}</p>
-                            </div>
-                        </div>
-                        <div class="activity-cost">
-                            <div class="time">⏱️ ${act.time}h</div>
-                            ${act.cost > 0 ? `<div class="money">S/${act.cost}</div>` : ''}
-                        </div>
+                const card = document.createElement('div');
+                card.className = `activity-card ${disabled ? 'disabled' : ''}`;
+                if (!disabled) {
+                    card.onclick = () => doActivity(actId);
+                }
+
+                const effects = [];
+                if (act.effects.energy > 0) effects.push({ text: `+${act.effects.energy} energia`, type: 'positive' });
+                if (act.effects.energy < 0) effects.push({ text: `${act.effects.energy} energia`, type: 'negative' });
+                if (act.effects.health > 0) effects.push({ text: `+${act.effects.health} salud`, type: 'positive' });
+                if (act.effects.health < 0) effects.push({ text: `${act.effects.health} salud`, type: 'negative' });
+                if (act.effects.happiness > 0) effects.push({ text: `+${act.effects.happiness} felicidad`, type: 'positive' });
+                if (act.effects.stress < 0) effects.push({ text: `${Math.abs(act.effects.stress)} estres`, type: 'positive' });
+                if (act.effects.stress > 0) effects.push({ text: `+${act.effects.stress} estres`, type: 'negative' });
+                if (act.effects.money) effects.push({ text: `+S/${act.effects.money}`, type: 'positive' });
+
+                card.innerHTML = `
+                    <div class="activity-header">
+                        <span class="activity-icon">${act.icon}</span>
+                        <span class="activity-title">${act.name}</span>
+                    </div>
+                    <div class="activity-effects">
+                        ${effects.map(e => `<span class="effect-tag ${e.type}">${e.text}</span>`).join('')}
+                    </div>
+                    <div class="activity-footer">
+                        <span>⏱️ ${act.time}h</span>
+                        <span>${act.cost > 0 ? `S/${act.cost}` : 'Gratis'}</span>
                     </div>
                 `;
+
+                container.appendChild(card);
             });
-
-            activitiesHtml += '</div>';
-
-            document.getElementById('modal-title').innerHTML = `${location.icon} ${location.name}`;
-            document.getElementById('modal-body').innerHTML = activitiesHtml;
-            document.getElementById('modal-actions').innerHTML = `
-                <button class="action-btn secondary" onclick="closeModal()">Cerrar</button>
-            `;
-            document.getElementById('modal').classList.add('active');
         }
 
-        function getActivityEffects(act) {
-            const effects = [];
-            if (act.energy > 0) effects.push(`+${act.energy} energia`);
-            if (act.energy < 0) effects.push(`${act.energy} energia`);
-            if (act.health > 0) effects.push(`+${act.health} salud`);
-            if (act.health < 0) effects.push(`${act.health} salud`);
-            if (act.happiness > 0) effects.push(`+${act.happiness} felicidad`);
-            if (act.happiness < 0) effects.push(`${act.happiness} felicidad`);
-            if (act.stress > 0) effects.push(`+${act.stress} estres`);
-            if (act.stress < 0) effects.push(`${Math.abs(act.stress)} estres`);
-            if (act.money > 0) effects.push(`+S/${act.money}`);
-            return effects.join(' | ') || 'Sin efectos especiales';
+        function updateUI() {
+            // Header
+            document.getElementById('player-name').textContent = gameState.character.name;
+            document.getElementById('player-avatar').textContent = gameState.character.name.charAt(0).toUpperCase();
+            document.getElementById('player-age').textContent = `${gameState.character.age} años - ${getMonthName(gameState.date.month)} ${gameState.date.year}`;
+            document.getElementById('header-money').textContent = `S/ ${gameState.money.toLocaleString()}`;
+            document.getElementById('header-health').textContent = Math.round(gameState.stats.health);
+            document.getElementById('header-energy').textContent = Math.round(gameState.stats.energy);
+
+            // Stats
+            ['health', 'happiness', 'energy', 'stress'].forEach(stat => {
+                document.getElementById(`stat-${stat}`).textContent = Math.round(gameState.stats[stat]);
+                document.getElementById(`bar-${stat}`).style.width = `${gameState.stats[stat]}%`;
+            });
+
+            // Time
+            document.getElementById('game-time').textContent = `${String(gameState.date.hour).padStart(2, '0')}:00`;
+            document.getElementById('game-date').textContent = `${getDayName(gameState.date.day)}, ${gameState.date.day} ${getMonthName(gameState.date.month)} ${gameState.date.year}`;
+
+            // Location
+            const loc = LOCATIONS[gameState.currentLocation];
+            if (loc) {
+                document.getElementById('current-location-icon').textContent = loc.icon;
+                document.getElementById('current-location-name').textContent = loc.name;
+            }
+
+            // Objectives
+            updateObjectives();
+        }
+
+        function updateObjectives() {
+            // Check objectives
+            if (!gameState.objectives[0].completed && gameState.job) {
+                gameState.objectives[0].completed = true;
+                showNotification('Objetivo completado: Primer trabajo', 'success');
+            }
+            if (!gameState.objectives[1].completed && gameState.money >= 5000) {
+                gameState.objectives[1].completed = true;
+                showNotification('Objetivo completado: S/5,000 ahorrados', 'success');
+            }
+
+            const container = document.getElementById('objectives-list');
+            container.innerHTML = gameState.objectives.map(obj => `
+                <div class="objective-item ${obj.completed ? 'completed' : ''}">
+                    <span class="objective-icon">${obj.icon}</span>
+                    <span class="objective-text">${obj.text}</span>
+                    <span class="objective-check">${obj.completed ? '✓' : ''}</span>
+                </div>
+            `).join('');
+        }
+
+        // ==================== ACCIONES ====================
+        function goToLocation(locId) {
+            if (gameState.currentLocation === locId) return;
+
+            gameState.currentLocation = locId;
+            advanceTime(1); // Viajar toma 1 hora
+            addEvent(`Viajaste a ${LOCATIONS[locId].name}`, 'info');
+
+            renderMap();
+            renderActivities();
+            updateUI();
         }
 
         function doActivity(actId) {
@@ -1330,244 +1493,272 @@
                 return;
             }
 
-            if (act.energy < 0 && gameState.stats.energy < Math.abs(act.energy)) {
-                showNotification('No tienes suficiente energia', 'error');
+            const energyNeeded = act.effects.energy < 0 ? Math.abs(act.effects.energy) : 0;
+            if (gameState.stats.energy < energyNeeded) {
+                showNotification('No tienes suficiente energia. Descansa primero.', 'error');
+                return;
+            }
+
+            // Special cases
+            if (actId === 'work' && !gameState.job) {
+                showNotification('Primero necesitas conseguir un trabajo', 'warning');
+                return;
+            }
+
+            if (actId === 'job_search') {
+                openJobSearch();
+                return;
+            }
+
+            if (actId === 'enroll') {
+                openEnrollment();
                 return;
             }
 
             // Apply effects
             gameState.money -= act.cost;
-            if (act.money) gameState.money += act.money;
 
-            if (act.energy) gameState.stats.energy = Math.max(0, Math.min(100, gameState.stats.energy + act.energy));
-            if (act.health) gameState.stats.health = Math.max(0, Math.min(100, gameState.stats.health + act.health));
-            if (act.happiness) gameState.stats.happiness = Math.max(0, Math.min(100, gameState.stats.happiness + act.happiness));
-            if (act.stress) gameState.stats.stress = Math.max(0, Math.min(100, gameState.stats.stress + act.stress));
+            if (act.effects.energy) gameState.stats.energy = clamp(gameState.stats.energy + act.effects.energy, 0, 100);
+            if (act.effects.health) gameState.stats.health = clamp(gameState.stats.health + act.effects.health, 0, 100);
+            if (act.effects.happiness) gameState.stats.happiness = clamp(gameState.stats.happiness + act.effects.happiness, 0, 100);
+            if (act.effects.stress) gameState.stats.stress = clamp(gameState.stats.stress + act.effects.stress, 0, 100);
+            if (act.effects.money) gameState.money += act.effects.money;
 
-            // Pass time
+            // Work earnings
+            if (actId === 'work' && gameState.job) {
+                const job = JOBS[gameState.job];
+                gameState.money += job.salary;
+                gameState.stats.stress = clamp(gameState.stats.stress + job.stress, 0, 100);
+                addEvent(`Trabajaste como ${job.name}. Ganaste S/${job.salary}`, 'positive');
+            } else {
+                addEvent(`${act.icon} ${act.name}`, act.effects.money > 0 || act.effects.happiness > 0 ? 'positive' : 'info');
+            }
+
             advanceTime(act.time);
-
-            // Log event
-            addEvent(`${act.icon} ${act.name}`, act.money > 0 ? 'positive' : 'info');
-
             showNotification(`Completaste: ${act.name}`, 'success');
-            closeModal();
-            updateHUD();
+            updateUI();
+            renderActivities();
         }
 
         function advanceTime(hours) {
-            gameState.time.hour += hours;
+            gameState.date.hour += hours;
 
-            while (gameState.time.hour >= 24) {
-                gameState.time.hour -= 24;
-                // New day
-                gameState.date.month += 1/30; // Approximate
+            while (gameState.date.hour >= 24) {
+                gameState.date.hour -= 24;
+                gameState.date.day++;
 
-                // Daily effects
-                gameState.stats.energy = Math.max(gameState.stats.energy - 5, 10);
-                gameState.stats.stress = Math.min(gameState.stats.stress + 3, 100);
+                // Daily decay
+                gameState.stats.energy = clamp(gameState.stats.energy - 5, 10, 100);
+                gameState.stats.happiness = clamp(gameState.stats.happiness - 3, 0, 100);
+                gameState.stats.stress = clamp(gameState.stats.stress + 2, 0, 100);
+
+                // Check month
+                const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+                if (gameState.date.day > daysInMonth[gameState.date.month - 1]) {
+                    gameState.date.day = 1;
+                    gameState.date.month++;
+
+                    if (gameState.date.month > 12) {
+                        gameState.date.month = 1;
+                        gameState.date.year++;
+                        gameState.character.age++;
+                        addEvent(`¡Feliz cumpleaños! Cumpliste ${gameState.character.age} años`, 'special');
+                    }
+
+                    addEvent(`Nuevo mes: ${getMonthName(gameState.date.month)} ${gameState.date.year}`, 'info');
+
+                    // Monthly bills
+                    const bills = 100;
+                    gameState.money -= bills;
+                    addEvent(`Pagaste S/${bills} en gastos del mes`, 'negative');
+                }
+
+                // Random events
+                if (Math.random() < 0.1) {
+                    triggerRandomEvent();
+                }
             }
 
-            // Check if month passed
-            if (Math.floor(gameState.date.month) > Math.floor(gameState.date.month - hours/720)) {
-                processMonth();
+            updateUI();
+        }
+
+        function triggerRandomEvent() {
+            const events = [
+                { text: 'Encontraste S/20 en el suelo', effect: () => { gameState.money += 20; }, type: 'positive' },
+                { text: 'Te robaron S/50 en el transporte', effect: () => { gameState.money = Math.max(0, gameState.money - 50); }, type: 'negative' },
+                { text: 'Un amigo te invitó a comer', effect: () => { gameState.stats.happiness += 15; }, type: 'positive' },
+                { text: 'Tuviste un mal dia', effect: () => { gameState.stats.happiness -= 10; gameState.stats.stress += 10; }, type: 'negative' },
+                { text: 'Te encontraste con un viejo amigo', effect: () => { gameState.stats.happiness += 10; }, type: 'positive' }
+            ];
+
+            const event = events[Math.floor(Math.random() * events.length)];
+            event.effect();
+            addEvent(event.text, event.type);
+            showNotification(event.text, event.type === 'positive' ? 'success' : 'warning');
+        }
+
+        // ==================== MODALES ====================
+        function openJobSearch() {
+            const availableJobs = Object.keys(JOBS).filter(jobId => {
+                const job = JOBS[jobId];
+                // Check requirements
+                if (job.requirements.education === 'tecnico' && gameState.education === 'secundaria') return false;
+                if (job.requirements.education === 'universitario' && gameState.education !== 'universitario') return false;
+                return true;
+            });
+
+            const jobsHtml = availableJobs.map(jobId => {
+                const job = JOBS[jobId];
+                return `
+                    <div class="activity-card" onclick="applyForJob('${jobId}')">
+                        <div class="activity-header">
+                            <span class="activity-icon">💼</span>
+                            <span class="activity-title">${job.name}</span>
+                        </div>
+                        <div class="activity-effects">
+                            <span class="effect-tag positive">S/${job.salary}/dia</span>
+                            <span class="effect-tag neutral">+${job.stress} estres</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('modal-title').innerHTML = '🔍 Buscar Trabajo';
+            document.getElementById('modal-body').innerHTML = `
+                <p style="color: #888; margin-bottom: 20px;">Selecciona un trabajo para postularte:</p>
+                <div class="activity-list">${jobsHtml || '<p style="color:#888;">No hay trabajos disponibles con tu nivel de educacion.</p>'}</div>
+            `;
+            document.getElementById('modal-footer').innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            `;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function applyForJob(jobId) {
+            const job = JOBS[jobId];
+            const success = Math.random() < 0.6; // 60% success rate
+
+            if (success) {
+                gameState.job = jobId;
+                gameState.objectives[0].completed = true;
+                addEvent(`¡Conseguiste trabajo como ${job.name}!`, 'positive');
+                showNotification(`¡Felicidades! Ahora eres ${job.name}`, 'success');
+            } else {
+                addEvent(`No fuiste seleccionado para ${job.name}`, 'negative');
+                showNotification('No fuiste seleccionado. ¡Sigue intentando!', 'warning');
             }
 
-            updateHUD();
+            gameState.stats.stress += 10;
+            advanceTime(3);
+            closeModal();
+            updateUI();
         }
 
-        function passTime() {
-            // Quick time skip - 4 hours
-            advanceTime(4);
-            showNotification('Pasaron 4 horas', 'info');
+        function openEnrollment() {
+            document.getElementById('modal-title').innerHTML = '🎓 Inscripcion';
+            document.getElementById('modal-body').innerHTML = `
+                <p style="color: #888; margin-bottom: 20px;">Inscribirse mejora tus oportunidades laborales:</p>
+                <div class="activity-list">
+                    <div class="activity-card ${gameState.money < 500 ? 'disabled' : ''}" onclick="${gameState.money >= 500 ? "enrollIn('tecnico')" : ''}">
+                        <div class="activity-header">
+                            <span class="activity-icon">📜</span>
+                            <span class="activity-title">Instituto Tecnico</span>
+                        </div>
+                        <div class="activity-effects">
+                            <span class="effect-tag neutral">6 meses</span>
+                            <span class="effect-tag negative">S/500 matricula</span>
+                        </div>
+                    </div>
+                    <div class="activity-card ${gameState.money < 2000 ? 'disabled' : ''}" onclick="${gameState.money >= 2000 ? "enrollIn('universitario')" : ''}">
+                        <div class="activity-header">
+                            <span class="activity-icon">🎓</span>
+                            <span class="activity-title">Universidad</span>
+                        </div>
+                        <div class="activity-effects">
+                            <span class="effect-tag neutral">5 años</span>
+                            <span class="effect-tag negative">S/2000 matricula</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modal-footer').innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            `;
+            document.getElementById('modal').classList.add('active');
         }
 
-        function processMonth() {
-            const month = Math.floor(gameState.date.month);
-            gameState.date.month = month;
-
-            // Age up each year
-            if (month % 12 === 1 && month > 1) {
-                gameState.character.age++;
-                addEvent(`Cumpliste ${gameState.character.age} anos!`, 'special');
+        function enrollIn(type) {
+            const costs = { tecnico: 500, universitario: 2000 };
+            if (gameState.money < costs[type]) {
+                showNotification('No tienes suficiente dinero', 'error');
+                return;
             }
 
-            addEvent(`Nuevo mes: ${getMonthName(month)} ${gameState.date.year + Math.floor((month-1)/12)}`, 'info');
-        }
+            gameState.money -= costs[type];
+            gameState.education = type;
+            gameState.objectives[2].completed = true;
 
-        function getMonthName(month) {
-            const names = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            return names[(month - 1) % 12];
-        }
+            addEvent(`Te inscribiste en ${type === 'tecnico' ? 'Instituto Tecnico' : 'Universidad'}`, 'positive');
+            showNotification(`¡Inscripcion exitosa! Ahora puedes asistir a clases.`, 'success');
 
-        // ==================== UI FUNCTIONS ====================
-        function updateHUD() {
-            document.getElementById('player-name').textContent = gameState.character.name;
-            document.getElementById('player-date').textContent =
-                `${getMonthName(Math.floor(gameState.date.month))} ${gameState.date.year + Math.floor((gameState.date.month-1)/12)} - ${gameState.character.age} anos`;
-            document.getElementById('player-avatar').textContent =
-                gameState.character.gender === 'mujer' ? 'F' : 'M';
-
-            document.getElementById('health-bar').style.width = `${gameState.stats.health}%`;
-            document.getElementById('health-value').textContent = Math.round(gameState.stats.health);
-
-            document.getElementById('happiness-bar').style.width = `${gameState.stats.happiness}%`;
-            document.getElementById('happiness-value').textContent = Math.round(gameState.stats.happiness);
-
-            document.getElementById('energy-bar').style.width = `${gameState.stats.energy}%`;
-            document.getElementById('energy-value').textContent = Math.round(gameState.stats.energy);
-
-            document.getElementById('stress-bar').style.width = `${gameState.stats.stress}%`;
-            document.getElementById('stress-value').textContent = Math.round(gameState.stats.stress);
-
-            document.getElementById('money-amount').textContent = gameState.money.toLocaleString();
-
-            const hour = gameState.time.hour;
-            document.getElementById('time-clock').textContent =
-                `${String(Math.floor(hour)).padStart(2, '0')}:${String(Math.floor((hour % 1) * 60)).padStart(2, '0')}`;
-
-            let period = 'Noche';
-            if (hour >= 6 && hour < 12) period = 'Manana';
-            else if (hour >= 12 && hour < 18) period = 'Tarde';
-            else if (hour >= 18 && hour < 21) period = 'Noche';
-            else period = 'Madrugada';
-            document.getElementById('time-period').textContent = period;
-        }
-
-        function addEvent(text, type = 'info') {
-            gameState.events.unshift({ text, type, time: new Date() });
-            if (gameState.events.length > 50) gameState.events.pop();
-
-            const eventLog = document.getElementById('event-log');
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${type}`;
-            entry.textContent = text;
-            eventLog.insertBefore(entry, eventLog.firstChild);
-
-            // Keep only last 10 visible
-            while (eventLog.children.length > 10) {
-                eventLog.removeChild(eventLog.lastChild);
-            }
-        }
-
-        function showNotification(message, type = 'success') {
-            const container = document.getElementById('notifications');
-            const notif = document.createElement('div');
-            notif.className = `notification ${type}`;
-            notif.textContent = message;
-            container.appendChild(notif);
-
-            setTimeout(() => notif.remove(), 3000);
+            advanceTime(2);
+            closeModal();
+            updateUI();
         }
 
         function closeModal() {
             document.getElementById('modal').classList.remove('active');
         }
 
-        function openInventory() {
-            document.getElementById('modal-title').innerHTML = '🎒 Inventario';
-            document.getElementById('modal-body').innerHTML = `
-                <div style="text-align: center; padding: 30px; color: #888;">
-                    <div style="font-size: 3em; margin-bottom: 15px;">📦</div>
-                    <p>Tu inventario esta vacio</p>
-                    <p style="font-size: 0.85em; margin-top: 10px;">Compra items en el mercado</p>
+        // ==================== UTILIDADES ====================
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function getMonthName(month) {
+            const names = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            return names[month - 1] || 'Enero';
+        }
+
+        function getDayName(day) {
+            const names = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+            return names[day % 7];
+        }
+
+        function addEvent(text, type = 'info') {
+            const time = `${String(gameState.date.hour).padStart(2, '0')}:00`;
+            gameState.events.unshift({ text, type, time });
+            if (gameState.events.length > 20) gameState.events.pop();
+
+            const container = document.getElementById('event-log');
+            container.innerHTML = gameState.events.slice(0, 10).map(e => `
+                <div class="event-item ${e.type}">
+                    <span class="event-time">${e.time}</span>
+                    <span>${e.text}</span>
                 </div>
-            `;
-            document.getElementById('modal-actions').innerHTML = `
-                <button class="action-btn secondary" onclick="closeModal()">Cerrar</button>
-            `;
-            document.getElementById('modal').classList.add('active');
+            `).join('');
         }
 
-        function toggleEventLog() {
-            const content = document.querySelector('.event-log-content');
-            const btn = document.querySelector('.event-log-toggle');
-            if (content.style.display === 'none') {
-                content.style.display = 'block';
-                btn.textContent = '-';
-            } else {
-                content.style.display = 'none';
-                btn.textContent = '+';
-            }
-        }
-
-        // ==================== CHARACTER CREATION ====================
-        function randomCharacter() {
-            const names = {
-                hombre: ['Jose', 'Carlos', 'Luis', 'Miguel', 'Juan', 'Pedro', 'Diego', 'Andres'],
-                mujer: ['Maria', 'Ana', 'Rosa', 'Carmen', 'Lucia', 'Sofia', 'Valentina', 'Isabella']
+        function showNotification(message, type = 'success') {
+            const icons = {
+                success: '✓',
+                error: '✗',
+                warning: '⚠',
+                info: 'ℹ'
             };
 
-            const gender = Math.random() > 0.5 ? 'hombre' : 'mujer';
-            const name = names[gender][Math.floor(Math.random() * names[gender].length)];
+            const container = document.getElementById('notifications');
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.innerHTML = `
+                <span class="notification-icon">${icons[type]}</span>
+                <span class="notification-text">${message}</span>
+            `;
+            container.appendChild(notif);
 
-            document.getElementById('char-name').value = name;
-            document.getElementById('char-gender').value = gender;
-
-            const locations = ['lima_media', 'lima_cono', 'provincia_grande', 'lima_asentamiento'];
-            document.getElementById('char-location').value = locations[Math.floor(Math.random() * locations.length)];
-
-            const classes = ['clase_baja', 'clase_media_baja', 'clase_media'];
-            document.getElementById('char-class').value = classes[Math.floor(Math.random() * classes.length)];
+            setTimeout(() => notif.remove(), 4000);
         }
-
-        function startGame() {
-            const name = document.getElementById('char-name').value || 'Jugador';
-            const gender = document.getElementById('char-gender').value;
-            const location = document.getElementById('char-location').value;
-            const socialClass = document.getElementById('char-class').value;
-
-            gameState.character.name = name;
-            gameState.character.gender = gender;
-            gameState.character.location = location;
-            gameState.character.socialClass = socialClass;
-
-            // Set starting money based on class
-            const classMoney = {
-                pobreza_extrema: 50,
-                clase_baja: 300,
-                clase_media_baja: 1000,
-                clase_media: 3000,
-                clase_media_alta: 10000,
-                clase_alta: 50000
-            };
-            gameState.money = classMoney[socialClass] || 1500;
-
-            document.getElementById('char-creation').classList.remove('active');
-            updateHUD();
-            addEvent(`Bienvenido a Perulandia, ${name}!`, 'special');
-
-            // Start Phaser game with error handling
-            try {
-                if (typeof Phaser === 'undefined') {
-                    throw new Error('Phaser no se cargó correctamente');
-                }
-                game = new Phaser.Game(config);
-                console.log('Phaser game iniciado correctamente');
-            } catch (error) {
-                console.error('Error iniciando Phaser:', error);
-                showNotification('Error al cargar el juego. Recargando...', 'error');
-                // Fallback: mostrar mensaje
-                document.getElementById('game-container').innerHTML += `
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                                background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; text-align: center; z-index: 50;">
-                        <h2 style="color: #ff6b6b; margin-bottom: 15px;">Error de Carga</h2>
-                        <p style="color: #888; margin-bottom: 20px;">No se pudo iniciar el motor de juego</p>
-                        <button onclick="location.reload()" class="action-btn">Reintentar</button>
-                    </div>
-                `;
-            }
-        }
-
-        // ==================== INITIALIZATION ====================
-        window.onload = function() {
-            // Hide loading screen after animation
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.display = 'none';
-                document.getElementById('char-creation').classList.add('active');
-            }, 2500);
-        };
     </script>
 </body>
 </html>
