@@ -1167,6 +1167,8 @@
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            // Scroll al inicio de la pagina
+            window.scrollTo(0, 0);
         }
 
         function selectAvatar(el) {
@@ -1956,6 +1958,8 @@
             document.getElementById('event-effects').innerHTML = badges.map(b =>
                 `<span class="effect-badge ${b.positive ? 'positive' : 'negative'}">${b.text}</span>`
             ).join('');
+            // Asegurar que el boton Continuar este visible
+            document.querySelector('.event-btn').style.display = 'inline-block';
             document.getElementById('event-popup').classList.add('active');
         }
 
