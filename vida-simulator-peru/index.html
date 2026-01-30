@@ -1627,25 +1627,47 @@
         /* Scrollbar para popup mensual y otras áreas con scroll */
         .modal-scroll-area {
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.3) transparent;
+            scrollbar-color: #7c4dff rgba(0,0,0,0.3);
+            overflow-y: auto;
         }
 
         .modal-scroll-area::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         .modal-scroll-area::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.2);
-            border-radius: 3px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            margin: 2px 0;
         }
 
         .modal-scroll-area::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.3);
-            border-radius: 3px;
+            background: linear-gradient(180deg, #7c4dff 0%, #536dfe 100%);
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .modal-scroll-area::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.5);
+            background: linear-gradient(180deg, #9d6fff 0%, #768fff 100%);
+        }
+
+        /* Modal content scrollbar también */
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #7c4dff 0%, #536dfe 100%);
+            border-radius: 4px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #9d6fff 0%, #768fff 100%);
         }
     </style>
 </head>
@@ -3161,6 +3183,151 @@
             }
         };
 
+        // ==================== SISTEMA DE INVERSIONES ====================
+        const INVESTMENTS = {
+            // Bajo riesgo
+            cuenta_ahorros: {
+                name: "Cuenta de Ahorros",
+                icon: "🏦",
+                description: "Ahorro seguro en banco (BCP, BBVA, Interbank). Baja rentabilidad, máxima seguridad.",
+                minAmount: 100,
+                monthlyReturn: [0.3, 0.5], // 0.3% - 0.5% mensual
+                riskLevel: "bajo",
+                volatility: 0,
+                lockMonths: 0
+            },
+            deposito_plazo: {
+                name: "Depósito a Plazo Fijo",
+                icon: "📅",
+                description: "Depósito a plazo fijo en banco. Mayor rendimiento pero dinero bloqueado.",
+                minAmount: 1000,
+                monthlyReturn: [0.6, 0.9], // 0.6% - 0.9% mensual
+                riskLevel: "bajo",
+                volatility: 0,
+                lockMonths: 6,
+                earlyWithdrawPenalty: 0.5 // 50% de penalidad si retiras antes
+            },
+            fondos_mutuos: {
+                name: "Fondos Mutuos",
+                icon: "📊",
+                description: "Fondo diversificado manejado por profesionales. Riesgo moderado.",
+                minAmount: 500,
+                monthlyReturn: [0.5, 2.0], // Variable
+                riskLevel: "medio",
+                volatility: 0.3, // 30% de variabilidad
+                lockMonths: 0,
+                canLose: true
+            },
+            // Riesgo medio-alto
+            acciones_bvl: {
+                name: "Acciones BVL",
+                icon: "📈",
+                description: "Bolsa de Valores de Lima. Alto riesgo pero potencial de buenos retornos.",
+                minAmount: 1000,
+                monthlyReturn: [-5, 8], // Puede perder o ganar
+                riskLevel: "alto",
+                volatility: 0.6,
+                lockMonths: 0,
+                canLose: true
+            },
+            // Alto riesgo
+            criptomonedas: {
+                name: "Criptomonedas",
+                icon: "₿",
+                description: "Bitcoin, Ethereum y otras. MUY VOLÁTIL. Puedes ganar mucho o perder todo.",
+                minAmount: 200,
+                monthlyReturn: [-30, 40], // Extremadamente volátil
+                riskLevel: "muy_alto",
+                volatility: 0.9,
+                lockMonths: 0,
+                canLose: true
+            },
+            // Inversión inmobiliaria
+            terreno: {
+                name: "Terreno/Lote",
+                icon: "🏗️",
+                description: "Compra de terreno. Inversión a largo plazo, genera plusvalía.",
+                minAmount: 20000,
+                monthlyReturn: [0.5, 1.5],
+                riskLevel: "medio",
+                volatility: 0.1,
+                lockMonths: 12,
+                isProperty: true
+            },
+            departamento_alquiler: {
+                name: "Departamento para Alquiler",
+                icon: "🏢",
+                description: "Compra depa para alquilar. Genera ingreso pasivo mensual.",
+                minAmount: 80000,
+                monthlyReturn: [0.6, 1.2], // Además del ingreso por alquiler
+                riskLevel: "medio",
+                volatility: 0.05,
+                lockMonths: 0,
+                isProperty: true,
+                monthlyRent: [800, 1500] // Ingreso por alquiler
+            }
+        };
+
+        // ==================== BILLETERAS DIGITALES ====================
+        const DIGITAL_WALLETS = {
+            yape: {
+                name: "Yape",
+                icon: "💜",
+                bank: "BCP",
+                transferFee: 0,
+                maxBalance: 2000,
+                description: "Billetera digital del BCP. Transferencias gratis."
+            },
+            plin: {
+                name: "Plin",
+                icon: "💚",
+                bank: "BBVA/Interbank/Scotiabank",
+                transferFee: 0,
+                maxBalance: 2000,
+                description: "Billetera digital multibanco. Transferencias gratis."
+            }
+        };
+
+        // ==================== PRÉSTAMOS BANCARIOS ====================
+        const BANK_LOANS = {
+            prestamo_personal: {
+                name: "Préstamo Personal",
+                icon: "💳",
+                minAmount: 1000,
+                maxAmount: 30000,
+                monthlyInterest: 2.5, // 2.5% mensual
+                maxMonths: 36,
+                requirements: {
+                    minIncome: 1500,
+                    noCriminalRecord: true
+                },
+                description: "Préstamo personal con tasa moderada."
+            },
+            tarjeta_credito: {
+                name: "Tarjeta de Crédito",
+                icon: "💳",
+                minLimit: 500,
+                maxLimit: 15000,
+                monthlyInterest: 4.0, // 4% mensual (alto)
+                requirements: {
+                    minIncome: 1200,
+                    minAge: 21
+                },
+                description: "Línea de crédito revolvente. Interés alto."
+            },
+            prestamo_informal: {
+                name: "Préstamo Informal (Gota a Gota)",
+                icon: "🦈",
+                minAmount: 100,
+                maxAmount: 5000,
+                monthlyInterest: 20, // ¡20% mensual! Usurero
+                maxMonths: 6,
+                requirements: {},
+                description: "⚠️ PELIGROSO. Interés usurero. Sin requisitos pero muy riesgoso.",
+                dangerous: true
+            }
+        };
+
         // Trabajos con requisitos detallados estilo LinkedIn/Computrabajo
         const JOBS = {
             // ========== SIN ESTUDIOS ==========
@@ -3213,28 +3380,50 @@
                 category: "atencion",
                 requirements: { minAppearance: 40, minCharisma: 35, minAge: 18, maxAge: 30 },
                 description: "Atención al cliente y preparación de alimentos. Planilla desde el día 1.",
-                availableFrom: 0
+                availableFrom: 0,
+                // Nuevos campos de contrato
+                contractType: "indefinido",
+                benefits: ["Planilla completa", "EsSalud", "Almuerzo incluido", "Descuento empleado 50%"],
+                bonusMonthly: 0, // Sin bono mensual
+                bonusAnnual: "Gratificación", // Julio y diciembre
+                minPermanence: 3 // Meses mínimos
             },
             cajero: {
                 name: "Cajero/a Retail (Saga, Ripley)", salary: 1100, education: "secundaria", stress: 30, energy: -20,
                 category: "atencion",
                 requirements: { minAppearance: 50, minCharisma: 40, requiresPresencia: true },
                 description: "Atención en caja y servicio al cliente. Buena presencia indispensable.",
-                availableFrom: 0
+                availableFrom: 0,
+                contractType: "indefinido",
+                benefits: ["Planilla completa", "EsSalud", "Descuento empleado 20%", "Capacitaciones"],
+                bonusMonthly: 100, // Bono por asistencia perfecta
+                bonusAnnual: "Gratificación + Bono navideño",
+                minPermanence: 6
             },
             callcenter: {
                 name: "Call Center (Atento, Konecta)", salary: 1300, education: "secundaria", stress: 50, energy: -30,
                 category: "atencion",
                 requirements: { minCharisma: 40, minSkillComputing: 10 },
                 description: "Atención telefónica. Bonos por cumplimiento de metas.",
-                availableFrom: 3 // Disponible después de 3 meses
+                availableFrom: 3,
+                contractType: "plazo_fijo",
+                contractDuration: 6, // Meses
+                benefits: ["Planilla", "EsSalud", "Bonos por productividad"],
+                bonusMonthly: [200, 800], // Variable según métricas
+                bonusAnnual: "Gratificación",
+                minPermanence: 3
             },
             seguridad: {
                 name: "Vigilante/Seguridad", salary: 1300, education: "secundaria", stress: 25, energy: -20,
                 genderPreference: "hombre", category: "seguridad",
                 requirements: { minStrength: 45, minHeight: 170, minAge: 21, maxAge: 45, noCriminalRecord: true },
                 description: "Resguardo de locales. Sin antecedentes policiales. Mínimo 1.70m.",
-                availableFrom: 0
+                availableFrom: 0,
+                contractType: "indefinido",
+                benefits: ["Planilla", "EsSalud", "Uniforme incluido", "Turnos rotativos"],
+                bonusMonthly: 0,
+                bonusAnnual: "Gratificación",
+                minPermanence: 6
             },
             mozo: {
                 name: "Mozo/Mesero", salary: 1200, education: "secundaria", stress: 35, energy: -30,
@@ -3292,21 +3481,36 @@
                 category: "tecnologia",
                 requirements: { minSkillComputing: 50, minSkillTechnical: 30 },
                 description: "Soporte técnico nivel 1. Conocimientos en redes y Windows.",
-                availableFrom: 6
+                availableFrom: 6,
+                contractType: "indefinido",
+                benefits: ["Planilla", "EsSalud", "Capacitaciones técnicas", "Home office parcial"],
+                bonusMonthly: 150,
+                bonusAnnual: "Gratificación + Bono anual",
+                minPermanence: 6
             },
             mecanico: {
                 name: "Mecánico Automotriz", salary: 2200, education: "tecnico", stress: 30, energy: -35,
                 genderPreference: "hombre", category: "tecnico",
                 requirements: { minStrength: 45, minSkillTechnical: 50 },
                 description: "Mantenimiento y reparación de vehículos.",
-                availableFrom: 12
+                availableFrom: 12,
+                contractType: "indefinido",
+                benefits: ["Planilla", "EsSalud", "Herramientas proporcionadas", "Comisiones por servicio"],
+                bonusMonthly: [0, 400], // Variable por comisiones
+                bonusAnnual: "Gratificación",
+                minPermanence: 3
             },
             electricista: {
                 name: "Electricista", salary: 2500, education: "tecnico", stress: 30, energy: -30,
                 genderPreference: "hombre", category: "tecnico",
                 requirements: { minSkillTechnical: 55, noCriminalRecord: true },
                 description: "Instalaciones eléctricas. Certificación OSINERGMIN deseable.",
-                availableFrom: 6
+                availableFrom: 6,
+                contractType: "indefinido",
+                benefits: ["Planilla", "EsSalud", "Seguro SCTR", "Bono por proyecto"],
+                bonusMonthly: [100, 500],
+                bonusAnnual: "Gratificación + Utilidades",
+                minPermanence: 6
             },
             cocinero: {
                 name: "Cocinero/Chef", salary: 2000, education: "tecnico", stress: 40, energy: -35,
@@ -3655,72 +3859,384 @@
         };
 
         const EDUCATION_OPTIONS = {
-            // Educación básica
+            // ==================== EDUCACIÓN BÁSICA ====================
             primaria: {
-                name: "Terminar Primaria",
-                description: "Completa tu educación primaria en CEBA (Centro de Educación Básica Alternativa)",
+                name: "Terminar Primaria (CEBA)",
+                institution: "CEBA - Centro de Educación Básica Alternativa",
+                description: "Completa tu educación primaria para adultos en programa nocturno o sabatino.",
                 duration: 12,
                 costPerMonth: 50,
                 result: "primaria",
                 category: "basica",
-                requiresEducation: "primaria_incompleta"
+                requiresEducation: "primaria_incompleta",
+                skillBonus: { computing: 5 }
             },
             secundaria_completa: {
-                name: "Terminar Secundaria",
-                description: "Completa tu secundaria en CEBA para acceder a mejores oportunidades",
+                name: "Terminar Secundaria (CEBA)",
+                institution: "CEBA - Programa de Educación para Adultos",
+                description: "Completa tu secundaria en horarios flexibles. Requisito para carreras técnicas y universitarias.",
                 duration: 24,
                 costPerMonth: 80,
                 result: "secundaria",
                 category: "basica",
-                requiresEducation: ["primaria", "secundaria_incompleta"]
+                requiresEducation: ["primaria", "secundaria_incompleta"],
+                skillBonus: { computing: 10, english: 5 }
             },
-            // Educación superior
-            instituto: {
-                name: "Instituto Técnico",
-                description: "Carrera técnica de 2 años (SENATI, TECSUP, etc.)",
-                duration: 24,
+
+            // ==================== CURSOS CORTOS Y CERTIFICACIONES ====================
+            curso_computacion: {
+                name: "Curso de Computación Básica",
+                institution: "CIBERTEC / SISE / Academia local",
+                description: "Word, Excel, PowerPoint. Indispensable para trabajos de oficina.",
+                duration: 3,
+                costPerMonth: 150,
+                result: null, // No cambia nivel educativo
+                category: "cursos",
+                requiresEducation: "secundaria",
+                skillBonus: { computing: 25 }
+            },
+            curso_excel_avanzado: {
+                name: "Excel Avanzado + Power BI",
+                institution: "CIBERTEC / ISIL / SENATI",
+                description: "Tablas dinámicas, macros, dashboards. Muy valorado en empresas.",
+                duration: 4,
+                costPerMonth: 200,
+                result: null,
+                category: "cursos",
+                requiresEducation: "secundaria",
+                skillBonus: { computing: 30 },
+                requiresSkill: { computing: 20 }
+            },
+            curso_ingles_basico: {
+                name: "Inglés Básico (A1-A2)",
+                institution: "ICPNA / Británico / EuroIdiomas",
+                description: "Inglés básico conversacional. Mejora tus oportunidades laborales.",
+                duration: 6,
+                costPerMonth: 350,
+                result: null,
+                category: "cursos",
+                requiresEducation: "secundaria",
+                skillBonus: { english: 25 }
+            },
+            curso_ingles_intermedio: {
+                name: "Inglés Intermedio (B1-B2)",
+                institution: "ICPNA / Británico / EuroIdiomas",
+                description: "Inglés intermedio-avanzado. Requisito para muchos trabajos corporativos.",
+                duration: 12,
+                costPerMonth: 400,
+                result: null,
+                category: "cursos",
+                requiresEducation: "secundaria",
+                skillBonus: { english: 35 },
+                requiresSkill: { english: 20 }
+            },
+            curso_brevete: {
+                name: "Brevete A-I (Moto y Auto)",
+                institution: "Touring Automóvil Club del Perú / Academia",
+                description: "Licencia de conducir. Abre puertas a trabajos de transporte y delivery.",
+                duration: 2,
+                costPerMonth: 250,
+                result: null,
+                category: "cursos",
+                requiresEducation: null,
+                skillBonus: { driving: 50 }
+            },
+            curso_ventas: {
+                name: "Técnicas de Ventas y Negociación",
+                institution: "ISIL / Cámara de Comercio de Lima",
+                description: "Aprende técnicas de cierre, manejo de objeciones y servicio al cliente.",
+                duration: 3,
+                costPerMonth: 180,
+                result: null,
+                category: "cursos",
+                requiresEducation: "secundaria",
+                skillBonus: { sales: 30 }
+            },
+            curso_cocina: {
+                name: "Curso de Cocina Profesional",
+                institution: "D'Gallia / Le Cordon Bleu / USIL Gastronomía",
+                description: "Técnicas culinarias profesionales. Ideal para negocios de comida.",
+                duration: 6,
+                costPerMonth: 800,
+                result: null,
+                category: "cursos",
+                requiresEducation: "secundaria",
+                skillBonus: { cooking: 40 }
+            },
+
+            // ==================== INSTITUTOS TÉCNICOS ====================
+            senati_mecanica: {
+                name: "Mecánica Automotriz - SENATI",
+                institution: "SENATI (Servicio Nacional de Adiestramiento)",
+                description: "Carrera técnica con alta demanda laboral. Convenios con empresas.",
+                duration: 36,
+                costPerMonth: 350,
+                result: "tecnico",
+                category: "instituto",
+                requiresEducation: "secundaria",
+                skillBonus: { technical: 40 },
+                careerBonus: "mecanico"
+            },
+            senati_electricidad: {
+                name: "Electricidad Industrial - SENATI",
+                institution: "SENATI (Servicio Nacional de Adiestramiento)",
+                description: "Instalaciones eléctricas industriales y residenciales.",
+                duration: 36,
+                costPerMonth: 350,
+                result: "tecnico",
+                category: "instituto",
+                requiresEducation: "secundaria",
+                skillBonus: { technical: 45 }
+            },
+            tecsup_sistemas: {
+                name: "Computación e Informática - TECSUP",
+                institution: "TECSUP",
+                description: "Instituto de alta calidad. Desarrollo de software, redes, soporte TI.",
+                duration: 36,
+                costPerMonth: 800,
+                result: "tecnico",
+                category: "instituto",
+                requiresEducation: "secundaria",
+                skillBonus: { computing: 50 },
+                prestige: true
+            },
+            cibertec_programacion: {
+                name: "Desarrollo de Software - CIBERTEC",
+                institution: "CIBERTEC",
+                description: "Programación, bases de datos, desarrollo web y móvil.",
+                duration: 36,
+                costPerMonth: 600,
+                result: "tecnico",
+                category: "instituto",
+                requiresEducation: "secundaria",
+                skillBonus: { computing: 45 }
+            },
+            isil_marketing: {
+                name: "Marketing Digital - ISIL",
+                institution: "ISIL",
+                description: "Redes sociales, publicidad digital, e-commerce.",
+                duration: 36,
+                costPerMonth: 550,
+                result: "tecnico",
+                category: "instituto",
+                requiresEducation: "secundaria",
+                skillBonus: { sales: 30, computing: 20 }
+            },
+            sise_contabilidad: {
+                name: "Contabilidad - SISE / IDAT",
+                institution: "SISE / IDAT",
+                description: "Contabilidad, tributación, planillas. Alta demanda.",
+                duration: 36,
                 costPerMonth: 400,
                 result: "tecnico",
-                category: "superior",
-                requiresEducation: "secundaria"
+                category: "instituto",
+                requiresEducation: "secundaria",
+                skillBonus: { computing: 25 }
             },
-            uni_publica: {
-                name: "Universidad Pública",
-                description: "San Marcos, UNI, Agraria, etc. Requiere examen de admisión.",
+            enfermeria_tecnica: {
+                name: "Enfermería Técnica",
+                institution: "Arzobispo Loayza / Daniel Alcides Carrión",
+                description: "Asistencia en salud. Alta demanda en clínicas y hospitales.",
+                duration: 36,
+                costPerMonth: 450,
+                result: "tecnico",
+                category: "instituto",
+                requiresEducation: "secundaria",
+                skillBonus: {}
+            },
+
+            // ==================== UNIVERSIDADES PÚBLICAS ====================
+            unmsm: {
+                name: "Universidad San Marcos (UNMSM)",
+                institution: "UNMSM - Decana de América",
+                description: "La universidad más antigua de América. Muy prestigiosa, admisión difícil.",
+                duration: 60,
+                costPerMonth: 50,
+                result: "universidad",
+                difficulty: "muy_alta",
+                category: "uni_publica",
+                requiresEducation: "secundaria",
+                prestige: true,
+                skillBonus: { english: 20 },
+                admissionTest: true,
+                admissionChance: 0.15 // 15% de chance de ingresar
+            },
+            uni: {
+                name: "Universidad Nacional de Ingeniería (UNI)",
+                institution: "UNI",
+                description: "La mejor en ingeniería del Perú. Admisión extremadamente difícil.",
+                duration: 60,
+                costPerMonth: 50,
+                result: "universidad",
+                difficulty: "extrema",
+                category: "uni_publica",
+                requiresEducation: "secundaria",
+                prestige: true,
+                skillBonus: { computing: 30, technical: 20 },
+                admissionTest: true,
+                admissionChance: 0.08 // 8% de chance
+            },
+            unac: {
+                name: "Universidad Nacional del Callao (UNAC)",
+                institution: "UNAC",
+                description: "Buena opción en negocios e ingenierías. Más accesible que UNI/San Marcos.",
                 duration: 60,
                 costPerMonth: 50,
                 result: "universidad",
                 difficulty: "alta",
-                category: "superior",
-                requiresEducation: "secundaria"
+                category: "uni_publica",
+                requiresEducation: "secundaria",
+                admissionTest: true,
+                admissionChance: 0.25
             },
-            uni_privada_media: {
-                name: "Universidad Privada (Media)",
-                description: "UPC, UPN, Continental, César Vallejo, etc.",
+            unfv: {
+                name: "Universidad Federico Villarreal (UNFV)",
+                institution: "UNFV",
+                description: "Universidad pública con diversas carreras. Admisión moderada.",
                 duration: 60,
-                costPerMonth: 1500,
+                costPerMonth: 50,
                 result: "universidad",
-                category: "superior",
-                requiresEducation: "secundaria"
+                difficulty: "moderada",
+                category: "uni_publica",
+                requiresEducation: "secundaria",
+                admissionTest: true,
+                admissionChance: 0.35
             },
-            uni_privada_cara: {
-                name: "Universidad Privada (Top)",
-                description: "PUCP, Universidad de Lima, Pacífico, UTEC",
+
+            // ==================== UNIVERSIDADES PRIVADAS (ACCESIBLES) ====================
+            ucv: {
+                name: "Universidad César Vallejo (UCV)",
+                institution: "UCV - César Vallejo",
+                description: "Universidad accesible con muchas sedes a nivel nacional.",
+                duration: 60,
+                costPerMonth: 800,
+                result: "universidad",
+                category: "uni_privada",
+                requiresEducation: "secundaria",
+                skillBonus: { english: 10 }
+            },
+            upn: {
+                name: "Universidad Privada del Norte (UPN)",
+                institution: "UPN - Laureate International",
+                description: "Enfoque práctico y empleabilidad. Parte de red internacional.",
+                duration: 60,
+                costPerMonth: 1100,
+                result: "universidad",
+                category: "uni_privada",
+                requiresEducation: "secundaria",
+                skillBonus: { english: 15, computing: 10 }
+            },
+            continental: {
+                name: "Universidad Continental",
+                institution: "Universidad Continental",
+                description: "Buena en negocios y tecnología. Sede principal en Huancayo.",
+                duration: 60,
+                costPerMonth: 1000,
+                result: "universidad",
+                category: "uni_privada",
+                requiresEducation: "secundaria",
+                skillBonus: { computing: 15 }
+            },
+
+            // ==================== UNIVERSIDADES PRIVADAS (PREMIUM) ====================
+            upc: {
+                name: "Universidad de Ciencias Aplicadas (UPC)",
+                institution: "UPC",
+                description: "Universidad moderna con enfoque en carreras del futuro. Muy cara.",
+                duration: 60,
+                costPerMonth: 2500,
+                result: "universidad",
+                category: "uni_premium",
+                requiresEducation: "secundaria",
+                prestige: true,
+                skillBonus: { english: 25, computing: 20 }
+            },
+            pucp: {
+                name: "Pontificia Universidad Católica (PUCP)",
+                institution: "PUCP",
+                description: "La mejor universidad privada del Perú. Muy prestigiosa y cara.",
+                duration: 60,
+                costPerMonth: 3000,
+                result: "universidad",
+                category: "uni_premium",
+                requiresEducation: "secundaria",
+                prestige: true,
+                skillBonus: { english: 30 }
+            },
+            ulima: {
+                name: "Universidad de Lima",
+                institution: "Universidad de Lima",
+                description: "Excelente en negocios, derecho e ingeniería industrial.",
+                duration: 60,
+                costPerMonth: 3200,
+                result: "universidad",
+                category: "uni_premium",
+                requiresEducation: "secundaria",
+                prestige: true,
+                skillBonus: { english: 25, sales: 15 }
+            },
+            up: {
+                name: "Universidad del Pacífico (UP)",
+                institution: "UP - Universidad del Pacífico",
+                description: "La mejor en economía, finanzas y negocios. Elite empresarial.",
+                duration: 60,
+                costPerMonth: 3800,
+                result: "universidad",
+                category: "uni_premium",
+                requiresEducation: "secundaria",
+                prestige: true,
+                skillBonus: { english: 30, sales: 20 }
+            },
+            utec: {
+                name: "Universidad de Ingeniería y Tecnología (UTEC)",
+                institution: "UTEC",
+                description: "Nueva universidad de ingeniería. Muy moderna y tecnológica.",
                 duration: 60,
                 costPerMonth: 3500,
                 result: "universidad",
+                category: "uni_premium",
+                requiresEducation: "secundaria",
                 prestige: true,
-                category: "superior",
-                requiresEducation: "secundaria"
+                skillBonus: { computing: 35, technical: 25, english: 20 }
             },
-            maestria: {
-                name: "Maestría",
-                description: "Posgrado para especializarte y mejorar tu sueldo",
+
+            // ==================== POSGRADO ====================
+            maestria_publica: {
+                name: "Maestría (Universidad Pública)",
+                institution: "UNMSM / UNI / PUCP",
+                description: "Posgrado en universidad pública. Económico pero competitivo.",
                 duration: 24,
-                costPerMonth: 2500,
+                costPerMonth: 500,
                 result: "maestria",
                 category: "posgrado",
-                requiresEducation: "universidad"
+                requiresEducation: "universidad",
+                skillBonus: { english: 20 },
+                admissionTest: true,
+                admissionChance: 0.4
+            },
+            maestria_privada: {
+                name: "Maestría (Universidad Privada)",
+                institution: "PUCP / UPC / ESAN",
+                description: "Posgrado en universidad privada. Mayor flexibilidad horaria.",
+                duration: 24,
+                costPerMonth: 2800,
+                result: "maestria",
+                category: "posgrado",
+                requiresEducation: "universidad",
+                prestige: true,
+                skillBonus: { english: 25 }
+            },
+            mba: {
+                name: "MBA - Master in Business Administration",
+                institution: "ESAN / Centrum PUCP / PAD",
+                description: "El posgrado más valorado en negocios. Contactos ejecutivos.",
+                duration: 24,
+                costPerMonth: 4500,
+                result: "maestria",
+                category: "posgrado",
+                requiresEducation: "universidad",
+                prestige: true,
+                skillBonus: { english: 30, sales: 25 }
             }
         };
 
@@ -4119,6 +4635,169 @@
                     { text: "Insisto en que nuestro producto es mejor aunque no sea lo que busca", score: -10, response: "Eso puede molestar al cliente." }
                   ]
                 }
+            ],
+            // Preguntas situacionales peruanas adicionales
+            situacional_peru: [
+                { question: "Un paro de transportes impide que llegues a tiempo. ¿Qué haces?",
+                  options: [
+                    { text: "Aviso de inmediato y busco alternativas (taxi, caminar, otro transporte)", score: 20, response: "Excelente, proactividad y comunicación." },
+                    { text: "Espero que se solucione el paro", score: -10, response: "Podrías buscar alternativas mientras tanto." },
+                    { text: "Falto ese día sin avisar", score: -25, response: "Inaceptable, siempre hay que comunicarse." },
+                    { text: "Llego tarde y pongo excusas", score: -5, response: "La honestidad es mejor que excusas." }
+                  ]
+                },
+                { question: "Es Semana Santa y te piden trabajar. ¿Qué haces?",
+                  options: [
+                    { text: "Acepto si es necesario para la empresa", score: 15, response: "Flexible, eso se valora." },
+                    { text: "Negocio compensación o descanso otro día", score: 20, response: "Bien, conoces tus derechos." },
+                    { text: "Me niego rotundamente porque es feriado", score: -5, response: "Es tu derecho, pero ser flexible ayuda." },
+                    { text: "Acepto pero me quejo con todos mis compañeros", score: -10, response: "Eso afecta el ambiente laboral." }
+                  ]
+                },
+                { question: "Tu jefe te pide quedarte después de hora sin pago extra. ¿Qué haces?",
+                  options: [
+                    { text: "Pregunto si será compensado y acepto ocasionalmente", score: 15, response: "Equilibrado, defiendes tus derechos con tacto." },
+                    { text: "Acepto sin chistar, es mi jefe", score: -5, response: "Cuidado con el abuso laboral." },
+                    { text: "Me niego citando la ley laboral", score: 5, response: "Correcto legalmente, aunque hay formas de decirlo." },
+                    { text: "Acepto pero empiezo a buscar otro trabajo", score: 10, response: "Práctico si es situación recurrente." }
+                  ]
+                },
+                { question: "Descubres que tu empresa no está pagando AFP/ONP correctamente. ¿Qué haces?",
+                  options: [
+                    { text: "Lo converso primero con RR.HH. discretamente", score: 15, response: "Bien, primero internamente." },
+                    { text: "Denuncio inmediatamente a SUNAFIL", score: 10, response: "Es tu derecho, aunque puede haber represalias." },
+                    { text: "No digo nada para no perder mi trabajo", score: -10, response: "Eso afecta tu jubilación futura." },
+                    { text: "Lo comento con mis compañeros para actuar juntos", score: 5, response: "La unión hace la fuerza, pero con cuidado." }
+                  ]
+                },
+                { question: "Un compañero te pide que le prestes dinero para su pasaje. ¿Qué haces?",
+                  options: [
+                    { text: "Le presto si puedo pero le digo que es solo esta vez", score: 15, response: "Equilibrado, ayudas pero pones límites." },
+                    { text: "Le presto sin problema, somos compañeros", score: 5, response: "Generoso, pero cuidado con crear dependencia." },
+                    { text: "Le digo que no tengo aunque sí tenga", score: -5, response: "Una mentira, aunque entendemos el motivo." },
+                    { text: "Me niego y le sugiero que administre mejor su dinero", score: 0, response: "Directo, aunque poco empático." }
+                  ]
+                },
+                { question: "Tu jefe te pide que mientas a un cliente sobre los tiempos de entrega. ¿Qué haces?",
+                  options: [
+                    { text: "Expreso mi incomodidad y propongo dar plazos realistas", score: 20, response: "Ético y profesional." },
+                    { text: "Miento porque mi jefe lo ordenó", score: -15, response: "Las mentiras siempre generan problemas." },
+                    { text: "Le digo al cliente la verdad a escondidas de mi jefe", score: 5, response: "Ético pero riesgoso para tu puesto." },
+                    { text: "Me niego y arriesgo las consecuencias", score: 10, response: "Valiente, la ética tiene un precio." }
+                  ]
+                },
+                { question: "Hay rumores de recortes de personal y te ofrecen ser informante del jefe. ¿Qué haces?",
+                  options: [
+                    { text: "Rechazo y me enfoco en hacer bien mi trabajo", score: 20, response: "Íntegro, esa es la mejor defensa." },
+                    { text: "Acepto para proteger mi puesto", score: -15, response: "Traicionar compañeros no es buena estrategia." },
+                    { text: "Acepto pero no reporto nada real", score: -5, response: "Estás jugando un juego peligroso." },
+                    { text: "Advierto a mis compañeros sobre esto", score: 5, response: "Leal pero cuidado con las consecuencias." }
+                  ]
+                },
+                { question: "Un proveedor te ofrece una comisión personal por elegir su empresa. ¿Qué haces?",
+                  options: [
+                    { text: "Rechazo y lo reporto a mi supervisor", score: 20, response: "Eso es corrupción, bien en rechazarlo." },
+                    { text: "Acepto si el proveedor es competitivo de todos modos", score: -10, response: "Sigue siendo un conflicto de intereses." },
+                    { text: "Rechazo pero no lo reporto", score: 10, response: "Bien rechazar, aunque deberías informar." },
+                    { text: "Negocio una comisión más alta", score: -25, response: "Eso es totalmente antiético." }
+                  ]
+                },
+                { question: "Llegas temprano todos los días pero tu jefe no lo reconoce. ¿Qué haces?",
+                  options: [
+                    { text: "Lo menciono en una evaluación de desempeño", score: 15, response: "Correcto, el momento adecuado para visibilizarlo." },
+                    { text: "Dejo de llegar temprano ya que no vale la pena", score: -5, response: "Comprensible pero puede afectar tu imagen." },
+                    { text: "Sigo haciéndolo porque es lo correcto para mí", score: 10, response: "Admirable, aunque mereces reconocimiento." },
+                    { text: "Me quejo con mis compañeros constantemente", score: -10, response: "Eso no solucionará nada." }
+                  ]
+                },
+                { question: "Tu empresa organiza un evento fuera de horario y 'sugieren' que asistas. ¿Qué haces?",
+                  options: [
+                    { text: "Voy un rato para mostrar compromiso y luego me retiro", score: 15, response: "Equilibrado, presencia sin sacrificar todo." },
+                    { text: "Voy y me quedo hasta el final", score: 10, response: "Comprometido, aunque cuida tu tiempo personal." },
+                    { text: "No voy y pongo una excusa", score: -5, response: "Puede afectar tu imagen en la empresa." },
+                    { text: "No voy porque es fuera de mi horario laboral", score: 0, response: "Es tu derecho, pero estas cosas importan." }
+                  ]
+                },
+                { question: "Descubres que cobras menos que un compañero que hace lo mismo. ¿Qué haces?",
+                  options: [
+                    { text: "Preparo argumentos y solicito una reunión para negociar", score: 20, response: "Profesional, así se maneja." },
+                    { text: "Reclamo enojado/a a mi jefe", score: -10, response: "La emoción no ayuda en negociaciones." },
+                    { text: "Empiezo a trabajar menos porque 'me pagan menos'", score: -15, response: "Eso solo empeorará tu situación." },
+                    { text: "No digo nada pero busco otro empleo", score: 5, response: "Válido, pero podrías intentar negociar primero." }
+                  ]
+                },
+                { question: "Te enteras de que van a ascender a alguien que tiene menos tiempo que tú. ¿Qué haces?",
+                  options: [
+                    { text: "Reflexiono sobre qué puedo mejorar para el próximo ascenso", score: 20, response: "Maduro, el ascenso se gana." },
+                    { text: "Pido una reunión para entender los criterios de ascenso", score: 15, response: "Proactivo, buscar retroalimentación es válido." },
+                    { text: "Me quejo con RR.HH. por injusticia", score: -5, response: "Podrías parecer inmaduro." },
+                    { text: "Empiezo a sabotear sutilmente al ascendido", score: -25, response: "Completamente inaceptable y dañino." }
+                  ]
+                },
+                { question: "El aire acondicionado no funciona y hace mucho calor. ¿Qué haces?",
+                  options: [
+                    { text: "Reporto el problema y sigo trabajando lo mejor posible", score: 15, response: "Profesional, adaptación y comunicación." },
+                    { text: "Me quejo constantemente pero sigo trabajando", score: -5, response: "Quejarse no ayuda, mejor reportar formalmente." },
+                    { text: "Dejo de trabajar hasta que lo arreglen", score: -15, response: "Eso puede verse como excusa para no trabajar." },
+                    { text: "Propongo soluciones temporales mientras lo arreglan", score: 20, response: "Proactivo, eso se valora mucho." }
+                  ]
+                },
+                { question: "Te piden que capacites a tu reemplazo porque te van a despedir. ¿Qué haces?",
+                  options: [
+                    { text: "Lo hago profesionalmente mientras busco otro empleo", score: 20, response: "Maduro, dejas una buena impresión." },
+                    { text: "Me niego porque es humillante", score: 0, response: "Entendible, aunque quema puentes." },
+                    { text: "Lo hago pero enseño mal a propósito", score: -20, response: "Eso es deshonesto y dañino." },
+                    { text: "Negocio una indemnización a cambio de la capacitación", score: 10, response: "Inteligente, aprovecha tu valor." }
+                  ]
+                },
+                { question: "Un compañero publica quejas sobre la empresa en redes sociales. ¿Qué haces?",
+                  options: [
+                    { text: "No me involucro pero tampoco lo apoyo públicamente", score: 15, response: "Prudente, las redes son peligrosas." },
+                    { text: "Le aconsejo en privado que lo borre", score: 20, response: "Buen compañero, cuidas su bienestar." },
+                    { text: "Lo reporto a RR.HH.", score: -5, response: "Puede verse como delatar a un compañero." },
+                    { text: "Le doy like y comento apoyándolo", score: -15, response: "Eso puede afectar tu propio empleo." }
+                  ]
+                },
+                { question: "Te asignan un proyecto con un compañero que no te agrada. ¿Qué haces?",
+                  options: [
+                    { text: "Mantengo el profesionalismo y me enfoco en los resultados", score: 20, response: "Excelente, eso es madurez profesional." },
+                    { text: "Pido que me cambien de equipo", score: 0, response: "Puede verse como que no trabajas bien en equipo." },
+                    { text: "Hago mi parte mínima y evito interacción", score: -5, response: "Puede afectar la calidad del proyecto." },
+                    { text: "Lo confronto sobre nuestras diferencias", score: 5, response: "Puede funcionar si se hace bien." }
+                  ]
+                },
+                { question: "Tu jefe te felicita por un trabajo que en realidad hizo tu compañero. ¿Qué haces?",
+                  options: [
+                    { text: "Aclaro que fue trabajo de mi compañero", score: 20, response: "Honesto e íntegro, eso se respeta." },
+                    { text: "Acepto el crédito sin decir nada", score: -15, response: "Deshonesto y dañino para la relación con tu compañero." },
+                    { text: "Digo que fue trabajo en equipo", score: 10, response: "Diplomático, aunque deberías dar más crédito." },
+                    { text: "Le digo a mi compañero en privado que hable con el jefe", score: 5, response: "Pasas la responsabilidad, mejor ser directo." }
+                  ]
+                },
+                { question: "Escuchas que hay problemas financieros en la empresa y podrían cerrar. ¿Qué haces?",
+                  options: [
+                    { text: "Actualizo mi CV pero sigo dando lo mejor", score: 20, response: "Prudente, prepararte sin abandonar el barco." },
+                    { text: "Renuncio inmediatamente para buscar algo seguro", score: -5, response: "Precipitado, podrían ser solo rumores." },
+                    { text: "Difundo el rumor entre compañeros", score: -15, response: "Los rumores causan pánico innecesario." },
+                    { text: "Pregunto directamente a mi jefe sobre la situación", score: 10, response: "Valiente, aunque puede no darte respuesta honesta." }
+                  ]
+                },
+                { question: "Te piden trabajar el día de tu cumpleaños. ¿Qué haces?",
+                  options: [
+                    { text: "Trabajo pero pido permiso para salir una hora antes", score: 15, response: "Equilibrado, cumples pero cuidas lo personal." },
+                    { text: "Trabajo sin quejarme, el trabajo es primero", score: 5, response: "Comprometido, pero también mereces celebrar." },
+                    { text: "Pido el día libre con anticipación", score: 20, response: "Planificado, lo mejor es anticiparse." },
+                    { text: "Falto y pongo una excusa después", score: -15, response: "Deshonesto y poco profesional." }
+                  ]
+                },
+                { question: "Un cliente te regala algo valioso por tu buen servicio. ¿Qué haces?",
+                  options: [
+                    { text: "Agradezco pero consulto la política de regalos de la empresa", score: 20, response: "Correcto, hay empresas que lo prohíben." },
+                    { text: "Acepto discretamente sin decir nada", score: -5, response: "Puede ser un conflicto de intereses." },
+                    { text: "Rechazo amablemente explicando políticas", score: 15, response: "Profesional y ético." },
+                    { text: "Acepto y lo comparto con mi equipo", score: 10, response: "Generoso, aunque primero verifica políticas." }
+                  ]
+                }
             ]
         };
 
@@ -4158,6 +4837,8 @@
                 interviewsFailed: 0,
                 interviewsPassed: 0
             },
+            // Historial financiero para gráficos
+            financeHistory: [],  // {month, year, income, expenses, balance, savings}
             achievements: [],
             inCloset: true,
             isOut: false,
@@ -4207,6 +4888,14 @@
             // Sistema de emprendimientos
             businesses: [],           // Array de negocios propios
             businessIncome: 0,        // Ingresos del último mes por negocios
+            // Sistema de inversiones
+            investments: [],          // Array de inversiones activas
+            investmentIncome: 0,      // Ingresos del último mes por inversiones
+            // Sistema de préstamos
+            loans: [],                // Array de préstamos activos
+            creditCards: [],          // Tarjetas de crédito activas
+            hasYape: false,           // Tiene Yape
+            hasPlin: false,           // Tiene Plin
             // Misiones de origen
             completedOriginMissions: {},  // { missionId: true }
             pendingOriginMission: null    // Misión activa pendiente de responder
@@ -4690,10 +5379,25 @@
                 total += Math.floor(salary * (1 + bonus * 0.3));
             }
 
-            // Incluir ingresos de negocios (si hay)
-            // En prisión, los negocios generan solo 50% (penalidad por no poder supervisar)
-            if (gameState.businessIncome) {
-                total += inPrison ? Math.floor(gameState.businessIncome * 0.5) : gameState.businessIncome;
+            // Calcular ingresos estimados de negocios
+            // Usamos businessIncome si existe, sino calculamos una estimación
+            let businessEstimate = 0;
+            if (gameState.businesses && gameState.businesses.length > 0) {
+                if (gameState.businessIncome !== undefined && gameState.businessIncome !== null) {
+                    businessEstimate = gameState.businessIncome;
+                } else {
+                    // Estimar ingresos promedio de cada negocio
+                    gameState.businesses.forEach(business => {
+                        const data = BUSINESSES[business.id];
+                        if (data && !business.isClosed) {
+                            const avgRevenue = Math.floor((data.monthlyRevenue[0] + data.monthlyRevenue[1]) / 2);
+                            const expenses = data.monthlyExpenses + (business.employees || 0) * 1000;
+                            businessEstimate += avgRevenue - expenses;
+                        }
+                    });
+                }
+                // En prisión, los negocios generan solo 50% (penalidad por no poder supervisar)
+                total += inPrison ? Math.floor(businessEstimate * 0.5) : businessEstimate;
             }
 
             // El bono estatal sí se recibe en prisión (es del estado)
@@ -5197,10 +5901,21 @@
 
             const reqStatus = getJobRequirementStatus(jobId);
 
+            // Calcular bonos
+            let bonusText = '';
+            if (job.bonusMonthly) {
+                if (Array.isArray(job.bonusMonthly)) {
+                    bonusText = `${formatMoney(job.bonusMonthly[0])} - ${formatMoney(job.bonusMonthly[1])}/mes`;
+                } else if (job.bonusMonthly > 0) {
+                    bonusText = `${formatMoney(job.bonusMonthly)}/mes`;
+                }
+            }
+
             let html = `
                 <div style="text-align: center; margin-bottom: 20px;">
                     <h3 style="margin-bottom: 5px;">${job.name}</h3>
                     <div style="color: #4CAF50; font-size: 1.3em; font-weight: bold;">${salary}/mes</div>
+                    ${bonusText ? `<div style="color: #ff9800; font-size: 0.85em;">+ Bono: ${bonusText}</div>` : ''}
                 </div>
 
                 <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
@@ -5212,6 +5927,42 @@
                         ${job.physical ? '<div>💪 Trabajo físico</div>' : ''}
                     </div>
                 </div>
+
+                ${job.contractType || job.benefits ? `
+                    <div style="background: rgba(33,150,243,0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 3px solid #2196F3;">
+                        <h4 style="margin-bottom: 10px; color: #2196F3;">📋 Contrato y Beneficios</h4>
+                        ${job.contractType ? `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em;">
+                                <span>Tipo de contrato:</span>
+                                <span style="color: #4CAF50; font-weight: bold;">${
+                                    job.contractType === 'indefinido' ? '✓ Indefinido' :
+                                    job.contractType === 'plazo_fijo' ? `⏱️ Plazo fijo (${job.contractDuration || 6}m)` :
+                                    job.contractType
+                                }</span>
+                            </div>
+                        ` : ''}
+                        ${job.minPermanence ? `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em;">
+                                <span>Permanencia mínima:</span>
+                                <span>${job.minPermanence} meses</span>
+                            </div>
+                        ` : ''}
+                        ${job.bonusAnnual ? `
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9em;">
+                                <span>Bono anual:</span>
+                                <span style="color: #ff9800;">${job.bonusAnnual}</span>
+                            </div>
+                        ` : ''}
+                        ${job.benefits && job.benefits.length > 0 ? `
+                            <div style="margin-top: 10px;">
+                                <div style="font-size: 0.85em; color: #888; margin-bottom: 5px;">Beneficios:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                    ${job.benefits.map(b => `<span style="background: rgba(76,175,80,0.2); padding: 2px 8px; border-radius: 10px; font-size: 0.8em; color: #4CAF50;">✓ ${b}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
 
                 <div style="text-align: center; margin-bottom: 15px;">
                     <div style="font-size: 2em; font-weight: bold; color: ${probColor};">${probability}%</div>
@@ -5319,6 +6070,8 @@
 
             // Seleccionar preguntas relevantes
             let questions = [...INTERVIEW_QUESTIONS.general];
+            // Siempre agregar preguntas situacionales peruanas para más variedad
+            questions = questions.concat(INTERVIEW_QUESTIONS.situacional_peru);
             if (job.physical) questions = questions.concat(INTERVIEW_QUESTIONS.physical);
             if (job.category === 'atencion' || job.category === 'retail') questions = questions.concat(INTERVIEW_QUESTIONS.customer_service);
             if (job.category === 'tech' || job.requirements?.minSkillComputing) questions = questions.concat(INTERVIEW_QUESTIONS.tech);
@@ -6424,9 +7177,13 @@
 
             // Agrupar opciones por categoría
             const categories = {
-                basica: { name: '📚 Educación Básica', description: 'Completa tu primaria o secundaria' },
-                superior: { name: '🎓 Educación Superior', description: 'Carreras técnicas y universitarias' },
-                posgrado: { name: '👨‍🎓 Posgrado', description: 'Maestrías y especializaciones' }
+                basica: { name: '📚 Educación Básica', description: 'Completa tu primaria o secundaria (CEBA)' },
+                cursos: { name: '📖 Cursos y Certificaciones', description: 'Cursos cortos para mejorar habilidades específicas' },
+                instituto: { name: '🔧 Institutos Técnicos', description: 'Carreras técnicas de 2-3 años (SENATI, TECSUP, etc.)' },
+                uni_publica: { name: '🏛️ Universidades Públicas', description: 'Gratuitas pero con examen de admisión competitivo' },
+                uni_privada: { name: '🎓 Universidades Privadas', description: 'Acceso más fácil, costos moderados' },
+                uni_premium: { name: '⭐ Universidades Premium', description: 'Las mejores del país. Muy caras pero gran prestigio' },
+                posgrado: { name: '👨‍🎓 Posgrado', description: 'Maestrías y MBA para profesionales' }
             };
 
             for (const [catId, catInfo] of Object.entries(categories)) {
@@ -6454,23 +7211,34 @@
                     const months = study.duration % 12;
                     const durationText = years > 0 ? `${years} año${years > 1 ? 's' : ''}${months > 0 ? ` ${months}m` : ''}` : `${months} meses`;
 
+                    // Color del borde según tipo
+                    let borderColor = check.can ? '#4CAF50' : '#666';
+                    if (study.prestige) borderColor = check.can ? '#9C27B0' : '#666';
+                    if (study.admissionTest) borderColor = check.can ? '#2196F3' : '#666';
+
                     html += `
-                        <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px; opacity: ${check.can ? '1' : '0.5'}; border-left: 3px solid ${check.can ? '#4CAF50' : '#666'};">
+                        <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px; opacity: ${check.can ? '1' : '0.5'}; border-left: 3px solid ${borderColor};">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                 <div style="flex: 1;">
                                     <div style="font-weight: bold;">${study.name}</div>
+                                    ${study.institution ? `<div style="color: #2196F3; font-size: 0.75em; margin-top: 2px;">🏫 ${study.institution}</div>` : ''}
                                     <div style="color: #aaa; font-size: 0.8em; margin-top: 3px;">${study.description || ''}</div>
-                                    <div style="display: flex; gap: 15px; font-size: 0.85em; margin-top: 8px; flex-wrap: wrap;">
+                                    <div style="display: flex; gap: 10px; font-size: 0.8em; margin-top: 8px; flex-wrap: wrap;">
                                         <span style="color: #2196F3;">⏱️ ${durationText}</span>
                                         <span style="color: #FF9800;">💰 ${formatMoney(study.costPerMonth)}/mes</span>
                                         <span style="color: #9C27B0;">💵 Total: ${formatMoney(totalCost)}</span>
                                     </div>
-                                    ${study.difficulty ? `<div style="font-size: 0.75em; color: #f44336; margin-top: 5px;">⚠️ Dificultad ${study.difficulty} - Requiere examen de admisión</div>` : ''}
-                                    ${study.prestige ? `<div style="font-size: 0.75em; color: #9C27B0; margin-top: 5px;">⭐ Universidad de prestigio - Mejores oportunidades laborales</div>` : ''}
+                                    ${study.skillBonus && Object.keys(study.skillBonus).length > 0 ? `
+                                        <div style="font-size: 0.75em; color: #4CAF50; margin-top: 5px;">
+                                            📈 Bonus: ${Object.entries(study.skillBonus).map(([k,v]) => `+${v} ${k}`).join(', ')}
+                                        </div>
+                                    ` : ''}
+                                    ${study.admissionTest ? `<div style="font-size: 0.75em; color: #2196F3; margin-top: 5px;">📝 Requiere examen de admisión (${Math.round(study.admissionChance * 100)}% de probabilidad de ingresar)</div>` : ''}
+                                    ${study.prestige ? `<div style="font-size: 0.75em; color: #9C27B0; margin-top: 5px;">⭐ Institución prestigiosa - Mejores oportunidades laborales</div>` : ''}
                                     ${!check.can ? `<div style="color: #f44336; font-size: 0.8em; margin-top: 5px; font-weight: bold;">❌ ${check.reason}</div>` : ''}
                                 </div>
                                 <div style="margin-left: 10px;">
-                                    ${check.can ? `<button class="btn btn-small btn-success" onclick="startStudying('${studyId}')">Inscribirse</button>` : ''}
+                                    ${check.can ? `<button class="btn btn-small btn-success" onclick="startStudying('${studyId}')">${study.admissionTest ? 'Postular' : 'Inscribirse'}</button>` : ''}
                                 </div>
                             </div>
                         </div>
@@ -6490,31 +7258,54 @@
             let can = true;
             let reason = '';
 
+            // Cursos sin cambio de nivel educativo pueden hacerse siempre que cumplan requisitos
+            const isCourse = study.result === null;
+
             // Verificar requisitos de educación previa
             if (study.requiresEducation) {
                 const reqEdu = Array.isArray(study.requiresEducation) ? study.requiresEducation : [study.requiresEducation];
                 if (!reqEdu.includes(gameState.education)) {
-                    can = false;
-                    if (study.category === 'basica') {
-                        reason = 'No necesitas este nivel';
-                    } else {
-                        reason = 'Requiere: ' + reqEdu.join(' o ');
+                    // Para cursos, verificar si tiene al menos secundaria
+                    const educationLevels = ['primaria_incompleta', 'primaria', 'secundaria_incompleta', 'secundaria', 'tecnico', 'universidad', 'maestria'];
+                    const currentLevel = educationLevels.indexOf(gameState.education);
+                    const requiredLevel = educationLevels.indexOf(reqEdu[0]);
+
+                    if (currentLevel < requiredLevel) {
+                        can = false;
+                        if (study.category === 'basica') {
+                            reason = 'No necesitas este nivel';
+                        } else {
+                            reason = 'Requiere: ' + reqEdu.join(' o ');
+                        }
                     }
                 }
             }
 
-            // Verificar si ya tiene este nivel o superior
-            const educationOrder = ['primaria_incompleta', 'primaria', 'secundaria_incompleta', 'secundaria', 'tecnico', 'universidad', 'maestria'];
-            const currentIndex = educationOrder.indexOf(gameState.education);
-            const resultIndex = educationOrder.indexOf(study.result);
-
-            if (resultIndex <= currentIndex && study.result !== 'maestria') {
-                can = false;
-                reason = 'Ya tienes este nivel educativo o superior';
+            // Verificar requisitos de habilidad (para cursos avanzados)
+            if (study.requiresSkill && can) {
+                for (const [skill, level] of Object.entries(study.requiresSkill)) {
+                    if ((gameState.skills[skill] || 0) < level) {
+                        can = false;
+                        reason = `Requiere ${skill} nivel ${level} (tienes ${gameState.skills[skill] || 0})`;
+                        break;
+                    }
+                }
             }
 
-            // Para maestría, verificar que tenga universidad
-            if (studyId === 'maestria' && gameState.education !== 'universidad') {
+            // Verificar si ya tiene este nivel o superior (solo para estudios que suben nivel)
+            if (study.result && study.result !== null) {
+                const educationOrder = ['primaria_incompleta', 'primaria', 'secundaria_incompleta', 'secundaria', 'tecnico', 'universidad', 'maestria'];
+                const currentIndex = educationOrder.indexOf(gameState.education);
+                const resultIndex = educationOrder.indexOf(study.result);
+
+                if (resultIndex <= currentIndex && study.category !== 'posgrado') {
+                    can = false;
+                    reason = 'Ya tienes este nivel educativo o superior';
+                }
+            }
+
+            // Para posgrado, verificar que tenga universidad
+            if (study.category === 'posgrado' && gameState.education !== 'universidad' && gameState.education !== 'maestria') {
                 can = false;
                 reason = 'Requiere título universitario';
             }
@@ -6530,10 +7321,32 @@
 
         function startStudying(studyId) {
             const study = EDUCATION_OPTIONS[studyId];
-            gameState.studying = studyId;
-            gameState.studyMonthsLeft = study.duration;
-            addLog(`Comenzaste a estudiar: ${study.name}`, 'info');
-            showNotification(`¡Empezaste ${study.name}!`, 'success');
+
+            // Si requiere examen de admisión
+            if (study.admissionTest) {
+                const chance = study.admissionChance;
+                const passed = Math.random() < chance;
+
+                if (passed) {
+                    gameState.studying = studyId;
+                    gameState.studyMonthsLeft = study.duration;
+                    addLog(`🎉 ¡Ingresaste a ${study.name}!`, 'special');
+                    showNotification(`¡Aprobaste el examen de admisión!`, 'success');
+                    gameState.happiness += 15;
+                } else {
+                    addLog(`😞 No ingresaste a ${study.name}. Puedes volver a intentar.`, 'negative');
+                    showNotification(`No aprobaste el examen de admisión`, 'error');
+                    gameState.happiness -= 10;
+                    gameState.stats.interviewsFailed++; // Reutilizamos esta stat
+                }
+            } else {
+                // Inscripción directa
+                gameState.studying = studyId;
+                gameState.studyMonthsLeft = study.duration;
+                addLog(`Comenzaste a estudiar: ${study.name}`, 'info');
+                showNotification(`¡Empezaste ${study.name}!`, 'success');
+            }
+
             closeModal();
             updateUI();
         }
@@ -6639,10 +7452,11 @@
 
                 <!-- Tabs de finanzas -->
                 <div class="tabs-container">
-                    <div class="tabs-nav">
+                    <div class="tabs-nav" style="flex-wrap: wrap;">
                         <button class="tab-btn active" onclick="switchFinanceTab('resumen')">📊 Resumen</button>
                         <button class="tab-btn" onclick="switchFinanceTab('ingresos')">💵 Ingresos</button>
                         <button class="tab-btn" onclick="switchFinanceTab('gastos')">💸 Gastos</button>
+                        <button class="tab-btn" onclick="switchFinanceTab('estadisticas')">📈 Gráficos</button>
                         <button class="tab-btn" onclick="switchFinanceTab('historial')">📋 Historial</button>
                     </div>
 
@@ -6750,6 +7564,110 @@
                         </div>
                     </div>
 
+                    <!-- Tab: Estadísticas -->
+                    <div id="finance-tab-estadisticas" class="tab-content">
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                            <h4 style="margin-bottom: 15px;">📈 Evolución Financiera (últimos ${Math.min(12, (gameState.financeHistory || []).length)} meses)</h4>
+                            ${(gameState.financeHistory && gameState.financeHistory.length > 0) ? `
+                                <!-- Gráfico de barras con CSS -->
+                                <div style="display: flex; align-items: flex-end; gap: 4px; height: 150px; padding: 10px 0; border-bottom: 2px solid rgba(255,255,255,0.2); margin-bottom: 10px;">
+                                    ${(() => {
+                                        const history = (gameState.financeHistory || []).slice(-12);
+                                        const maxVal = Math.max(...history.map(h => Math.max(h.income, h.expenses)), 1);
+                                        return history.map((h, idx) => {
+                                            const incomeHeight = (h.income / maxVal) * 130;
+                                            const expenseHeight = (h.expenses / maxVal) * 130;
+                                            const monthNames = ['E','F','M','A','M','J','J','A','S','O','N','D'];
+                                            return \`
+                                                <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                                                    <div style="display: flex; gap: 2px; align-items: flex-end; height: 130px;">
+                                                        <div style="width: 8px; height: \${incomeHeight}px; background: linear-gradient(to top, #4CAF50, #81C784); border-radius: 2px 2px 0 0;" title="Ingresos: \${formatMoney(h.income)}"></div>
+                                                        <div style="width: 8px; height: \${expenseHeight}px; background: linear-gradient(to top, #f44336, #e57373); border-radius: 2px 2px 0 0;" title="Gastos: \${formatMoney(h.expenses)}"></div>
+                                                    </div>
+                                                    <div style="font-size: 0.65em; color: #888; margin-top: 5px;">\${monthNames[h.month-1]}</div>
+                                                </div>
+                                            \`;
+                                        }).join('');
+                                    })()}
+                                </div>
+                                <div style="display: flex; gap: 15px; justify-content: center; font-size: 0.8em;">
+                                    <span><span style="display: inline-block; width: 12px; height: 12px; background: #4CAF50; border-radius: 2px;"></span> Ingresos</span>
+                                    <span><span style="display: inline-block; width: 12px; height: 12px; background: #f44336; border-radius: 2px;"></span> Gastos</span>
+                                </div>
+                            ` : '<p style="color: #888; text-align: center;">Aún no hay suficiente historial. Pasa algunos meses para ver el gráfico.</p>'}
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                            <h4 style="margin-bottom: 15px;">💰 Evolución de Ahorros</h4>
+                            ${(gameState.financeHistory && gameState.financeHistory.length > 0) ? `
+                                <div style="display: flex; align-items: flex-end; gap: 4px; height: 100px; padding: 10px 0; border-bottom: 2px solid rgba(255,255,255,0.2); margin-bottom: 10px;">
+                                    ${(() => {
+                                        const history = (gameState.financeHistory || []).slice(-12);
+                                        const maxSavings = Math.max(...history.map(h => Math.abs(h.savings)), 1);
+                                        const minSavings = Math.min(...history.map(h => h.savings));
+                                        return history.map((h, idx) => {
+                                            const normalized = h.savings < 0 ?
+                                                (Math.abs(h.savings) / maxSavings) * 40 :
+                                                (h.savings / maxSavings) * 80;
+                                            const barColor = h.savings >= 0 ? '#ffd700' : '#f44336';
+                                            return \`
+                                                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 80px;">
+                                                    <div style="width: 12px; height: \${Math.max(normalized, 5)}px; background: \${barColor}; border-radius: 2px; opacity: \${0.5 + (idx / history.length) * 0.5};" title="\${formatMoney(h.savings)}"></div>
+                                                </div>
+                                            \`;
+                                        }).join('');
+                                    })()}
+                                </div>
+                                <p style="text-align: center; color: #aaa; font-size: 0.9em;">Patrimonio actual: <strong style="color: ${gameState.money >= 0 ? '#ffd700' : '#f44336'}">${formatMoney(gameState.money)}</strong></p>
+                            ` : '<p style="color: #888; text-align: center;">Aún no hay historial de ahorros.</p>'}
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+                            <h4 style="margin-bottom: 15px;">📊 Tendencias y Análisis</h4>
+                            ${(() => {
+                                const history = (gameState.financeHistory || []).slice(-6);
+                                if (history.length < 2) return '<p style="color: #888;">Necesitas al menos 2 meses de historial para ver tendencias.</p>';
+
+                                const avgIncome = history.reduce((a, h) => a + h.income, 0) / history.length;
+                                const avgExpenses = history.reduce((a, h) => a + h.expenses, 0) / history.length;
+                                const avgBalance = avgIncome - avgExpenses;
+
+                                const recentBalance = history.slice(-3).reduce((a, h) => a + h.balance, 0) / Math.min(3, history.length);
+                                const olderBalance = history.slice(0, 3).reduce((a, h) => a + h.balance, 0) / Math.min(3, history.length);
+                                const trend = recentBalance - olderBalance;
+
+                                const savingsFirst = history[0].savings;
+                                const savingsLast = history[history.length - 1].savings;
+                                const savingsChange = savingsLast - savingsFirst;
+
+                                return \`
+                                    <div style="display: grid; gap: 10px;">
+                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                            <span>📈 Ingreso promedio:</span>
+                                            <span style="color: #4CAF50; font-weight: bold;">\${formatMoney(avgIncome)}/mes</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                            <span>📉 Gasto promedio:</span>
+                                            <span style="color: #f44336; font-weight: bold;">\${formatMoney(avgExpenses)}/mes</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                            <span>⚖️ Balance promedio:</span>
+                                            <span style="color: \${avgBalance >= 0 ? '#4CAF50' : '#f44336'}; font-weight: bold;">\${avgBalance >= 0 ? '+' : ''}\${formatMoney(avgBalance)}/mes</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: \${trend >= 0 ? 'rgba(76,175,80,0.1)' : 'rgba(244,67,54,0.1)'}; border-radius: 8px; border-left: 3px solid \${trend >= 0 ? '#4CAF50' : '#f44336'};">
+                                            <span>\${trend >= 0 ? '🔼' : '🔽'} Tendencia:</span>
+                                            <span style="color: \${trend >= 0 ? '#4CAF50' : '#f44336'}; font-weight: bold;">\${trend >= 0 ? 'Mejorando' : 'Empeorando'} (\${trend >= 0 ? '+' : ''}\${formatMoney(trend)})</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
+                                            <span>💰 Cambio en ahorros (${history.length}m):</span>
+                                            <span style="color: \${savingsChange >= 0 ? '#ffd700' : '#f44336'}; font-weight: bold;">\${savingsChange >= 0 ? '+' : ''}\${formatMoney(savingsChange)}</span>
+                                        </div>
+                                    </div>
+                                \`;
+                            })()}
+                        </div>
+                    </div>
+
                     <!-- Tab: Historial -->
                     <div id="finance-tab-historial" class="tab-content">
                         <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
@@ -6770,6 +7688,14 @@
             `;
 
             let options = [];
+            // Opción de inversiones siempre disponible
+            options.push(`
+                <button class="modal-option" onclick="openInvestmentsMenu()">
+                    <div class="option-title">💹 Inversiones y Préstamos</div>
+                    <div class="option-desc">Invertir dinero, solicitar préstamos, YAPE/PLIN</div>
+                </button>
+            `);
+
             if (gameState.character.familySituationData.support > 0) {
                 options.push(`
                     <button class="modal-option" onclick="askFamilyHelp()">
@@ -6786,7 +7712,7 @@
         }
 
         function switchFinanceTab(tabId) {
-            document.querySelectorAll('#finance-tab-resumen, #finance-tab-ingresos, #finance-tab-gastos, #finance-tab-historial').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#finance-tab-resumen, #finance-tab-ingresos, #finance-tab-gastos, #finance-tab-estadisticas, #finance-tab-historial').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tabs-nav .tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('finance-tab-' + tabId).classList.add('active');
             event.target.classList.add('active');
@@ -6801,6 +7727,491 @@
             showNotification(`¡Recibiste ${formatMoney(amount)} de tu familia!`, 'success');
             closeModal();
             updateUI();
+        }
+
+        // ==================== SISTEMA DE INVERSIONES Y PRÉSTAMOS ====================
+
+        function openInvestmentsMenu() {
+            if (!gameState.investments) gameState.investments = [];
+            if (!gameState.loans) gameState.loans = [];
+
+            const totalInvested = gameState.investments.reduce((sum, inv) => sum + inv.amount, 0);
+            const monthlyInvestmentIncome = gameState.investmentIncome || 0;
+
+            let html = `
+                <div class="finance-cards" style="margin-bottom: 15px;">
+                    <div class="finance-card" style="background: rgba(255,215,0,0.2);">
+                        <span>💰 Total Invertido</span>
+                        <div class="amount" style="color: #ffd700">${formatMoney(totalInvested)}</div>
+                    </div>
+                    <div class="finance-card" style="background: rgba(76,175,80,0.2);">
+                        <span>📈 Rendimiento/mes</span>
+                        <div class="amount" style="color: ${monthlyInvestmentIncome >= 0 ? '#4CAF50' : '#f44336'}">${monthlyInvestmentIncome >= 0 ? '+' : ''}${formatMoney(monthlyInvestmentIncome)}</div>
+                    </div>
+                </div>
+
+                <div class="tabs-container">
+                    <div class="tabs-nav" style="flex-wrap: wrap;">
+                        <button class="tab-btn active" onclick="switchInvestTab('inversiones')">📊 Inversiones</button>
+                        <button class="tab-btn" onclick="switchInvestTab('prestamos')">💳 Préstamos</button>
+                        <button class="tab-btn" onclick="switchInvestTab('billeteras')">📱 Billeteras</button>
+                    </div>
+
+                    <!-- Tab: Inversiones -->
+                    <div id="invest-tab-inversiones" class="tab-content active">
+                        ${gameState.investments.length > 0 ? `
+                            <h4 style="margin-bottom: 10px;">📊 Mis Inversiones</h4>
+                            ${gameState.investments.map((inv, idx) => {
+                                const data = INVESTMENTS[inv.type];
+                                const monthsActive = ((gameState.year - inv.startYear) * 12) + (gameState.month - inv.startMonth);
+                                const isLocked = data.lockMonths > 0 && monthsActive < data.lockMonths;
+                                return `
+                                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${data.riskLevel === 'bajo' ? '#4CAF50' : data.riskLevel === 'medio' ? '#ff9800' : '#f44336'};">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <div>
+                                                <strong>${data.icon} ${data.name}</strong>
+                                                <div style="font-size: 0.85em; color: #4CAF50;">${formatMoney(inv.amount)}</div>
+                                                <div style="font-size: 0.75em; color: #888;">${monthsActive} meses ${isLocked ? '(🔒 bloqueado ' + (data.lockMonths - monthsActive) + 'm más)' : ''}</div>
+                                            </div>
+                                            <button class="btn btn-small ${isLocked ? 'btn-secondary' : 'btn-warning'}" onclick="${isLocked ? '' : `withdrawInvestment(${idx})`}" ${isLocked ? 'disabled' : ''}>
+                                                ${isLocked ? '🔒' : 'Retirar'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                            <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
+                        ` : ''}
+
+                        <h4 style="margin-bottom: 10px;">💡 Opciones de Inversión</h4>
+                        ${Object.entries(INVESTMENTS).map(([id, inv]) => {
+                            const canInvest = gameState.money >= inv.minAmount;
+                            const riskColor = inv.riskLevel === 'bajo' ? '#4CAF50' : inv.riskLevel === 'medio' ? '#ff9800' : inv.riskLevel === 'alto' ? '#f44336' : '#9c27b0';
+                            return `
+                                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: ${canInvest ? 'pointer' : 'not-allowed'}; opacity: ${canInvest ? 1 : 0.5}; border-left: 3px solid ${riskColor};" onclick="${canInvest ? `showInvestmentDetails('${id}')` : ''}">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="flex: 1;">
+                                            <strong>${inv.icon} ${inv.name}</strong>
+                                            <div style="font-size: 0.8em; color: #aaa;">${inv.description}</div>
+                                            <div style="font-size: 0.75em; margin-top: 5px;">
+                                                <span style="color: ${riskColor};">●</span> Riesgo: ${inv.riskLevel.charAt(0).toUpperCase() + inv.riskLevel.slice(1).replace('_', ' ')} |
+                                                <span style="color: #4CAF50;">Retorno: ${inv.monthlyReturn[0]}% - ${inv.monthlyReturn[1]}%/mes</span>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 0.8em; color: #888;">Mínimo</div>
+                                            <div style="color: #ffd700;">${formatMoney(inv.minAmount)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Tab: Préstamos -->
+                    <div id="invest-tab-prestamos" class="tab-content">
+                        ${gameState.loans && gameState.loans.length > 0 ? `
+                            <h4 style="margin-bottom: 10px; color: #f44336;">💳 Deudas Activas</h4>
+                            ${gameState.loans.map((loan, idx) => {
+                                const data = BANK_LOANS[loan.type];
+                                return `
+                                    <div style="background: rgba(244,67,54,0.1); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #f44336;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <div>
+                                                <strong>${data.icon} ${data.name}</strong>
+                                                <div style="font-size: 0.85em; color: #f44336;">Debes: ${formatMoney(loan.remaining)}</div>
+                                                <div style="font-size: 0.75em; color: #888;">Cuota: ${formatMoney(loan.monthlyPayment)}/mes | ${loan.monthsRemaining}m restantes</div>
+                                            </div>
+                                            <button class="btn btn-small btn-success" onclick="payLoanEarly(${idx})">Pagar todo</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                            <hr style="border-color: rgba(255,255,255,0.1); margin: 15px 0;">
+                        ` : ''}
+
+                        <h4 style="margin-bottom: 10px;">🏦 Solicitar Préstamo</h4>
+                        ${Object.entries(BANK_LOANS).map(([id, loan]) => {
+                            const income = calculateMonthlyIncome();
+                            const meetsIncome = !loan.requirements.minIncome || income >= loan.requirements.minIncome;
+                            const meetsRecord = !loan.requirements.noCriminalRecord || !gameState.criminalRecord;
+                            const meetsAge = !loan.requirements.minAge || gameState.age >= loan.requirements.minAge;
+                            const canRequest = meetsIncome && meetsRecord && meetsAge;
+
+                            return `
+                                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: ${canRequest ? 'pointer' : 'not-allowed'}; opacity: ${canRequest ? 1 : 0.5}; border-left: 3px solid ${loan.dangerous ? '#f44336' : '#2196F3'};" onclick="${canRequest ? `showLoanDetails('${id}')` : ''}">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="flex: 1;">
+                                            <strong>${loan.icon} ${loan.name}</strong>
+                                            <div style="font-size: 0.8em; color: #aaa;">${loan.description}</div>
+                                            <div style="font-size: 0.75em; margin-top: 5px;">
+                                                <span style="color: ${loan.dangerous ? '#f44336' : '#ff9800'};">Interés: ${loan.monthlyInterest}%/mes</span>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 0.8em; color: #888;">Hasta</div>
+                                            <div style="color: #2196F3;">${formatMoney(loan.maxAmount || loan.maxLimit)}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- Tab: Billeteras -->
+                    <div id="invest-tab-billeteras" class="tab-content">
+                        <h4 style="margin-bottom: 15px;">📱 Billeteras Digitales</h4>
+
+                        <div style="background: ${gameState.hasYape ? 'rgba(156,39,176,0.2)' : 'rgba(255,255,255,0.05)'}; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 3px solid #9c27b0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>💜 Yape (BCP)</strong>
+                                    <div style="font-size: 0.85em; color: #aaa;">Transferencias gratis. Límite S/2000.</div>
+                                </div>
+                                ${gameState.hasYape ?
+                                    `<span style="color: #4CAF50;">✓ Activado</span>` :
+                                    `<button class="btn btn-small btn-success" onclick="activateWallet('yape')">Activar Gratis</button>`
+                                }
+                            </div>
+                        </div>
+
+                        <div style="background: ${gameState.hasPlin ? 'rgba(76,175,80,0.2)' : 'rgba(255,255,255,0.05)'}; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 3px solid #4CAF50;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>💚 Plin (Multibanco)</strong>
+                                    <div style="font-size: 0.85em; color: #aaa;">BBVA, Interbank, Scotiabank. Gratis.</div>
+                                </div>
+                                ${gameState.hasPlin ?
+                                    `<span style="color: #4CAF50;">✓ Activado</span>` :
+                                    `<button class="btn btn-small btn-success" onclick="activateWallet('plin')">Activar Gratis</button>`
+                                }
+                            </div>
+                        </div>
+
+                        ${gameState.hasYape || gameState.hasPlin ? `
+                            <div style="background: rgba(33,150,243,0.1); padding: 15px; border-radius: 10px; margin-top: 15px;">
+                                <p style="font-size: 0.9em; color: #aaa;">💡 Con tus billeteras digitales puedes:</p>
+                                <ul style="font-size: 0.85em; color: #888; margin: 10px 0 0 15px;">
+                                    <li>Recibir propinas en trabajos de atención</li>
+                                    <li>Pagos más rápidos en freelance</li>
+                                    <li>Descuentos en algunas compras</li>
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = '💹 Inversiones y Finanzas';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function switchInvestTab(tabId) {
+            document.querySelectorAll('#invest-tab-inversiones, #invest-tab-prestamos, #invest-tab-billeteras').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tabs-nav .tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('invest-tab-' + tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showInvestmentDetails(invId) {
+            const inv = INVESTMENTS[invId];
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 3em;">${inv.icon}</div>
+                    <h3>${inv.name}</h3>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <p>${inv.description}</p>
+                    <div style="margin-top: 15px; display: grid; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Retorno mensual:</span>
+                            <span style="color: #4CAF50;">${inv.monthlyReturn[0]}% - ${inv.monthlyReturn[1]}%</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Riesgo:</span>
+                            <span style="color: ${inv.riskLevel === 'bajo' ? '#4CAF50' : inv.riskLevel === 'medio' ? '#ff9800' : '#f44336'};">${inv.riskLevel.charAt(0).toUpperCase() + inv.riskLevel.slice(1).replace('_', ' ')}</span>
+                        </div>
+                        ${inv.lockMonths > 0 ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Plazo mínimo:</span>
+                                <span style="color: #2196F3;">${inv.lockMonths} meses</span>
+                            </div>
+                        ` : ''}
+                        ${inv.canLose ? `
+                            <div style="color: #f44336; font-size: 0.9em; margin-top: 10px;">⚠️ Esta inversión puede generar pérdidas</div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px;">Monto a invertir:</label>
+                    <input type="number" id="investAmount" min="${inv.minAmount}" max="${gameState.money}" value="${Math.min(inv.minAmount, gameState.money)}" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                    <small style="color: #888;">Mínimo: ${formatMoney(inv.minAmount)} | Disponible: ${formatMoney(gameState.money)}</small>
+                </div>
+            `;
+
+            document.getElementById('modalTitle').textContent = `${inv.icon} Invertir`;
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = `
+                <button class="btn btn-success" onclick="makeInvestment('${invId}')">💰 Invertir</button>
+                <button class="btn btn-secondary" onclick="openInvestmentsMenu()">← Volver</button>
+            `;
+        }
+
+        function makeInvestment(invId) {
+            const inv = INVESTMENTS[invId];
+            const amount = parseInt(document.getElementById('investAmount').value);
+
+            if (isNaN(amount) || amount < inv.minAmount) {
+                showNotification(`Monto mínimo: ${formatMoney(inv.minAmount)}`, 'error');
+                return;
+            }
+            if (amount > gameState.money) {
+                showNotification('No tienes suficiente dinero', 'error');
+                return;
+            }
+
+            if (!gameState.investments) gameState.investments = [];
+
+            gameState.money -= amount;
+            gameState.investments.push({
+                type: invId,
+                amount: amount,
+                startMonth: gameState.month,
+                startYear: gameState.year
+            });
+
+            addLog(`Invertiste ${formatMoney(amount)} en ${inv.name}`, 'positive');
+            showNotification(`¡Inversión realizada en ${inv.name}!`, 'success');
+            closeModal();
+            updateUI();
+        }
+
+        function withdrawInvestment(idx) {
+            const investment = gameState.investments[idx];
+            const inv = INVESTMENTS[investment.type];
+            const monthsActive = ((gameState.year - investment.startYear) * 12) + (gameState.month - investment.startMonth);
+
+            let withdrawAmount = investment.amount;
+
+            // Penalidad por retiro anticipado
+            if (inv.lockMonths > 0 && monthsActive < inv.lockMonths && inv.earlyWithdrawPenalty) {
+                withdrawAmount = Math.floor(investment.amount * (1 - inv.earlyWithdrawPenalty));
+                addLog(`⚠️ Retiro anticipado: penalidad del ${inv.earlyWithdrawPenalty * 100}%`, 'negative');
+            }
+
+            gameState.money += withdrawAmount;
+            gameState.investments.splice(idx, 1);
+            addLog(`Retiraste ${formatMoney(withdrawAmount)} de ${inv.name}`, 'positive');
+            showNotification(`Inversión retirada: ${formatMoney(withdrawAmount)}`, 'success');
+            openInvestmentsMenu();
+            updateUI();
+        }
+
+        function showLoanDetails(loanId) {
+            const loan = BANK_LOANS[loanId];
+
+            let html = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 3em;">${loan.icon}</div>
+                    <h3>${loan.name}</h3>
+                </div>
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <p>${loan.description}</p>
+                    <div style="margin-top: 15px; display: grid; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Interés mensual:</span>
+                            <span style="color: #f44336;">${loan.monthlyInterest}%</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Monto máximo:</span>
+                            <span style="color: #2196F3;">${formatMoney(loan.maxAmount || loan.maxLimit)}</span>
+                        </div>
+                        ${loan.maxMonths ? `
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Plazo máximo:</span>
+                                <span>${loan.maxMonths} meses</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    ${loan.dangerous ? `
+                        <div style="background: rgba(244,67,54,0.2); padding: 10px; border-radius: 5px; margin-top: 15px; border-left: 3px solid #f44336;">
+                            <strong style="color: #f44336;">⚠️ ¡PELIGRO!</strong>
+                            <p style="font-size: 0.85em; color: #aaa;">Este préstamo tiene intereses usureros. Puede llevarte a una espiral de deudas. Los prestamistas informales pueden usar violencia para cobrar.</p>
+                        </div>
+                    ` : ''}
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; margin-bottom: 5px;">Monto a solicitar:</label>
+                    <input type="number" id="loanAmount" min="${loan.minAmount || loan.minLimit}" max="${loan.maxAmount || loan.maxLimit}" value="${loan.minAmount || loan.minLimit}" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                </div>
+                ${loan.maxMonths ? `
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px;">Plazo (meses):</label>
+                        <input type="number" id="loanMonths" min="1" max="${loan.maxMonths}" value="${Math.min(12, loan.maxMonths)}" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: white;">
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('modalTitle').textContent = `${loan.icon} Solicitar Préstamo`;
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalOptions').innerHTML = `
+                <button class="btn ${loan.dangerous ? 'btn-danger' : 'btn-success'}" onclick="requestLoan('${loanId}')">${loan.dangerous ? '⚠️' : '💳'} Solicitar</button>
+                <button class="btn btn-secondary" onclick="openInvestmentsMenu()">← Volver</button>
+            `;
+        }
+
+        function requestLoan(loanId) {
+            const loan = BANK_LOANS[loanId];
+            const amount = parseInt(document.getElementById('loanAmount').value);
+            const months = loan.maxMonths ? parseInt(document.getElementById('loanMonths').value) : 12;
+
+            if (isNaN(amount) || amount < (loan.minAmount || loan.minLimit) || amount > (loan.maxAmount || loan.maxLimit)) {
+                showNotification('Monto inválido', 'error');
+                return;
+            }
+
+            if (!gameState.loans) gameState.loans = [];
+
+            // Calcular cuota mensual con interés
+            const totalInterest = amount * (loan.monthlyInterest / 100) * months;
+            const totalToPay = amount + totalInterest;
+            const monthlyPayment = Math.ceil(totalToPay / months);
+
+            gameState.money += amount;
+            gameState.loans.push({
+                type: loanId,
+                originalAmount: amount,
+                remaining: totalToPay,
+                monthlyPayment: monthlyPayment,
+                monthsRemaining: months,
+                monthlyInterest: loan.monthlyInterest,
+                dangerous: loan.dangerous || false
+            });
+
+            addLog(`Recibiste préstamo de ${formatMoney(amount)} (pagar ${formatMoney(totalToPay)} en ${months} meses)`, loan.dangerous ? 'warning' : 'positive');
+            showNotification(`Préstamo aprobado: ${formatMoney(amount)}`, loan.dangerous ? 'warning' : 'success');
+            closeModal();
+            updateUI();
+        }
+
+        function payLoanEarly(idx) {
+            const loan = gameState.loans[idx];
+
+            if (gameState.money < loan.remaining) {
+                showNotification(`Necesitas ${formatMoney(loan.remaining)} para pagar`, 'error');
+                return;
+            }
+
+            gameState.money -= loan.remaining;
+            gameState.loans.splice(idx, 1);
+            addLog(`Pagaste préstamo completo de ${formatMoney(loan.remaining)}`, 'positive');
+            showNotification('¡Préstamo pagado!', 'success');
+            openInvestmentsMenu();
+            updateUI();
+        }
+
+        function activateWallet(wallet) {
+            if (wallet === 'yape') {
+                gameState.hasYape = true;
+                addLog('Activaste Yape 💜', 'positive');
+            } else if (wallet === 'plin') {
+                gameState.hasPlin = true;
+                addLog('Activaste Plin 💚', 'positive');
+            }
+            showNotification(`¡${wallet.charAt(0).toUpperCase() + wallet.slice(1)} activado!`, 'success');
+            openInvestmentsMenu();
+            updateUI();
+        }
+
+        function processInvestments() {
+            if (!gameState.investments || gameState.investments.length === 0) {
+                gameState.investmentIncome = 0;
+                return 0;
+            }
+
+            let totalReturn = 0;
+
+            gameState.investments.forEach(inv => {
+                const data = INVESTMENTS[inv.type];
+                const baseReturn = (data.monthlyReturn[0] + data.monthlyReturn[1]) / 2;
+
+                // Aplicar volatilidad
+                let actualReturn = baseReturn;
+                if (data.volatility > 0) {
+                    const volatilityRange = (data.monthlyReturn[1] - data.monthlyReturn[0]);
+                    const randomFactor = (Math.random() - 0.5) * 2 * data.volatility;
+                    actualReturn = baseReturn + (volatilityRange * randomFactor);
+
+                    // Para inversiones de alto riesgo, hay chance de pérdida mayor
+                    if (data.canLose && Math.random() < 0.1) {
+                        actualReturn = data.monthlyReturn[0]; // Mínimo (puede ser negativo)
+                    }
+                }
+
+                const monthlyGain = Math.floor(inv.amount * (actualReturn / 100));
+                inv.amount += monthlyGain; // El retorno se reinvierte
+                totalReturn += monthlyGain;
+
+                // Para propiedades con alquiler
+                if (data.monthlyRent) {
+                    const rent = randomRange(data.monthlyRent[0], data.monthlyRent[1]);
+                    totalReturn += rent;
+                    gameState.money += rent;
+                }
+            });
+
+            gameState.investmentIncome = totalReturn;
+            return totalReturn;
+        }
+
+        function processLoans() {
+            if (!gameState.loans || gameState.loans.length === 0) return 0;
+
+            let totalPaid = 0;
+            const loansToRemove = [];
+
+            gameState.loans.forEach((loan, idx) => {
+                if (gameState.money >= loan.monthlyPayment) {
+                    gameState.money -= loan.monthlyPayment;
+                    loan.remaining -= loan.monthlyPayment;
+                    loan.monthsRemaining--;
+                    totalPaid += loan.monthlyPayment;
+
+                    if (loan.monthsRemaining <= 0 || loan.remaining <= 0) {
+                        loansToRemove.push(idx);
+                        addLog(`Terminaste de pagar un préstamo 🎉`, 'positive');
+                    }
+                } else {
+                    // No puedes pagar
+                    if (loan.dangerous) {
+                        // Préstamo informal: consecuencias graves
+                        const penalty = Math.floor(loan.monthlyPayment * 0.5);
+                        loan.remaining += penalty; // Se acumula deuda
+                        gameState.stress += 20;
+                        gameState.happiness -= 15;
+                        addLog(`⚠️ No pagaste al prestamista informal. Te cobraron ${formatMoney(penalty)} extra y te amenazaron.`, 'negative');
+
+                        // Pequeña chance de violencia
+                        if (Math.random() < 0.1) {
+                            gameState.health -= 10;
+                            addLog(`🔴 Los cobradores te agredieron por no pagar.`, 'negative');
+                        }
+                    } else {
+                        // Préstamo formal: se acumula interés
+                        const interest = Math.floor(loan.remaining * (loan.monthlyInterest / 100));
+                        loan.remaining += interest;
+                        addLog(`No pudiste pagar cuota de préstamo. Deuda aumentó a ${formatMoney(loan.remaining)}`, 'warning');
+                    }
+                }
+            });
+
+            // Remover préstamos pagados (de atrás hacia adelante para no alterar índices)
+            loansToRemove.reverse().forEach(idx => gameState.loans.splice(idx, 1));
+
+            return totalPaid;
         }
 
         // ==================== VISTA DE CARRERA ====================
@@ -8921,6 +10332,21 @@
             gameState.stats.totalEarned += income;
             gameState.stats.totalSpent += expenses;
 
+            // ========== REGISTRAR HISTORIAL FINANCIERO ==========
+            if (!gameState.financeHistory) gameState.financeHistory = [];
+            gameState.financeHistory.push({
+                month: gameState.month,
+                year: gameState.year,
+                income: income,
+                expenses: expenses,
+                balance: income - expenses,
+                savings: gameState.money
+            });
+            // Mantener solo los últimos 24 meses de historial
+            if (gameState.financeHistory.length > 24) {
+                gameState.financeHistory.shift();
+            }
+
             // ========== TRABAJO ==========
             if (gameState.job) {
                 const job = JOBS[gameState.job];
@@ -9079,12 +10505,31 @@
 
                 if (gameState.studyMonthsLeft <= 0) {
                     const study = EDUCATION_OPTIONS[gameState.studying];
-                    gameState.education = study.result;
-                    addLog(`¡Completaste ${study.name}! 🎓`, 'special');
-                    showNotification(`¡Te graduaste de ${study.name}!`, 'success');
-                    gameState.happiness += 25;
-                    gameState.credits += 25;
-                    gameState.skillPoints += 50; // Bonus grande al graduarse
+
+                    // Solo actualizar nivel educativo si el estudio tiene resultado
+                    if (study.result) {
+                        gameState.education = study.result;
+                        addLog(`¡Completaste ${study.name}! 🎓`, 'special');
+                        gameState.skillPoints += 50; // Bonus grande al graduarse
+                    } else {
+                        // Es un curso/certificación
+                        addLog(`¡Completaste ${study.name}! 📜`, 'special');
+                        gameState.skillPoints += 20; // Bonus menor para cursos
+                    }
+
+                    // Aplicar bonuses de habilidades
+                    if (study.skillBonus) {
+                        for (const [skill, bonus] of Object.entries(study.skillBonus)) {
+                            if (gameState.skills[skill] !== undefined) {
+                                gameState.skills[skill] = Math.min(100, gameState.skills[skill] + bonus);
+                                addLog(`📈 +${bonus} en ${skill}`, 'positive');
+                            }
+                        }
+                    }
+
+                    showNotification(`¡Completaste ${study.name}!`, 'success');
+                    gameState.happiness += study.result ? 25 : 15;
+                    gameState.credits += study.result ? 25 : 10;
                     gameState.studying = null;
                 }
             }
@@ -9116,6 +10561,19 @@
                 if (businessIncome !== 0) {
                     addLog(`🏢 Ingresos de negocios: ${businessIncome >= 0 ? '+' : ''}${formatMoney(businessIncome)}`, businessIncome >= 0 ? 'positive' : 'negative');
                 }
+            }
+
+            // ========== INVERSIONES ==========
+            if (gameState.investments && gameState.investments.length > 0) {
+                const investIncome = processInvestments();
+                if (investIncome !== 0) {
+                    addLog(`📈 Rendimiento inversiones: ${investIncome >= 0 ? '+' : ''}${formatMoney(investIncome)}`, investIncome >= 0 ? 'positive' : 'negative');
+                }
+            }
+
+            // ========== PRÉSTAMOS ==========
+            if (gameState.loans && gameState.loans.length > 0) {
+                processLoans();
             }
 
             // ========== LIBERTAD CONDICIONAL ==========
@@ -9373,7 +10831,7 @@
                 ${recentEvents.length > 0 ? `
                     <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                         <div style="font-weight: bold; margin-bottom: 10px;">📋 Eventos del mes (${recentEvents.length})</div>
-                        <div class="modal-scroll-area" style="max-height: 120px; overflow-y: auto; padding-right: 8px;">
+                        <div class="modal-scroll-area" style="max-height: 180px; padding-right: 10px;">
                             ${recentEvents.map(e => `<div style="font-size: 0.85em; color: #aaa; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1);">• ${e.message || e.text || 'Sin descripción'}</div>`).join('')}
                         </div>
                     </div>
