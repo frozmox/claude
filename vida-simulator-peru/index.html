@@ -7393,6 +7393,108 @@
             updateUI();
         }
 
+        // ==================== FUNCIONES AUXILIARES PARA GRÁFICOS ====================
+
+        function generateFinanceChart(financeHistory) {
+            const history = (financeHistory || []).slice(-12);
+            if (history.length === 0) return '';
+
+            const maxVal = Math.max(...history.map(h => Math.max(h.income, h.expenses)), 1);
+            const monthNames = ['E','F','M','A','M','J','J','A','S','O','N','D'];
+
+            let barsHtml = history.map((h, idx) => {
+                const incomeHeight = (h.income / maxVal) * 130;
+                const expenseHeight = (h.expenses / maxVal) * 130;
+                return '<div style="flex: 1; display: flex; flex-direction: column; align-items: center;">' +
+                    '<div style="display: flex; gap: 2px; align-items: flex-end; height: 130px;">' +
+                    '<div style="width: 8px; height: ' + incomeHeight + 'px; background: linear-gradient(to top, #4CAF50, #81C784); border-radius: 2px 2px 0 0;" title="Ingresos: ' + formatMoney(h.income) + '"></div>' +
+                    '<div style="width: 8px; height: ' + expenseHeight + 'px; background: linear-gradient(to top, #f44336, #e57373); border-radius: 2px 2px 0 0;" title="Gastos: ' + formatMoney(h.expenses) + '"></div>' +
+                    '</div>' +
+                    '<div style="font-size: 0.65em; color: #888; margin-top: 5px;">' + monthNames[h.month-1] + '</div>' +
+                    '</div>';
+            }).join('');
+
+            return '<div style="display: flex; align-items: flex-end; gap: 4px; height: 150px; padding: 10px 0; border-bottom: 2px solid rgba(255,255,255,0.2); margin-bottom: 10px;">' +
+                barsHtml +
+                '</div>' +
+                '<div style="display: flex; gap: 15px; justify-content: center; font-size: 0.8em;">' +
+                '<span><span style="display: inline-block; width: 12px; height: 12px; background: #4CAF50; border-radius: 2px;"></span> Ingresos</span>' +
+                '<span><span style="display: inline-block; width: 12px; height: 12px; background: #f44336; border-radius: 2px;"></span> Gastos</span>' +
+                '</div>';
+        }
+
+        function generateSavingsChart(financeHistory, currentMoney) {
+            const history = (financeHistory || []).slice(-12);
+            if (history.length === 0) return '';
+
+            const maxSavings = Math.max(...history.map(h => Math.abs(h.savings)), 1);
+
+            let barsHtml = history.map((h, idx) => {
+                const normalized = h.savings < 0 ?
+                    (Math.abs(h.savings) / maxSavings) * 40 :
+                    (h.savings / maxSavings) * 80;
+                const barColor = h.savings >= 0 ? '#ffd700' : '#f44336';
+                const opacity = 0.5 + (idx / history.length) * 0.5;
+                return '<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 80px;">' +
+                    '<div style="width: 12px; height: ' + Math.max(normalized, 5) + 'px; background: ' + barColor + '; border-radius: 2px; opacity: ' + opacity + ';" title="' + formatMoney(h.savings) + '"></div>' +
+                    '</div>';
+            }).join('');
+
+            const moneyColor = currentMoney >= 0 ? '#ffd700' : '#f44336';
+
+            return '<div style="display: flex; align-items: flex-end; gap: 4px; height: 100px; padding: 10px 0; border-bottom: 2px solid rgba(255,255,255,0.2); margin-bottom: 10px;">' +
+                barsHtml +
+                '</div>' +
+                '<p style="text-align: center; color: #aaa; font-size: 0.9em;">Patrimonio actual: <strong style="color: ' + moneyColor + '">' + formatMoney(currentMoney) + '</strong></p>';
+        }
+
+        function generateTrendsAnalysis(financeHistory) {
+            const history = (financeHistory || []).slice(-6);
+            if (history.length < 2) return '<p style="color: #888;">Necesitas al menos 2 meses de historial para ver tendencias.</p>';
+
+            const avgIncome = history.reduce((a, h) => a + h.income, 0) / history.length;
+            const avgExpenses = history.reduce((a, h) => a + h.expenses, 0) / history.length;
+            const avgBalance = avgIncome - avgExpenses;
+
+            const recentBalance = history.slice(-3).reduce((a, h) => a + h.balance, 0) / Math.min(3, history.length);
+            const olderBalance = history.slice(0, 3).reduce((a, h) => a + h.balance, 0) / Math.min(3, history.length);
+            const trend = recentBalance - olderBalance;
+
+            const savingsFirst = history[0].savings;
+            const savingsLast = history[history.length - 1].savings;
+            const savingsChange = savingsLast - savingsFirst;
+
+            const balanceColor = avgBalance >= 0 ? '#4CAF50' : '#f44336';
+            const trendColor = trend >= 0 ? '#4CAF50' : '#f44336';
+            const trendBg = trend >= 0 ? 'rgba(76,175,80,0.1)' : 'rgba(244,67,54,0.1)';
+            const trendIcon = trend >= 0 ? '🔼' : '🔽';
+            const trendText = trend >= 0 ? 'Mejorando' : 'Empeorando';
+            const savingsColor = savingsChange >= 0 ? '#ffd700' : '#f44336';
+
+            return '<div style="display: grid; gap: 10px;">' +
+                '<div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">' +
+                '<span>📈 Ingreso promedio:</span>' +
+                '<span style="color: #4CAF50; font-weight: bold;">' + formatMoney(avgIncome) + '/mes</span>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">' +
+                '<span>📉 Gasto promedio:</span>' +
+                '<span style="color: #f44336; font-weight: bold;">' + formatMoney(avgExpenses) + '/mes</span>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">' +
+                '<span>⚖️ Balance promedio:</span>' +
+                '<span style="color: ' + balanceColor + '; font-weight: bold;">' + (avgBalance >= 0 ? '+' : '') + formatMoney(avgBalance) + '/mes</span>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; padding: 10px; background: ' + trendBg + '; border-radius: 8px; border-left: 3px solid ' + trendColor + ';">' +
+                '<span>' + trendIcon + ' Tendencia:</span>' +
+                '<span style="color: ' + trendColor + '; font-weight: bold;">' + trendText + ' (' + (trend >= 0 ? '+' : '') + formatMoney(trend) + ')</span>' +
+                '</div>' +
+                '<div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">' +
+                '<span>💰 Cambio en ahorros (' + history.length + 'm):</span>' +
+                '<span style="color: ' + savingsColor + '; font-weight: bold;">' + (savingsChange >= 0 ? '+' : '') + formatMoney(savingsChange) + '</span>' +
+                '</div>' +
+                '</div>';
+        }
+
         function openFinanceMenu() {
             const income = calculateMonthlyIncome();
             const expenses = calculateMonthlyExpenses();
@@ -7568,103 +7670,17 @@
                     <div id="finance-tab-estadisticas" class="tab-content">
                         <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                             <h4 style="margin-bottom: 15px;">📈 Evolución Financiera (últimos ${Math.min(12, (gameState.financeHistory || []).length)} meses)</h4>
-                            ${(gameState.financeHistory && gameState.financeHistory.length > 0) ? `
-                                <!-- Gráfico de barras con CSS -->
-                                <div style="display: flex; align-items: flex-end; gap: 4px; height: 150px; padding: 10px 0; border-bottom: 2px solid rgba(255,255,255,0.2); margin-bottom: 10px;">
-                                    ${(() => {
-                                        const history = (gameState.financeHistory || []).slice(-12);
-                                        const maxVal = Math.max(...history.map(h => Math.max(h.income, h.expenses)), 1);
-                                        return history.map((h, idx) => {
-                                            const incomeHeight = (h.income / maxVal) * 130;
-                                            const expenseHeight = (h.expenses / maxVal) * 130;
-                                            const monthNames = ['E','F','M','A','M','J','J','A','S','O','N','D'];
-                                            return \`
-                                                <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-                                                    <div style="display: flex; gap: 2px; align-items: flex-end; height: 130px;">
-                                                        <div style="width: 8px; height: \${incomeHeight}px; background: linear-gradient(to top, #4CAF50, #81C784); border-radius: 2px 2px 0 0;" title="Ingresos: \${formatMoney(h.income)}"></div>
-                                                        <div style="width: 8px; height: \${expenseHeight}px; background: linear-gradient(to top, #f44336, #e57373); border-radius: 2px 2px 0 0;" title="Gastos: \${formatMoney(h.expenses)}"></div>
-                                                    </div>
-                                                    <div style="font-size: 0.65em; color: #888; margin-top: 5px;">\${monthNames[h.month-1]}</div>
-                                                </div>
-                                            \`;
-                                        }).join('');
-                                    })()}
-                                </div>
-                                <div style="display: flex; gap: 15px; justify-content: center; font-size: 0.8em;">
-                                    <span><span style="display: inline-block; width: 12px; height: 12px; background: #4CAF50; border-radius: 2px;"></span> Ingresos</span>
-                                    <span><span style="display: inline-block; width: 12px; height: 12px; background: #f44336; border-radius: 2px;"></span> Gastos</span>
-                                </div>
-                            ` : '<p style="color: #888; text-align: center;">Aún no hay suficiente historial. Pasa algunos meses para ver el gráfico.</p>'}
+                            ${(gameState.financeHistory && gameState.financeHistory.length > 0) ? generateFinanceChart(gameState.financeHistory) : '<p style="color: #888; text-align: center;">Aún no hay suficiente historial. Pasa algunos meses para ver el gráfico.</p>'}
                         </div>
 
                         <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
                             <h4 style="margin-bottom: 15px;">💰 Evolución de Ahorros</h4>
-                            ${(gameState.financeHistory && gameState.financeHistory.length > 0) ? `
-                                <div style="display: flex; align-items: flex-end; gap: 4px; height: 100px; padding: 10px 0; border-bottom: 2px solid rgba(255,255,255,0.2); margin-bottom: 10px;">
-                                    ${(() => {
-                                        const history = (gameState.financeHistory || []).slice(-12);
-                                        const maxSavings = Math.max(...history.map(h => Math.abs(h.savings)), 1);
-                                        const minSavings = Math.min(...history.map(h => h.savings));
-                                        return history.map((h, idx) => {
-                                            const normalized = h.savings < 0 ?
-                                                (Math.abs(h.savings) / maxSavings) * 40 :
-                                                (h.savings / maxSavings) * 80;
-                                            const barColor = h.savings >= 0 ? '#ffd700' : '#f44336';
-                                            return \`
-                                                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 80px;">
-                                                    <div style="width: 12px; height: \${Math.max(normalized, 5)}px; background: \${barColor}; border-radius: 2px; opacity: \${0.5 + (idx / history.length) * 0.5};" title="\${formatMoney(h.savings)}"></div>
-                                                </div>
-                                            \`;
-                                        }).join('');
-                                    })()}
-                                </div>
-                                <p style="text-align: center; color: #aaa; font-size: 0.9em;">Patrimonio actual: <strong style="color: ${gameState.money >= 0 ? '#ffd700' : '#f44336'}">${formatMoney(gameState.money)}</strong></p>
-                            ` : '<p style="color: #888; text-align: center;">Aún no hay historial de ahorros.</p>'}
+                            ${(gameState.financeHistory && gameState.financeHistory.length > 0) ? generateSavingsChart(gameState.financeHistory, gameState.money) : '<p style="color: #888; text-align: center;">Aún no hay historial de ahorros.</p>'}
                         </div>
 
                         <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
                             <h4 style="margin-bottom: 15px;">📊 Tendencias y Análisis</h4>
-                            ${(() => {
-                                const history = (gameState.financeHistory || []).slice(-6);
-                                if (history.length < 2) return '<p style="color: #888;">Necesitas al menos 2 meses de historial para ver tendencias.</p>';
-
-                                const avgIncome = history.reduce((a, h) => a + h.income, 0) / history.length;
-                                const avgExpenses = history.reduce((a, h) => a + h.expenses, 0) / history.length;
-                                const avgBalance = avgIncome - avgExpenses;
-
-                                const recentBalance = history.slice(-3).reduce((a, h) => a + h.balance, 0) / Math.min(3, history.length);
-                                const olderBalance = history.slice(0, 3).reduce((a, h) => a + h.balance, 0) / Math.min(3, history.length);
-                                const trend = recentBalance - olderBalance;
-
-                                const savingsFirst = history[0].savings;
-                                const savingsLast = history[history.length - 1].savings;
-                                const savingsChange = savingsLast - savingsFirst;
-
-                                return \`
-                                    <div style="display: grid; gap: 10px;">
-                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                                            <span>📈 Ingreso promedio:</span>
-                                            <span style="color: #4CAF50; font-weight: bold;">\${formatMoney(avgIncome)}/mes</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                                            <span>📉 Gasto promedio:</span>
-                                            <span style="color: #f44336; font-weight: bold;">\${formatMoney(avgExpenses)}/mes</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-                                            <span>⚖️ Balance promedio:</span>
-                                            <span style="color: \${avgBalance >= 0 ? '#4CAF50' : '#f44336'}; font-weight: bold;">\${avgBalance >= 0 ? '+' : ''}\${formatMoney(avgBalance)}/mes</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: \${trend >= 0 ? 'rgba(76,175,80,0.1)' : 'rgba(244,67,54,0.1)'}; border-radius: 8px; border-left: 3px solid \${trend >= 0 ? '#4CAF50' : '#f44336'};">
-                                            <span>\${trend >= 0 ? '🔼' : '🔽'} Tendencia:</span>
-                                            <span style="color: \${trend >= 0 ? '#4CAF50' : '#f44336'}; font-weight: bold;">\${trend >= 0 ? 'Mejorando' : 'Empeorando'} (\${trend >= 0 ? '+' : ''}\${formatMoney(trend)})</span>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px;">
-                                            <span>💰 Cambio en ahorros (${history.length}m):</span>
-                                            <span style="color: \${savingsChange >= 0 ? '#ffd700' : '#f44336'}; font-weight: bold;">\${savingsChange >= 0 ? '+' : ''}\${formatMoney(savingsChange)}</span>
-                                        </div>
-                                    </div>
-                                \`;
-                            })()}
+                            ${generateTrendsAnalysis(gameState.financeHistory)}
                         </div>
                     </div>
 
