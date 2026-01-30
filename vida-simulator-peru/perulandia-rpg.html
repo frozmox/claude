@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Perulandia RPG - Simulador de Vida</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a12;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        #game-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* HUD Overlay */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 15px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .hud-left, .hud-right {
+            pointer-events: auto;
+        }
+
+        .hud-left {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .player-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+
+        .player-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .player-date {
+            font-size: 0.75em;
+            color: #888;
+        }
+
+        .stat-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            min-width: 160px;
+        }
+
+        .stat-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-icon {
+            font-size: 0.8em;
+            width: 18px;
+        }
+
+        .stat-fill-container {
+            flex: 1;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .stat-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .stat-fill.health { background: linear-gradient(90deg, #f44336, #ff5722); }
+        .stat-fill.happiness { background: linear-gradient(90deg, #ffc107, #ffeb3b); }
+        .stat-fill.energy { background: linear-gradient(90deg, #2196F3, #03a9f4); }
+        .stat-fill.stress { background: linear-gradient(90deg, #9c27b0, #e91e63); }
+
+        .stat-value {
+            font-size: 0.7em;
+            width: 28px;
+            text-align: right;
+            color: #aaa;
+        }
+
+        .hud-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .money-display {
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(76,175,80,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .money-amount {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .time-display {
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .time-clock {
+            font-size: 1.3em;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .time-period {
+            font-size: 0.75em;
+            color: #888;
+        }
+
+        /* Bottom HUD */
+        #hud-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 15px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .action-btn {
+            pointer-events: auto;
+            background: linear-gradient(135deg, rgba(255,107,107,0.8), rgba(238,90,90,0.8));
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255,107,107,0.4);
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(135deg, rgba(100,100,100,0.8), rgba(80,80,80,0.8));
+        }
+
+        .action-btn.success {
+            background: linear-gradient(135deg, rgba(76,175,80,0.8), rgba(56,142,60,0.8));
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-actions {
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Location menu */
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .location-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .location-item:hover {
+            background: rgba(255,107,107,0.1);
+            border-color: rgba(255,107,107,0.3);
+            transform: translateY(-2px);
+        }
+
+        .location-item .icon {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .location-item .name {
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .location-item .desc {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Activity options */
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .activity-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .activity-item:hover {
+            background: rgba(255,107,107,0.1);
+            border-color: rgba(255,107,107,0.3);
+        }
+
+        .activity-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .activity-icon {
+            font-size: 1.3em;
+        }
+
+        .activity-details h4 {
+            font-size: 0.95em;
+            margin-bottom: 2px;
+        }
+
+        .activity-details p {
+            font-size: 0.75em;
+            color: #888;
+        }
+
+        .activity-cost {
+            text-align: right;
+        }
+
+        .activity-cost .time {
+            font-size: 0.8em;
+            color: #2196F3;
+        }
+
+        .activity-cost .money {
+            font-size: 0.8em;
+            color: #4CAF50;
+        }
+
+        /* Notifications */
+        #notifications {
+            position: fixed;
+            top: 80px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 500;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: rgba(0,0,0,0.9);
+            border-radius: 10px;
+            padding: 12px 15px;
+            border-left: 4px solid #4CAF50;
+            animation: slideIn 0.3s ease;
+            max-width: 300px;
+        }
+
+        .notification.warning { border-left-color: #ff9800; }
+        .notification.error { border-left-color: #f44336; }
+        .notification.info { border-left-color: #2196F3; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Mobile controls */
+        #mobile-controls {
+            display: none;
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            z-index: 100;
+            pointer-events: auto;
+        }
+
+        .dpad {
+            width: 120px;
+            height: 120px;
+            position: relative;
+        }
+
+        .dpad-btn {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dpad-btn:active {
+            background: rgba(255,107,107,0.5);
+        }
+
+        .dpad-up { top: 0; left: 40px; }
+        .dpad-down { bottom: 0; left: 40px; }
+        .dpad-left { top: 40px; left: 0; }
+        .dpad-right { top: 40px; right: 0; }
+
+        @media (max-width: 768px) {
+            #mobile-controls {
+                display: block;
+            }
+
+            .stat-bars {
+                min-width: 120px;
+            }
+
+            .money-display, .time-display {
+                padding: 6px 10px;
+            }
+
+            .money-amount {
+                font-size: 1em;
+            }
+        }
+
+        /* Loading screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a12;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #loading-screen h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        #loading-screen p {
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .loading-bar {
+            width: 200px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .loading-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ffa500);
+            width: 0%;
+            animation: loading 2s ease-in-out forwards;
+        }
+
+        @keyframes loading {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        /* Character creation screen */
+        #char-creation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            padding: 20px;
+        }
+
+        #char-creation.active {
+            display: flex;
+        }
+
+        .creation-panel {
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .creation-panel h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .creation-panel .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 25px;
+        }
+
+        .creation-option {
+            margin-bottom: 20px;
+        }
+
+        .creation-option label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        .creation-option input,
+        .creation-option select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1em;
+        }
+
+        .creation-option input:focus,
+        .creation-option select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+
+        .start-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,107,107,0.4);
+        }
+
+        .random-btn {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+            margin-top: 10px;
+        }
+
+        /* Event log panel */
+        #event-log-panel {
+            position: absolute;
+            bottom: 80px;
+            right: 15px;
+            width: 280px;
+            max-height: 200px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+            z-index: 90;
+            pointer-events: auto;
+        }
+
+        .event-log-header {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .event-log-header h4 {
+            font-size: 0.85em;
+            color: #aaa;
+        }
+
+        .event-log-toggle {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .event-log-content {
+            padding: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 6px 8px;
+            margin-bottom: 5px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 5px;
+            font-size: 0.8em;
+            border-left: 2px solid #666;
+        }
+
+        .log-entry.positive { border-left-color: #4CAF50; }
+        .log-entry.negative { border-left-color: #f44336; }
+        .log-entry.special { border-left-color: #ffd700; }
+        .log-entry.info { border-left-color: #2196F3; }
+
+        @media (max-width: 768px) {
+            #event-log-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <h1>PERULANDIA RPG</h1>
+        <p>Simulador de Vida Peruano</p>
+        <div class="loading-bar">
+            <div class="loading-fill"></div>
+        </div>
+    </div>
+
+    <!-- Character Creation -->
+    <div id="char-creation">
+        <div class="creation-panel">
+            <h1>PERULANDIA RPG</h1>
+            <p class="subtitle">Crea tu personaje y comienza tu aventura en el Peru</p>
+
+            <div class="creation-option">
+                <label>Nombre</label>
+                <input type="text" id="char-name" placeholder="Tu nombre...">
+            </div>
+
+            <div class="creation-option">
+                <label>Genero</label>
+                <select id="char-gender">
+                    <option value="hombre">Hombre</option>
+                    <option value="mujer">Mujer</option>
+                </select>
+            </div>
+
+            <div class="creation-option">
+                <label>Lugar de Nacimiento</label>
+                <select id="char-location">
+                    <option value="lima_media">Lima - Clase Media</option>
+                    <option value="lima_cono">Lima - Cono</option>
+                    <option value="lima_residencial">Lima - Zona Residencial</option>
+                    <option value="lima_asentamiento">Lima - Asentamiento Humano</option>
+                    <option value="provincia_grande">Provincia - Ciudad Grande</option>
+                    <option value="provincia_pequena">Provincia - Ciudad Pequena</option>
+                    <option value="sierra_rural">Sierra - Comunidad Rural</option>
+                    <option value="selva">Selva - Comunidad</option>
+                </select>
+            </div>
+
+            <div class="creation-option">
+                <label>Clase Social</label>
+                <select id="char-class">
+                    <option value="clase_media_baja">Clase Media-Baja</option>
+                    <option value="clase_baja">Clase Baja</option>
+                    <option value="clase_media">Clase Media</option>
+                    <option value="pobreza_extrema">Pobreza Extrema</option>
+                    <option value="clase_media_alta">Clase Media-Alta</option>
+                    <option value="clase_alta">Clase Alta</option>
+                </select>
+            </div>
+
+            <button class="start-btn" onclick="startGame()">Comenzar Aventura</button>
+            <button class="start-btn random-btn" onclick="randomCharacter()">Personaje Aleatorio</button>
+        </div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container">
+        <!-- HUD Top -->
+        <div id="hud">
+            <div class="hud-left">
+                <div class="player-info">
+                    <div class="player-avatar" id="player-avatar">M</div>
+                    <div class="player-details">
+                        <div class="player-name" id="player-name">Jugador</div>
+                        <div class="player-date" id="player-date">Enero 2024 - 18 anos</div>
+                    </div>
+                </div>
+                <div class="stat-bars">
+                    <div class="stat-bar">
+                        <span class="stat-icon">❤️</span>
+                        <div class="stat-fill-container">
+                            <div class="stat-fill health" id="health-bar" style="width: 100%"></div>
+                        </div>
+                        <span class="stat-value" id="health-value">100</span>
+                    </div>
+                    <div class="stat-bar">
+                        <span class="stat-icon">😊</span>
+                        <div class="stat-fill-container">
+                            <div class="stat-fill happiness" id="happiness-bar" style="width: 70%"></div>
+                        </div>
+                        <span class="stat-value" id="happiness-value">70</span>
+                    </div>
+                    <div class="stat-bar">
+                        <span class="stat-icon">⚡</span>
+                        <div class="stat-fill-container">
+                            <div class="stat-fill energy" id="energy-bar" style="width: 100%"></div>
+                        </div>
+                        <span class="stat-value" id="energy-value">100</span>
+                    </div>
+                    <div class="stat-bar">
+                        <span class="stat-icon">😰</span>
+                        <div class="stat-fill-container">
+                            <div class="stat-fill stress" id="stress-bar" style="width: 20%"></div>
+                        </div>
+                        <span class="stat-value" id="stress-value">20</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hud-right">
+                <div class="money-display">
+                    <span>S/</span>
+                    <span class="money-amount" id="money-amount">1,500</span>
+                </div>
+                <div class="time-display">
+                    <div class="time-clock" id="time-clock">08:00</div>
+                    <div class="time-period" id="time-period">Manana</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Log -->
+        <div id="event-log-panel">
+            <div class="event-log-header">
+                <h4>Eventos</h4>
+                <button class="event-log-toggle" onclick="toggleEventLog()">-</button>
+            </div>
+            <div class="event-log-content" id="event-log"></div>
+        </div>
+
+        <!-- Mobile D-Pad -->
+        <div id="mobile-controls">
+            <div class="dpad">
+                <button class="dpad-btn dpad-up" ontouchstart="movePlayer('up')" onmousedown="movePlayer('up')">↑</button>
+                <button class="dpad-btn dpad-down" ontouchstart="movePlayer('down')" onmousedown="movePlayer('down')">↓</button>
+                <button class="dpad-btn dpad-left" ontouchstart="movePlayer('left')" onmousedown="movePlayer('left')">←</button>
+                <button class="dpad-btn dpad-right" ontouchstart="movePlayer('right')" onmousedown="movePlayer('right')">→</button>
+            </div>
+        </div>
+
+        <!-- HUD Bottom -->
+        <div id="hud-bottom">
+            <button class="action-btn secondary" onclick="openInventory()">
+                <span>🎒</span>
+                <span>Inventario</span>
+            </button>
+            <button class="action-btn" onclick="interact()">
+                <span>👆</span>
+                <span>Interactuar</span>
+            </button>
+            <button class="action-btn success" onclick="passTime()">
+                <span>⏰</span>
+                <span>Pasar Tiempo</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div id="notifications"></div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Titulo</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-actions" id="modal-actions"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== GAME STATE ====================
+        const gameState = {
+            character: {
+                name: 'Jugador',
+                gender: 'hombre',
+                location: 'lima_media',
+                socialClass: 'clase_media_baja',
+                age: 18,
+                appearance: 'mestizo'
+            },
+            stats: {
+                health: 100,
+                happiness: 70,
+                energy: 100,
+                stress: 20
+            },
+            money: 1500,
+            date: { month: 1, year: 2024 },
+            time: { hour: 8, minute: 0 },
+            currentLocation: 'home',
+            job: null,
+            education: 'secundaria_completa',
+            events: [],
+            inventory: []
+        };
+
+        // ==================== LOCATIONS DATA ====================
+        const LOCATIONS = {
+            home: {
+                name: 'Tu Casa',
+                icon: '🏠',
+                x: 400, y: 300,
+                color: 0x4CAF50,
+                activities: ['sleep', 'eat', 'relax', 'study_home']
+            },
+            work: {
+                name: 'Zona de Trabajo',
+                icon: '🏢',
+                x: 600, y: 200,
+                color: 0x2196F3,
+                activities: ['work', 'job_search']
+            },
+            university: {
+                name: 'Universidad/Instituto',
+                icon: '🎓',
+                x: 200, y: 200,
+                color: 0x9C27B0,
+                activities: ['study', 'enroll']
+            },
+            market: {
+                name: 'Mercado/Tienda',
+                icon: '🛒',
+                x: 200, y: 400,
+                color: 0xFF9800,
+                activities: ['buy_food', 'buy_items']
+            },
+            bank: {
+                name: 'Banco',
+                icon: '🏦',
+                x: 600, y: 400,
+                color: 0x3F51B5,
+                activities: ['savings', 'loan', 'investments']
+            },
+            hospital: {
+                name: 'Hospital/Posta',
+                icon: '🏥',
+                x: 100, y: 300,
+                color: 0xE91E63,
+                activities: ['checkup', 'treatment']
+            },
+            park: {
+                name: 'Parque',
+                icon: '🌳',
+                x: 700, y: 300,
+                color: 0x8BC34A,
+                activities: ['exercise', 'socialize', 'relax_park']
+            },
+            plaza: {
+                name: 'Plaza Central',
+                icon: '⛲',
+                x: 400, y: 150,
+                color: 0x795548,
+                activities: ['socialize', 'events', 'street_food']
+            }
+        };
+
+        // ==================== ACTIVITIES DATA ====================
+        const ACTIVITIES = {
+            sleep: { name: 'Dormir', icon: '😴', time: 8, energy: 80, stress: -20, cost: 0 },
+            eat: { name: 'Comer en casa', icon: '🍽️', time: 1, energy: 20, health: 5, cost: 15 },
+            relax: { name: 'Relajarse', icon: '📺', time: 2, happiness: 15, stress: -10, energy: -5, cost: 0 },
+            study_home: { name: 'Estudiar en casa', icon: '📚', time: 3, energy: -15, stress: 10, cost: 0 },
+            work: { name: 'Trabajar', icon: '💼', time: 8, energy: -40, stress: 25, money: 50, cost: 0 },
+            job_search: { name: 'Buscar trabajo', icon: '🔍', time: 3, energy: -20, stress: 15, cost: 15 },
+            study: { name: 'Asistir a clases', icon: '📖', time: 4, energy: -25, stress: 15, cost: 100 },
+            enroll: { name: 'Matricularse', icon: '✍️', time: 2, cost: 500 },
+            buy_food: { name: 'Comprar comida', icon: '🛒', time: 1, cost: 50 },
+            buy_items: { name: 'Comprar items', icon: '🎁', time: 1, cost: 100 },
+            savings: { name: 'Ver ahorros', icon: '💰', time: 1, cost: 0 },
+            loan: { name: 'Solicitar prestamo', icon: '📝', time: 2, cost: 0 },
+            investments: { name: 'Invertir', icon: '📈', time: 1, cost: 0 },
+            checkup: { name: 'Chequeo medico', icon: '🩺', time: 2, health: 20, cost: 50 },
+            treatment: { name: 'Tratamiento', icon: '💊', time: 3, health: 40, cost: 200 },
+            exercise: { name: 'Hacer ejercicio', icon: '🏃', time: 2, health: 15, energy: -25, happiness: 10, stress: -15, cost: 0 },
+            socialize: { name: 'Socializar', icon: '👥', time: 2, happiness: 20, energy: -10, cost: 20 },
+            relax_park: { name: 'Pasear', icon: '🚶', time: 1, happiness: 10, stress: -10, cost: 0 },
+            events: { name: 'Ver eventos', icon: '📅', time: 1, cost: 0 },
+            street_food: { name: 'Comer en la calle', icon: '🌮', time: 1, energy: 15, happiness: 10, health: -5, cost: 10 }
+        };
+
+        // ==================== PHASER GAME ====================
+        let game;
+        let player;
+        let cursors;
+        let locationSprites = {};
+        let currentNearLocation = null;
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#1a1a2e',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            },
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH
+            }
+        };
+
+        function preload() {
+            // Create simple colored rectangles as sprites
+            this.load.image('player', createPlayerSprite());
+        }
+
+        function createPlayerSprite() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 48;
+            const ctx = canvas.getContext('2d');
+
+            // Body
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(8, 16, 16, 24);
+
+            // Head
+            ctx.fillStyle = '#ffcc80';
+            ctx.beginPath();
+            ctx.arc(16, 10, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(16, 8, 8, Math.PI, 0);
+            ctx.fill();
+
+            return canvas.toDataURL();
+        }
+
+        function create() {
+            const scene = this;
+
+            // Create ground pattern
+            const graphics = this.add.graphics();
+
+            // Draw grid pattern for ground
+            graphics.lineStyle(1, 0x2a2a4a, 0.3);
+            for (let x = 0; x < 800; x += 50) {
+                graphics.lineBetween(x, 0, x, 600);
+            }
+            for (let y = 0; y < 600; y += 50) {
+                graphics.lineBetween(0, y, 800, y);
+            }
+
+            // Create location buildings
+            Object.keys(LOCATIONS).forEach(locId => {
+                const loc = LOCATIONS[locId];
+
+                // Building shadow
+                const shadow = this.add.rectangle(loc.x + 5, loc.y + 5, 70, 70, 0x000000, 0.3);
+
+                // Building
+                const building = this.add.rectangle(loc.x, loc.y, 70, 70, loc.color);
+                building.setStrokeStyle(2, 0xffffff, 0.5);
+
+                // Icon
+                const icon = this.add.text(loc.x, loc.y - 10, loc.icon, {
+                    fontSize: '28px'
+                }).setOrigin(0.5);
+
+                // Name
+                const name = this.add.text(loc.x, loc.y + 25, loc.name, {
+                    fontSize: '10px',
+                    color: '#ffffff',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    padding: { x: 4, y: 2 }
+                }).setOrigin(0.5);
+
+                locationSprites[locId] = { building, icon, name, x: loc.x, y: loc.y };
+            });
+
+            // Create player
+            player = this.add.container(400, 350);
+
+            // Player shadow
+            const playerShadow = this.add.ellipse(0, 20, 24, 8, 0x000000, 0.3);
+            player.add(playerShadow);
+
+            // Player body
+            const playerBody = this.add.rectangle(0, 0, 24, 36, 0xff6b6b);
+            playerBody.setStrokeStyle(2, 0xee5a5a);
+            player.add(playerBody);
+
+            // Player head
+            const playerHead = this.add.circle(0, -22, 10, 0xffcc80);
+            playerHead.setStrokeStyle(2, 0xe6b86a);
+            player.add(playerHead);
+
+            // Player hair
+            const playerHair = this.add.arc(0, -26, 10, Phaser.Math.DegToRad(180), Phaser.Math.DegToRad(360), false, 0x333333);
+            player.add(playerHair);
+
+            // Player eyes
+            const leftEye = this.add.circle(-3, -23, 2, 0x000000);
+            const rightEye = this.add.circle(3, -23, 2, 0x000000);
+            player.add(leftEye);
+            player.add(rightEye);
+
+            // Add physics to player
+            this.physics.world.enable(player);
+            player.body.setCollideWorldBounds(true);
+            player.body.setSize(24, 36);
+
+            // Player indicator arrow
+            const arrow = this.add.triangle(400, 280, 0, 10, 5, 0, 10, 10, 0x4CAF50);
+            arrow.setOrigin(0.5);
+            this.tweens.add({
+                targets: arrow,
+                y: 275,
+                duration: 500,
+                yoyo: true,
+                repeat: -1
+            });
+            player.arrow = arrow;
+
+            // Input
+            cursors = this.input.keyboard.createCursorKeys();
+
+            // WASD keys
+            this.wasd = {
+                up: this.input.keyboard.addKey('W'),
+                down: this.input.keyboard.addKey('S'),
+                left: this.input.keyboard.addKey('A'),
+                right: this.input.keyboard.addKey('D')
+            };
+
+            // Space for interaction
+            this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+            this.spaceKey.on('down', interact);
+
+            // Location indicator text
+            this.locationText = this.add.text(400, 570, '', {
+                fontSize: '14px',
+                color: '#ffffff',
+                backgroundColor: 'rgba(0,0,0,0.7)',
+                padding: { x: 10, y: 5 }
+            }).setOrigin(0.5);
+        }
+
+        function update() {
+            if (!player || !player.body) return;
+
+            const speed = 200;
+            player.body.setVelocity(0);
+
+            // Movement
+            if (cursors.left.isDown || this.wasd.left.isDown) {
+                player.body.setVelocityX(-speed);
+            } else if (cursors.right.isDown || this.wasd.right.isDown) {
+                player.body.setVelocityX(speed);
+            }
+
+            if (cursors.up.isDown || this.wasd.up.isDown) {
+                player.body.setVelocityY(-speed);
+            } else if (cursors.down.isDown || this.wasd.down.isDown) {
+                player.body.setVelocityY(speed);
+            }
+
+            // Update player arrow position
+            if (player.arrow) {
+                player.arrow.x = player.x;
+            }
+
+            // Check proximity to locations
+            let nearLocation = null;
+            let minDist = 60;
+
+            Object.keys(locationSprites).forEach(locId => {
+                const loc = locationSprites[locId];
+                const dist = Phaser.Math.Distance.Between(player.x, player.y, loc.x, loc.y);
+
+                if (dist < minDist) {
+                    nearLocation = locId;
+                    minDist = dist;
+                }
+
+                // Visual feedback
+                if (dist < 60) {
+                    loc.building.setStrokeStyle(3, 0xffd700, 1);
+                } else {
+                    loc.building.setStrokeStyle(2, 0xffffff, 0.5);
+                }
+            });
+
+            currentNearLocation = nearLocation;
+
+            // Update location text
+            if (nearLocation && LOCATIONS[nearLocation]) {
+                this.locationText.setText(`Presiona ESPACIO para entrar a: ${LOCATIONS[nearLocation].name}`);
+                this.locationText.setVisible(true);
+            } else {
+                this.locationText.setVisible(false);
+            }
+        }
+
+        // ==================== MOBILE CONTROLS ====================
+        function movePlayer(direction) {
+            if (!player || !player.body) return;
+
+            const speed = 200;
+            const duration = 100;
+
+            switch(direction) {
+                case 'up':
+                    player.body.setVelocityY(-speed);
+                    setTimeout(() => player.body.setVelocityY(0), duration);
+                    break;
+                case 'down':
+                    player.body.setVelocityY(speed);
+                    setTimeout(() => player.body.setVelocityY(0), duration);
+                    break;
+                case 'left':
+                    player.body.setVelocityX(-speed);
+                    setTimeout(() => player.body.setVelocityX(0), duration);
+                    break;
+                case 'right':
+                    player.body.setVelocityX(speed);
+                    setTimeout(() => player.body.setVelocityX(0), duration);
+                    break;
+            }
+        }
+
+        // ==================== GAME FUNCTIONS ====================
+        function interact() {
+            if (currentNearLocation && LOCATIONS[currentNearLocation]) {
+                openLocationMenu(currentNearLocation);
+            } else {
+                showNotification('Acercate a un lugar para interactuar', 'info');
+            }
+        }
+
+        function openLocationMenu(locationId) {
+            const location = LOCATIONS[locationId];
+            gameState.currentLocation = locationId;
+
+            let activitiesHtml = '<div class="activity-list">';
+
+            location.activities.forEach(actId => {
+                const act = ACTIVITIES[actId];
+                if (!act) return;
+
+                const canAfford = gameState.money >= act.cost;
+                const hasEnergy = gameState.stats.energy >= (act.energy < 0 ? Math.abs(act.energy) : 0);
+                const disabled = !canAfford || !hasEnergy;
+
+                activitiesHtml += `
+                    <div class="activity-item ${disabled ? 'disabled' : ''}"
+                         onclick="${disabled ? '' : `doActivity('${actId}')`}"
+                         style="${disabled ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+                        <div class="activity-info">
+                            <span class="activity-icon">${act.icon}</span>
+                            <div class="activity-details">
+                                <h4>${act.name}</h4>
+                                <p>${getActivityEffects(act)}</p>
+                            </div>
+                        </div>
+                        <div class="activity-cost">
+                            <div class="time">⏱️ ${act.time}h</div>
+                            ${act.cost > 0 ? `<div class="money">S/${act.cost}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            activitiesHtml += '</div>';
+
+            document.getElementById('modal-title').innerHTML = `${location.icon} ${location.name}`;
+            document.getElementById('modal-body').innerHTML = activitiesHtml;
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="action-btn secondary" onclick="closeModal()">Cerrar</button>
+            `;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function getActivityEffects(act) {
+            const effects = [];
+            if (act.energy > 0) effects.push(`+${act.energy} energia`);
+            if (act.energy < 0) effects.push(`${act.energy} energia`);
+            if (act.health > 0) effects.push(`+${act.health} salud`);
+            if (act.health < 0) effects.push(`${act.health} salud`);
+            if (act.happiness > 0) effects.push(`+${act.happiness} felicidad`);
+            if (act.happiness < 0) effects.push(`${act.happiness} felicidad`);
+            if (act.stress > 0) effects.push(`+${act.stress} estres`);
+            if (act.stress < 0) effects.push(`${Math.abs(act.stress)} estres`);
+            if (act.money > 0) effects.push(`+S/${act.money}`);
+            return effects.join(' | ') || 'Sin efectos especiales';
+        }
+
+        function doActivity(actId) {
+            const act = ACTIVITIES[actId];
+            if (!act) return;
+
+            // Check requirements
+            if (gameState.money < act.cost) {
+                showNotification('No tienes suficiente dinero', 'error');
+                return;
+            }
+
+            if (act.energy < 0 && gameState.stats.energy < Math.abs(act.energy)) {
+                showNotification('No tienes suficiente energia', 'error');
+                return;
+            }
+
+            // Apply effects
+            gameState.money -= act.cost;
+            if (act.money) gameState.money += act.money;
+
+            if (act.energy) gameState.stats.energy = Math.max(0, Math.min(100, gameState.stats.energy + act.energy));
+            if (act.health) gameState.stats.health = Math.max(0, Math.min(100, gameState.stats.health + act.health));
+            if (act.happiness) gameState.stats.happiness = Math.max(0, Math.min(100, gameState.stats.happiness + act.happiness));
+            if (act.stress) gameState.stats.stress = Math.max(0, Math.min(100, gameState.stats.stress + act.stress));
+
+            // Pass time
+            advanceTime(act.time);
+
+            // Log event
+            addEvent(`${act.icon} ${act.name}`, act.money > 0 ? 'positive' : 'info');
+
+            showNotification(`Completaste: ${act.name}`, 'success');
+            closeModal();
+            updateHUD();
+        }
+
+        function advanceTime(hours) {
+            gameState.time.hour += hours;
+
+            while (gameState.time.hour >= 24) {
+                gameState.time.hour -= 24;
+                // New day
+                gameState.date.month += 1/30; // Approximate
+
+                // Daily effects
+                gameState.stats.energy = Math.max(gameState.stats.energy - 5, 10);
+                gameState.stats.stress = Math.min(gameState.stats.stress + 3, 100);
+            }
+
+            // Check if month passed
+            if (Math.floor(gameState.date.month) > Math.floor(gameState.date.month - hours/720)) {
+                processMonth();
+            }
+
+            updateHUD();
+        }
+
+        function passTime() {
+            // Quick time skip - 4 hours
+            advanceTime(4);
+            showNotification('Pasaron 4 horas', 'info');
+        }
+
+        function processMonth() {
+            const month = Math.floor(gameState.date.month);
+            gameState.date.month = month;
+
+            // Age up each year
+            if (month % 12 === 1 && month > 1) {
+                gameState.character.age++;
+                addEvent(`Cumpliste ${gameState.character.age} anos!`, 'special');
+            }
+
+            addEvent(`Nuevo mes: ${getMonthName(month)} ${gameState.date.year + Math.floor((month-1)/12)}`, 'info');
+        }
+
+        function getMonthName(month) {
+            const names = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            return names[(month - 1) % 12];
+        }
+
+        // ==================== UI FUNCTIONS ====================
+        function updateHUD() {
+            document.getElementById('player-name').textContent = gameState.character.name;
+            document.getElementById('player-date').textContent =
+                `${getMonthName(Math.floor(gameState.date.month))} ${gameState.date.year + Math.floor((gameState.date.month-1)/12)} - ${gameState.character.age} anos`;
+            document.getElementById('player-avatar').textContent =
+                gameState.character.gender === 'mujer' ? 'F' : 'M';
+
+            document.getElementById('health-bar').style.width = `${gameState.stats.health}%`;
+            document.getElementById('health-value').textContent = Math.round(gameState.stats.health);
+
+            document.getElementById('happiness-bar').style.width = `${gameState.stats.happiness}%`;
+            document.getElementById('happiness-value').textContent = Math.round(gameState.stats.happiness);
+
+            document.getElementById('energy-bar').style.width = `${gameState.stats.energy}%`;
+            document.getElementById('energy-value').textContent = Math.round(gameState.stats.energy);
+
+            document.getElementById('stress-bar').style.width = `${gameState.stats.stress}%`;
+            document.getElementById('stress-value').textContent = Math.round(gameState.stats.stress);
+
+            document.getElementById('money-amount').textContent = gameState.money.toLocaleString();
+
+            const hour = gameState.time.hour;
+            document.getElementById('time-clock').textContent =
+                `${String(Math.floor(hour)).padStart(2, '0')}:${String(Math.floor((hour % 1) * 60)).padStart(2, '0')}`;
+
+            let period = 'Noche';
+            if (hour >= 6 && hour < 12) period = 'Manana';
+            else if (hour >= 12 && hour < 18) period = 'Tarde';
+            else if (hour >= 18 && hour < 21) period = 'Noche';
+            else period = 'Madrugada';
+            document.getElementById('time-period').textContent = period;
+        }
+
+        function addEvent(text, type = 'info') {
+            gameState.events.unshift({ text, type, time: new Date() });
+            if (gameState.events.length > 50) gameState.events.pop();
+
+            const eventLog = document.getElementById('event-log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = text;
+            eventLog.insertBefore(entry, eventLog.firstChild);
+
+            // Keep only last 10 visible
+            while (eventLog.children.length > 10) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('notifications');
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = message;
+            container.appendChild(notif);
+
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function openInventory() {
+            document.getElementById('modal-title').innerHTML = '🎒 Inventario';
+            document.getElementById('modal-body').innerHTML = `
+                <div style="text-align: center; padding: 30px; color: #888;">
+                    <div style="font-size: 3em; margin-bottom: 15px;">📦</div>
+                    <p>Tu inventario esta vacio</p>
+                    <p style="font-size: 0.85em; margin-top: 10px;">Compra items en el mercado</p>
+                </div>
+            `;
+            document.getElementById('modal-actions').innerHTML = `
+                <button class="action-btn secondary" onclick="closeModal()">Cerrar</button>
+            `;
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function toggleEventLog() {
+            const content = document.querySelector('.event-log-content');
+            const btn = document.querySelector('.event-log-toggle');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                btn.textContent = '-';
+            } else {
+                content.style.display = 'none';
+                btn.textContent = '+';
+            }
+        }
+
+        // ==================== CHARACTER CREATION ====================
+        function randomCharacter() {
+            const names = {
+                hombre: ['Jose', 'Carlos', 'Luis', 'Miguel', 'Juan', 'Pedro', 'Diego', 'Andres'],
+                mujer: ['Maria', 'Ana', 'Rosa', 'Carmen', 'Lucia', 'Sofia', 'Valentina', 'Isabella']
+            };
+
+            const gender = Math.random() > 0.5 ? 'hombre' : 'mujer';
+            const name = names[gender][Math.floor(Math.random() * names[gender].length)];
+
+            document.getElementById('char-name').value = name;
+            document.getElementById('char-gender').value = gender;
+
+            const locations = ['lima_media', 'lima_cono', 'provincia_grande', 'lima_asentamiento'];
+            document.getElementById('char-location').value = locations[Math.floor(Math.random() * locations.length)];
+
+            const classes = ['clase_baja', 'clase_media_baja', 'clase_media'];
+            document.getElementById('char-class').value = classes[Math.floor(Math.random() * classes.length)];
+        }
+
+        function startGame() {
+            const name = document.getElementById('char-name').value || 'Jugador';
+            const gender = document.getElementById('char-gender').value;
+            const location = document.getElementById('char-location').value;
+            const socialClass = document.getElementById('char-class').value;
+
+            gameState.character.name = name;
+            gameState.character.gender = gender;
+            gameState.character.location = location;
+            gameState.character.socialClass = socialClass;
+
+            // Set starting money based on class
+            const classMoney = {
+                pobreza_extrema: 50,
+                clase_baja: 300,
+                clase_media_baja: 1000,
+                clase_media: 3000,
+                clase_media_alta: 10000,
+                clase_alta: 50000
+            };
+            gameState.money = classMoney[socialClass] || 1500;
+
+            document.getElementById('char-creation').classList.remove('active');
+            updateHUD();
+            addEvent(`Bienvenido a Perulandia, ${name}!`, 'special');
+
+            // Start Phaser game
+            game = new Phaser.Game(config);
+        }
+
+        // ==================== INITIALIZATION ====================
+        window.onload = function() {
+            // Hide loading screen after animation
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('char-creation').classList.add('active');
+            }, 2500);
+        };
+    </script>
+</body>
+</html>

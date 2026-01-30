@@ -5821,48 +5821,41 @@
                 html += `<div style="color: #f44336; font-size: 0.85em; margin-bottom: 10px;">⚠️ Antecedentes penales</div>`;
             }
 
-            // Filtros compactos
+            // Ordenamiento y filtros mejorados
             html += `
-                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                    <button class="btn btn-small" onclick="filterJobs('todos')" style="flex: 1;">Todos</button>
-                    <button class="btn btn-small btn-secondary" onclick="filterJobs('legales')" style="flex: 1;">Legales</button>
-                    <button class="btn btn-small btn-warning" onclick="filterJobs('ilegales')" style="flex: 1;">Ilegales</button>
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; gap: 5px; margin-bottom: 8px;">
+                        <select id="jobSortSelect" onchange="sortAndFilterJobs()" style="flex: 1; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 0.85em;">
+                            <option value="probabilidad">Ordenar: Probabilidad</option>
+                            <option value="salario_asc">Ordenar: Salario ↑</option>
+                            <option value="salario_desc">Ordenar: Salario ↓</option>
+                            <option value="educacion">Ordenar: Nivel Educativo</option>
+                        </select>
+                        <select id="jobFilterSelect" onchange="sortAndFilterJobs()" style="flex: 1; padding: 8px; background: rgba(255,255,255,0.1); border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 0.85em;">
+                            <option value="todos">Filtrar: Todos</option>
+                            <option value="disponibles">Solo Disponibles (60%+)</option>
+                            <option value="legales">Solo Legales</option>
+                            <option value="ilegales">Solo Ilegales</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        <button class="btn btn-small" onclick="filterJobsByCategory('todos')" style="font-size: 0.75em; padding: 4px 8px;">Todos</button>
+                        <button class="btn btn-small btn-secondary" onclick="filterJobsByCategory('atencion')" style="font-size: 0.75em; padding: 4px 8px;">Atención</button>
+                        <button class="btn btn-small btn-secondary" onclick="filterJobsByCategory('tecnologia')" style="font-size: 0.75em; padding: 4px 8px;">Tech</button>
+                        <button class="btn btn-small btn-secondary" onclick="filterJobsByCategory('ventas')" style="font-size: 0.75em; padding: 4px 8px;">Ventas</button>
+                        <button class="btn btn-small btn-secondary" onclick="filterJobsByCategory('construccion')" style="font-size: 0.75em; padding: 4px 8px;">Construcción</button>
+                        <button class="btn btn-small btn-secondary" onclick="filterJobsByCategory('oficina')" style="font-size: 0.75em; padding: 4px 8px;">Oficina</button>
+                        <button class="btn btn-small btn-secondary" onclick="filterJobsByCategory('salud')" style="font-size: 0.75em; padding: 4px 8px;">Salud</button>
+                        <button class="btn btn-small btn-warning" onclick="filterJobsByCategory('ilegal')" style="font-size: 0.75em; padding: 4px 8px;">Ilegales</button>
+                    </div>
                 </div>
             `;
 
-            // Lista compacta de trabajos (sin scroll interno)
+            // Lista de trabajos con mejor organización
             html += `<div id="jobsList">`;
-
-            const jobIds = Object.keys(JOBS)
-                .filter(id => isJobAvailable(id))
-                .map(id => ({ id, probability: calculateHiringProbability(id) }))
-                .sort((a, b) => b.probability - a.probability)
-                .map(j => j.id);
-
-            for (let jobId of jobIds) {
-                const job = JOBS[jobId];
-                const salary = Array.isArray(job.salary) ? formatMoney(job.salary[0]) : formatMoney(job.salary);
-                const probability = Math.round(calculateHiringProbability(jobId)); // Sin decimales
-                const probColor = probability >= 60 ? '#4CAF50' : probability >= 35 ? '#ff9800' : '#f44336';
-
-                html += `
-                    <div class="job-card" data-type="${job.illegal ? 'ilegal' : 'legal'}"
-                         onclick="showJobDetails('${jobId}')"
-                         style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; border-left: 3px solid ${job.illegal ? '#9c27b0' : probColor};">
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; font-size: 0.95em;">${job.name}</div>
-                            <div style="color: #4CAF50; font-size: 0.85em;">${salary}/mes</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 1.1em; font-weight: bold; color: ${probColor};">${probability}%</div>
-                            <div style="font-size: 0.75em; color: #888;">chance</div>
-                        </div>
-                    </div>
-                `;
-            }
-
+            html += renderJobList('probabilidad', 'todos', 'todos');
             html += `</div>`;
-            html += `<p style="text-align: center; color: #888; font-size: 0.8em; margin-top: 10px;">Toca un trabajo para ver detalles</p>`;
+            html += `<p style="text-align: center; color: #888; font-size: 0.8em; margin-top: 10px;">Toca un trabajo para ver detalles • ${Object.keys(JOBS).filter(id => isJobAvailable(id)).length} empleos disponibles</p>`;
 
             document.getElementById('modalTitle').textContent = '💼 Bolsa de Trabajo';
             document.getElementById('modalBody').innerHTML = html;
@@ -6005,18 +5998,163 @@
             `;
         }
 
-        // Filtrar trabajos por tipo
-        function filterJobs(type) {
-            const cards = document.querySelectorAll('.job-card');
-            cards.forEach(card => {
-                if (type === 'todos') {
-                    card.style.display = 'block';
-                } else if (type === 'legales') {
-                    card.style.display = card.dataset.type === 'legal' ? 'block' : 'none';
-                } else if (type === 'ilegales') {
-                    card.style.display = card.dataset.type === 'ilegal' ? 'block' : 'none';
+        // Mapeo de categorías a nombres legibles
+        const JOB_CATEGORIES = {
+            atencion: { name: "Atención al Cliente", icon: "🛎️", color: "#2196F3" },
+            tecnologia: { name: "Tecnología", icon: "💻", color: "#9c27b0" },
+            ventas: { name: "Ventas/Retail", icon: "🛒", color: "#4CAF50" },
+            construccion: { name: "Construcción", icon: "🏗️", color: "#ff9800" },
+            oficina: { name: "Oficina/Admin", icon: "📋", color: "#607d8b" },
+            salud: { name: "Salud", icon: "⚕️", color: "#e91e63" },
+            transporte: { name: "Transporte", icon: "🚗", color: "#795548" },
+            manufactura: { name: "Manufactura", icon: "🏭", color: "#9e9e9e" },
+            tecnico: { name: "Técnico", icon: "🔧", color: "#ff5722" },
+            gastronomia: { name: "Gastronomía", icon: "🍳", color: "#ffc107" },
+            seguros: { name: "Seguros", icon: "🛡️", color: "#00bcd4" },
+            banca: { name: "Banca", icon: "🏦", color: "#3f51b5" },
+            legal: { name: "Legal", icon: "⚖️", color: "#673ab7" },
+            ingenieria: { name: "Ingeniería", icon: "⚙️", color: "#009688" },
+            gerencia: { name: "Gerencia", icon: "👔", color: "#f44336" },
+            seguridad: { name: "Seguridad", icon: "🛡️", color: "#37474f" },
+            limpieza: { name: "Limpieza", icon: "🧹", color: "#8bc34a" },
+            carga: { name: "Carga", icon: "📦", color: "#6d4c41" },
+            informal: { name: "Informal", icon: "🏪", color: "#78909c" },
+            belleza: { name: "Belleza", icon: "💅", color: "#e91e63" },
+            ilegal: { name: "Ilegal", icon: "⚠️", color: "#f44336" }
+        };
+
+        // Mapeo de educación a niveles
+        const EDUCATION_LEVELS = {
+            ninguno: { level: 0, name: "Sin requisitos" },
+            primaria: { level: 1, name: "Primaria" },
+            secundaria: { level: 2, name: "Secundaria" },
+            tecnico: { level: 3, name: "Técnico" },
+            universidad: { level: 4, name: "Universidad" },
+            medicina: { level: 5, name: "Medicina" },
+            maestria: { level: 6, name: "Maestría" }
+        };
+
+        // Renderizar lista de trabajos con filtros y ordenamiento
+        function renderJobList(sortBy, filterType, categoryFilter) {
+            let jobIds = Object.keys(JOBS).filter(id => isJobAvailable(id));
+
+            // Aplicar filtro de tipo (legal/ilegal)
+            if (filterType === 'legales') {
+                jobIds = jobIds.filter(id => !JOBS[id].illegal);
+            } else if (filterType === 'ilegales') {
+                jobIds = jobIds.filter(id => JOBS[id].illegal);
+            } else if (filterType === 'disponibles') {
+                jobIds = jobIds.filter(id => calculateHiringProbability(id) >= 60);
+            }
+
+            // Aplicar filtro de categoría
+            if (categoryFilter !== 'todos') {
+                jobIds = jobIds.filter(id => {
+                    const job = JOBS[id];
+                    if (categoryFilter === 'ilegal') return job.illegal;
+                    return job.category === categoryFilter;
+                });
+            }
+
+            // Aplicar ordenamiento
+            jobIds = jobIds.map(id => ({
+                id,
+                probability: calculateHiringProbability(id),
+                salary: Array.isArray(JOBS[id].salary) ? JOBS[id].salary[0] : JOBS[id].salary,
+                education: EDUCATION_LEVELS[JOBS[id].education || 'ninguno']?.level || 0
+            }));
+
+            switch(sortBy) {
+                case 'salario_asc':
+                    jobIds.sort((a, b) => a.salary - b.salary);
+                    break;
+                case 'salario_desc':
+                    jobIds.sort((a, b) => b.salary - a.salary);
+                    break;
+                case 'educacion':
+                    jobIds.sort((a, b) => a.education - b.education || b.salary - a.salary);
+                    break;
+                case 'probabilidad':
+                default:
+                    jobIds.sort((a, b) => b.probability - a.probability);
+            }
+
+            let html = '';
+            let lastEducation = -1;
+
+            for (let jobData of jobIds) {
+                const jobId = jobData.id;
+                const job = JOBS[jobId];
+                const salary = Array.isArray(job.salary) ? formatMoney(job.salary[0]) : formatMoney(job.salary);
+                const maxSalary = Array.isArray(job.salary) ? ` - ${formatMoney(job.salary[1])}` : '';
+                const probability = Math.round(jobData.probability);
+                const probColor = probability >= 60 ? '#4CAF50' : probability >= 35 ? '#ff9800' : '#f44336';
+                const eduLevel = EDUCATION_LEVELS[job.education || 'ninguno'];
+                const category = JOB_CATEGORIES[job.category] || { icon: '💼', color: '#666', name: job.category };
+
+                // Separador por educación si está ordenado por educación
+                if (sortBy === 'educacion' && eduLevel.level !== lastEducation) {
+                    lastEducation = eduLevel.level;
+                    html += `
+                        <div style="background: rgba(255,255,255,0.08); padding: 8px 12px; margin: 10px 0 5px 0; border-radius: 6px; font-size: 0.85em; color: #aaa; font-weight: bold;">
+                            📚 ${eduLevel.name}
+                        </div>
+                    `;
                 }
-            });
+
+                html += `
+                    <div class="job-card" data-type="${job.illegal ? 'ilegal' : 'legal'}" data-category="${job.category}"
+                         onclick="showJobDetails('${jobId}')"
+                         style="display: flex; justify-content: space-between; align-items: center; padding: 12px; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; cursor: pointer; border-left: 3px solid ${job.illegal ? '#9c27b0' : probColor};">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+                                <span style="font-size: 0.9em;">${category.icon}</span>
+                                <span style="font-weight: bold; font-size: 0.95em;">${job.name}</span>
+                            </div>
+                            <div style="display: flex; gap: 8px; font-size: 0.8em;">
+                                <span style="color: #4CAF50;">${salary}${maxSalary}/mes</span>
+                                <span style="color: ${category.color}; opacity: 0.8;">${category.name}</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.1em; font-weight: bold; color: ${probColor};">${probability}%</div>
+                            <div style="font-size: 0.7em; color: #888;">chance</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (jobIds.length === 0) {
+                html = `<div style="text-align: center; padding: 30px; color: #888;">No hay trabajos que coincidan con los filtros seleccionados</div>`;
+            }
+
+            return html;
+        }
+
+        // Función para actualizar ordenamiento y filtros
+        function sortAndFilterJobs() {
+            const sortBy = document.getElementById('jobSortSelect')?.value || 'probabilidad';
+            const filterType = document.getElementById('jobFilterSelect')?.value || 'todos';
+            const categoryFilter = window.currentJobCategoryFilter || 'todos';
+            const jobsList = document.getElementById('jobsList');
+            if (jobsList) {
+                jobsList.innerHTML = renderJobList(sortBy, filterType, categoryFilter);
+            }
+        }
+
+        // Filtrar por categoría específica
+        function filterJobsByCategory(category) {
+            window.currentJobCategoryFilter = category;
+            sortAndFilterJobs();
+        }
+
+        // Filtrar trabajos por tipo (mantener compatibilidad)
+        function filterJobs(type) {
+            const filterSelect = document.getElementById('jobFilterSelect');
+            if (filterSelect) {
+                filterSelect.value = type;
+                sortAndFilterJobs();
+            }
         }
 
         // Confirmar trabajo ilegal
