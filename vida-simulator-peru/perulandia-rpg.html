@@ -737,6 +737,73 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
+        @keyframes moneyFloat {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -100%) scale(1.5); }
+        }
+
+        .actions-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+
+        .actions-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .action-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+        }
+
+        .action-dot.used {
+            background: #ef4444;
+        }
+
+        .action-dot.available {
+            background: #22c55e;
+        }
+
+        .energy-badge {
+            font-size: 0.7em;
+            color: #60a5fa;
+            font-weight: 700;
+        }
+
+        .studying-indicator {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 10px 15px;
+            margin: 0 20px 10px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .studying-progress {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .studying-fill {
+            height: 100%;
+            background: white;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
         /* Bottom navigation */
         .bottom-nav {
             position: fixed;
@@ -878,11 +945,31 @@
                 <div class="time-info">
                     <span class="time-icon">📅</span>
                     <div>
-                        <div class="time-text" id="game-date">Enero 2024</div>
-                        <div class="time-date" id="game-day">Dia 1</div>
+                        <div class="time-text" id="game-date">Año 2024</div>
+                        <div class="time-date" id="game-day">Dia 1 • 18 años</div>
+                    </div>
+                </div>
+                <div class="actions-indicator">
+                    <span>Acciones:</span>
+                    <div class="actions-dots" id="action-dots">
+                        <div class="action-dot available"></div>
+                        <div class="action-dot available"></div>
+                        <div class="action-dot available"></div>
+                        <div class="action-dot available"></div>
+                        <div class="action-dot available"></div>
                     </div>
                 </div>
                 <button class="advance-btn" onclick="advanceYear()">+1 Año</button>
+            </div>
+
+            <!-- Indicador de estudios -->
+            <div class="studying-indicator" id="studying-indicator" style="display:none;">
+                <span>📚</span>
+                <span id="studying-text">Estudiando Tecnico</span>
+                <div class="studying-progress">
+                    <div class="studying-fill" id="studying-fill" style="width:0%"></div>
+                </div>
+                <span id="studying-count">0/20</span>
             </div>
 
             <!-- Estado actual -->
@@ -926,8 +1013,8 @@
                 </div>
                 <div class="action-card" onclick="studyHome()">
                     <div class="action-icon">📖</div>
-                    <div class="action-name">Leer</div>
-                    <div class="action-desc">+Inteligencia gratis</div>
+                    <div class="action-name">Leer/Estudiar</div>
+                    <div class="action-desc">+5 Int <span class="energy-badge">-15⚡</span></div>
                 </div>
             </div>
 
@@ -947,12 +1034,12 @@
                 <div class="action-card" onclick="openModal('shopping')">
                     <div class="action-icon">🛒</div>
                     <div class="action-name">Compras</div>
-                    <div class="action-desc">Compra cosas</div>
+                    <div class="action-desc">No usa accion</div>
                 </div>
                 <div class="action-card" onclick="sleep()">
                     <div class="action-icon">😴</div>
                     <div class="action-name">Dormir</div>
-                    <div class="action-desc">Recupera energia</div>
+                    <div class="action-desc">+50⚡ +5❤️</div>
                 </div>
             </div>
 
@@ -1018,11 +1105,35 @@
             job: null,
             jobLevel: 0,
             education: 'secundaria',
+            educationProgress: 0, // Progreso hacia siguiente nivel
             housing: 'padres',
             year: 2024,
             day: 1,
+            actionsToday: 0, // Acciones realizadas hoy
+            maxActionsPerDay: 5, // Limite de acciones por dia
             assets: [],
-            relations: []
+            relations: [],
+            achievements: [],
+            tutorialSeen: false
+        };
+
+        // ===== FESTIVIDADES PERUANAS =====
+        const FESTIVIDADES = [
+            { mes: 1, nombre: 'Año Nuevo', icono: '🎆', bonus: { happiness: 15 } },
+            { mes: 2, nombre: 'Carnavales', icono: '🎭', bonus: { happiness: 20, energy: -10 } },
+            { mes: 6, nombre: 'Inti Raymi', icono: '☀️', bonus: { happiness: 10, intelligence: 5 } },
+            { mes: 7, nombre: 'Fiestas Patrias', icono: '🇵🇪', bonus: { happiness: 25, money: 100 } },
+            { mes: 10, nombre: 'Señor de los Milagros', icono: '💜', bonus: { health: 10, happiness: 10 } },
+            { mes: 12, nombre: 'Navidad', icono: '🎄', bonus: { happiness: 20, money: 50 } }
+        ];
+
+        // ===== LOGROS =====
+        const ACHIEVEMENTS = {
+            primer_trabajo: { nombre: 'Primer Empleo', icono: '💼', desc: 'Conseguiste tu primer trabajo' },
+            universitario: { nombre: 'Profesional', icono: '🎓', desc: 'Te graduaste de la universidad' },
+            casa_propia: { nombre: 'Propietario', icono: '🏠', desc: 'Compraste tu casa' },
+            millonario: { nombre: 'Millonario', icono: '💰', desc: 'Acumulaste S/100,000' },
+            vida_sana: { nombre: 'Vida Sana', icono: '❤️', desc: 'Mantuviste 100% salud por 3 años' }
         };
 
         // ===== TRABAJOS =====
@@ -1041,9 +1152,15 @@
 
         const EDU_LEVELS = {
             secundaria: { name: 'Secundaria', next: 'tecnico' },
-            tecnico: { name: 'Tecnico', next: 'universitario', cost: 500, time: 2 },
-            universitario: { name: 'Universitario', next: 'maestria', cost: 2000, time: 5 },
-            maestria: { name: 'Maestria', next: null, cost: 5000, time: 2 }
+            tecnico: { name: 'Tecnico', next: 'universitario', cost: 500, time: 2, sessions: 20 },
+            universitario: { name: 'Universitario', next: 'maestria', cost: 2000, time: 5, sessions: 50 },
+            maestria: { name: 'Maestria', next: null, cost: 5000, time: 2, sessions: 30 }
+        };
+
+        const HOUSING_COSTS = {
+            padres: 0,
+            alquiler: 500,
+            propia: 0
         };
 
         // ===== FUNCIONES DE PANTALLA =====
@@ -1079,9 +1196,36 @@
         function startGame() {
             showScreen('game-screen');
             updateUI();
-            showEvent('🎂', '¡Nueva Vida!',
-                `${game.name} comienza su vida adulta en ${game.city}. Tienes 18 años y todo un futuro por delante. ¡Toma buenas decisiones!`,
-                []);
+            if (!game.tutorialSeen) {
+                showTutorial();
+            } else {
+                showEvent('🎂', '¡Nueva Vida!',
+                    `${game.name} comienza su vida adulta en ${game.city}. Tienes 18 años y todo un futuro por delante. ¡Toma buenas decisiones!`,
+                    []);
+            }
+        }
+
+        function showTutorial() {
+            game.tutorialSeen = true;
+            const tutorialHTML = `
+                <div style="text-align:center;">
+                    <div style="font-size:3em;margin-bottom:15px;">📖</div>
+                    <h2 style="margin-bottom:15px;color:#333;">¡Bienvenido a Vida Peru!</h2>
+                    <div style="text-align:left;background:#f8f9fa;padding:15px;border-radius:12px;margin-bottom:15px;">
+                        <p style="margin-bottom:10px;"><b>⚡ Energia:</b> Cada accion usa energia. Duerme para recuperarla.</p>
+                        <p style="margin-bottom:10px;"><b>📅 Acciones:</b> Tienes <b>5 acciones por dia</b>. Avanza el tiempo para mas.</p>
+                        <p style="margin-bottom:10px;"><b>💼 Trabajo:</b> Busca empleo y trabaja para ganar dinero.</p>
+                        <p style="margin-bottom:10px;"><b>🎓 Educacion:</b> Estudia para acceder a mejores trabajos.</p>
+                        <p style="margin-bottom:10px;"><b>📅 +1 Año:</b> Avanza el tiempo, pero pagaras gastos anuales.</p>
+                    </div>
+                    <p style="color:#888;font-size:0.9em;">¡Buena suerte en tu nueva vida!</p>
+                </div>
+            `;
+            document.getElementById('event-icon').textContent = '🇵🇪';
+            document.getElementById('event-title').textContent = '';
+            document.getElementById('event-desc').innerHTML = tutorialHTML;
+            document.getElementById('event-effects').innerHTML = '';
+            document.getElementById('event-popup').classList.add('active');
         }
 
         // ===== ACTUALIZAR UI =====
@@ -1091,30 +1235,56 @@
             document.getElementById('game-age').textContent = `${game.age} años`;
             document.getElementById('game-money').textContent = `S/ ${game.money.toLocaleString()}`;
             document.getElementById('game-date').textContent = `Año ${game.year}`;
-            document.getElementById('game-day').textContent = `Edad: ${game.age}`;
+            document.getElementById('game-day').textContent = `Dia ${game.day} • ${game.age} años`;
 
             // Stats bars
-            document.getElementById('bar-health').style.width = `${game.health}%`;
-            document.getElementById('val-health').textContent = game.health;
-            document.getElementById('bar-happy').style.width = `${game.happiness}%`;
-            document.getElementById('val-happy').textContent = game.happiness;
-            document.getElementById('bar-energy').style.width = `${game.energy}%`;
-            document.getElementById('val-energy').textContent = game.energy;
-            document.getElementById('bar-intel').style.width = `${game.intelligence}%`;
-            document.getElementById('val-intel').textContent = game.intelligence;
+            document.getElementById('bar-health').style.width = `${Math.max(0, game.health)}%`;
+            document.getElementById('val-health').textContent = Math.max(0, game.health);
+            document.getElementById('bar-happy').style.width = `${Math.max(0, game.happiness)}%`;
+            document.getElementById('val-happy').textContent = Math.max(0, game.happiness);
+            document.getElementById('bar-energy').style.width = `${Math.max(0, game.energy)}%`;
+            document.getElementById('val-energy').textContent = Math.max(0, game.energy);
+            document.getElementById('bar-intel').style.width = `${Math.max(0, game.intelligence)}%`;
+            document.getElementById('val-intel').textContent = Math.max(0, game.intelligence);
+
+            // Action dots
+            const dotsContainer = document.getElementById('action-dots');
+            let dotsHTML = '';
+            for (let i = 0; i < game.maxActionsPerDay; i++) {
+                const used = i < game.actionsToday;
+                dotsHTML += `<div class="action-dot ${used ? 'used' : 'available'}"></div>`;
+            }
+            dotsContainer.innerHTML = dotsHTML;
+
+            // Studying indicator
+            const studyingIndicator = document.getElementById('studying-indicator');
+            if (game.studying) {
+                const edu = EDU_LEVELS[game.studying];
+                studyingIndicator.style.display = 'flex';
+                document.getElementById('studying-text').textContent = `Estudiando ${edu.name}`;
+                document.getElementById('studying-count').textContent = `${game.educationProgress}/${edu.sessions}`;
+                document.getElementById('studying-fill').style.width = `${(game.educationProgress / edu.sessions) * 100}%`;
+            } else {
+                studyingIndicator.style.display = 'none';
+            }
 
             // Status
             document.getElementById('status-job').textContent = game.job ? JOBS[game.job].name : 'Desempleado';
-            document.getElementById('status-edu').textContent = EDU_LEVELS[game.education].name;
+            document.getElementById('status-edu').textContent = game.studying ?
+                `${EDU_LEVELS[game.education].name} (estudiando ${EDU_LEVELS[game.studying].name})` :
+                EDU_LEVELS[game.education].name;
             document.getElementById('status-home').textContent = game.housing === 'padres' ? 'Con padres' :
                                                                    game.housing === 'alquiler' ? 'Alquilando' : 'Casa propia';
 
-            // Work button
+            // Work button with energy cost
             const workBtn = document.getElementById('btn-work');
             if (!game.job) {
                 workBtn.classList.add('disabled');
+                workBtn.querySelector('.action-desc').textContent = 'Sin trabajo';
             } else {
                 workBtn.classList.remove('disabled');
+                const job = JOBS[game.job];
+                workBtn.querySelector('.action-desc').innerHTML = `+S/${job.salary} <span class="energy-badge">-${job.energy}⚡</span>`;
             }
         }
 
@@ -1151,43 +1321,62 @@
 
                 case 'study':
                     title.innerHTML = '🎓 Educacion';
-                    const nextEdu = EDU_LEVELS[game.education].next;
-                    if (nextEdu) {
-                        const edu = EDU_LEVELS[nextEdu];
-                        const canAfford = game.money >= edu.cost;
+                    if (game.studying) {
+                        const currentStudy = EDU_LEVELS[game.studying];
+                        const progress = Math.round((game.educationProgress / currentStudy.sessions) * 100);
                         html = `
-                            <div class="modal-option ${canAfford ? '' : 'disabled'}" onclick="${canAfford ? `enrollStudy('${nextEdu}')` : ''}">
-                                <div class="option-info">
-                                    <span class="option-icon">📜</span>
-                                    <div class="option-details">
-                                        <h4>Estudiar ${edu.name}</h4>
-                                        <p>Duracion: ${edu.time} años</p>
-                                    </div>
+                            <div style="padding:15px;text-align:center;">
+                                <p style="font-size:2em;margin-bottom:10px;">📚</p>
+                                <h4 style="margin-bottom:10px;">Estudiando ${currentStudy.name}</h4>
+                                <div style="background:#f0f0f0;border-radius:10px;height:20px;margin-bottom:10px;overflow:hidden;">
+                                    <div style="background:linear-gradient(135deg,#667eea,#764ba2);height:100%;width:${progress}%;border-radius:10px;transition:width 0.3s;"></div>
                                 </div>
-                                <div class="option-price">
-                                    <div class="cost">S/${edu.cost}</div>
-                                </div>
+                                <p style="color:#888;margin-bottom:15px;">${game.educationProgress}/${currentStudy.sessions} clases completadas</p>
+                                <p style="font-size:0.9em;color:#666;">Usa "Leer" para avanzar en tus estudios</p>
                             </div>
                         `;
                     } else {
-                        html = '<p style="text-align:center;color:#888;padding:20px;">¡Ya tienes el maximo nivel de educacion!</p>';
+                        const nextEdu = EDU_LEVELS[game.education].next;
+                        if (nextEdu) {
+                            const edu = EDU_LEVELS[nextEdu];
+                            const canAfford = game.money >= edu.cost;
+                            html = `
+                                <div style="padding:10px;margin-bottom:10px;background:#fff3cd;border-radius:10px;color:#856404;font-size:0.9em;">
+                                    💡 Estudiar requiere inscripcion + asistir a clases usando "Leer"
+                                </div>
+                                <div class="modal-option ${canAfford ? '' : 'disabled'}" onclick="${canAfford ? `enrollStudy('${nextEdu}')` : ''}">
+                                    <div class="option-info">
+                                        <span class="option-icon">📜</span>
+                                        <div class="option-details">
+                                            <h4>Inscribirse en ${edu.name}</h4>
+                                            <p>${edu.sessions} clases necesarias</p>
+                                        </div>
+                                    </div>
+                                    <div class="option-price">
+                                        <div class="cost">S/${edu.cost}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            html = '<p style="text-align:center;color:#888;padding:20px;">🎓 ¡Ya tienes el maximo nivel de educacion!</p>';
+                        }
                     }
                     break;
 
                 case 'health':
                     title.innerHTML = '🏥 Salud';
                     html = `
-                        <div class="modal-option" onclick="doHealth('gym')">
+                        <div class="modal-option ${game.money >= 30 && game.energy >= 20 ? '' : 'disabled'}" onclick="doHealth('gym')">
                             <div class="option-info">
                                 <span class="option-icon">💪</span>
                                 <div class="option-details">
                                     <h4>Ir al Gimnasio</h4>
-                                    <p>+15 Salud, -20 Energia</p>
+                                    <p>+15 Salud | <span style="color:#60a5fa">-20⚡</span></p>
                                 </div>
                             </div>
                             <div class="option-price"><div class="cost">S/30</div></div>
                         </div>
-                        <div class="modal-option" onclick="doHealth('doctor')">
+                        <div class="modal-option ${game.money >= 100 ? '' : 'disabled'}" onclick="doHealth('doctor')">
                             <div class="option-info">
                                 <span class="option-icon">👨‍⚕️</span>
                                 <div class="option-details">
@@ -1197,12 +1386,12 @@
                             </div>
                             <div class="option-price"><div class="cost">S/100</div></div>
                         </div>
-                        <div class="modal-option" onclick="doHealth('meditation')">
+                        <div class="modal-option ${game.energy >= 10 ? '' : 'disabled'}" onclick="doHealth('meditation')">
                             <div class="option-info">
                                 <span class="option-icon">🧘</span>
                                 <div class="option-details">
                                     <h4>Meditar</h4>
-                                    <p>+10 Salud, +15 Felicidad</p>
+                                    <p>+10 Salud, +15 Felicidad | <span style="color:#60a5fa">-10⚡</span></p>
                                 </div>
                             </div>
                             <div class="option-price"><div class="cost">Gratis</div></div>
@@ -1213,7 +1402,7 @@
                 case 'fun':
                     title.innerHTML = '🎉 Diversion';
                     html = `
-                        <div class="modal-option" onclick="doFun('cine')">
+                        <div class="modal-option ${game.money >= 25 ? '' : 'disabled'}" onclick="doFun('cine')">
                             <div class="option-info">
                                 <span class="option-icon">🎬</span>
                                 <div class="option-details">
@@ -1223,12 +1412,12 @@
                             </div>
                             <div class="option-price"><div class="cost">S/25</div></div>
                         </div>
-                        <div class="modal-option" onclick="doFun('fiesta')">
+                        <div class="modal-option ${game.money >= 80 && game.energy >= 30 ? '' : 'disabled'}" onclick="doFun('fiesta')">
                             <div class="option-info">
                                 <span class="option-icon">🎊</span>
                                 <div class="option-details">
                                     <h4>Salir de Fiesta</h4>
-                                    <p>+35 Felicidad, -30 Energia</p>
+                                    <p>+35 Felicidad | <span style="color:#60a5fa">-30⚡</span></p>
                                 </div>
                             </div>
                             <div class="option-price"><div class="cost">S/80</div></div>
@@ -1243,12 +1432,12 @@
                             </div>
                             <div class="option-price"><div class="cost">Gratis</div></div>
                         </div>
-                        <div class="modal-option" onclick="doFun('videojuegos')">
+                        <div class="modal-option ${game.energy >= 10 ? '' : 'disabled'}" onclick="doFun('videojuegos')">
                             <div class="option-info">
                                 <span class="option-icon">🎮</span>
                                 <div class="option-details">
                                     <h4>Videojuegos</h4>
-                                    <p>+15 Felicidad, -10 Energia</p>
+                                    <p>+15 Felicidad | <span style="color:#60a5fa">-10⚡</span></p>
                                 </div>
                             </div>
                             <div class="option-price"><div class="cost">Gratis</div></div>
@@ -1394,11 +1583,27 @@
             updateUI();
         }
 
+        function checkActions() {
+            if (game.actionsToday >= game.maxActionsPerDay) {
+                showToast('Ya usaste tus 5 acciones de hoy. Avanza el dia.', 'warning');
+                return false;
+            }
+            return true;
+        }
+
+        function useAction() {
+            game.actionsToday++;
+            game.day++;
+            updateUI();
+        }
+
         function doWork() {
             if (!game.job) {
                 showToast('Primero necesitas un trabajo', 'error');
                 return;
             }
+
+            if (!checkActions()) return;
 
             if (game.energy < JOBS[game.job].energy) {
                 showToast('No tienes energia suficiente', 'error');
@@ -1409,9 +1614,31 @@
             game.money += job.salary;
             game.energy = Math.max(0, game.energy - job.energy);
             game.happiness = Math.max(0, game.happiness - 5);
+            game.jobLevel++;
 
-            showToast(`Ganaste S/${job.salary}`, 'success');
-            updateUI();
+            useAction();
+            showMoneyAnimation(job.salary);
+            showToast(`+S/${job.salary} por trabajar`, 'success');
+
+            // Logro primer trabajo
+            if (!game.achievements.includes('primer_trabajo')) {
+                game.achievements.push('primer_trabajo');
+                setTimeout(() => showAchievement('primer_trabajo'), 500);
+            }
+        }
+
+        function showMoneyAnimation(amount) {
+            const el = document.createElement('div');
+            el.className = 'money-popup';
+            el.textContent = `+S/${amount}`;
+            el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2em;font-weight:800;color:#22c55e;z-index:9999;animation:moneyFloat 1s ease-out forwards;pointer-events:none;';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function showAchievement(id) {
+            const ach = ACHIEVEMENTS[id];
+            showEvent(ach.icono, '¡Logro Desbloqueado!', `${ach.nombre}: ${ach.desc}`, [{text: 'Nuevo logro', positive: true}]);
         }
 
         function enrollStudy(level) {
@@ -1421,122 +1648,174 @@
                 return;
             }
 
+            // Iniciar estudios (no graduacion instantanea)
             game.money -= edu.cost;
-            game.education = level;
-            game.intelligence = Math.min(100, game.intelligence + 20);
+            game.studying = level;
+            game.educationProgress = 0;
 
-            showEvent('🎓', '¡Graduacion!', `Completaste tus estudios de ${edu.name}. Ahora tienes acceso a mejores trabajos.`,
-                [{text: '+20 Inteligencia', positive: true}, {text: `-S/${edu.cost}`, positive: false}]);
+            showEvent('📚', '¡Inscripcion Exitosa!',
+                `Te inscribiste en ${edu.name}. Necesitas ${edu.sessions} sesiones de estudio para graduarte. ¡Estudia regularmente!`,
+                [{text: `-S/${edu.cost}`, positive: false}, {text: `0/${edu.sessions} clases`, positive: true}]);
 
             closeModal();
             updateUI();
         }
 
         function studyHome() {
+            if (!checkActions()) return;
+
+            if (game.energy < 15) {
+                showToast('Necesitas al menos 15 de energia', 'error');
+                return;
+            }
+
             game.intelligence = Math.min(100, game.intelligence + 5);
-            game.energy = Math.max(0, game.energy - 10);
-            showToast('+5 Inteligencia', 'success');
-            updateUI();
+            game.energy = Math.max(0, game.energy - 15);
+
+            // Si esta estudiando, avanza progreso
+            if (game.studying) {
+                game.educationProgress++;
+                const edu = EDU_LEVELS[game.studying];
+
+                if (game.educationProgress >= edu.sessions) {
+                    // Graduacion!
+                    game.education = game.studying;
+                    game.studying = null;
+                    game.educationProgress = 0;
+                    game.intelligence = Math.min(100, game.intelligence + 15);
+
+                    useAction();
+                    showEvent('🎓', '¡Graduacion!',
+                        `Completaste tus estudios de ${edu.name}. Ahora tienes acceso a mejores trabajos.`,
+                        [{text: '+15 Inteligencia', positive: true}]);
+
+                    // Logro universitario
+                    if (game.education === 'universitario' && !game.achievements.includes('universitario')) {
+                        game.achievements.push('universitario');
+                        setTimeout(() => showAchievement('universitario'), 2000);
+                    }
+                    return;
+                }
+
+                showToast(`Estudiando: ${game.educationProgress}/${edu.sessions} clases (+5 Int)`, 'success');
+            } else {
+                showToast('+5 Inteligencia', 'success');
+            }
+
+            useAction();
         }
 
         function doHealth(type) {
             closeModal();
+            if (!checkActions()) return;
+
             switch(type) {
                 case 'gym':
                     if (game.money < 30) { showToast('No tienes dinero', 'error'); return; }
+                    if (game.energy < 20) { showToast('No tienes energia suficiente', 'error'); return; }
                     game.money -= 30;
                     game.health = Math.min(100, game.health + 15);
                     game.energy = Math.max(0, game.energy - 20);
-                    showToast('+15 Salud', 'success');
+                    showToast('+15 Salud, -S/30', 'success');
                     break;
                 case 'doctor':
                     if (game.money < 100) { showToast('No tienes dinero', 'error'); return; }
                     game.money -= 100;
                     game.health = Math.min(100, game.health + 30);
-                    showToast('+30 Salud', 'success');
+                    showToast('+30 Salud, -S/100', 'success');
                     break;
                 case 'meditation':
+                    if (game.energy < 10) { showToast('Necesitas algo de energia', 'error'); return; }
                     game.health = Math.min(100, game.health + 10);
                     game.happiness = Math.min(100, game.happiness + 15);
+                    game.energy = Math.max(0, game.energy - 10);
                     showToast('+10 Salud, +15 Felicidad', 'success');
                     break;
             }
-            updateUI();
+            useAction();
         }
 
         function doFun(type) {
             closeModal();
+            if (!checkActions()) return;
+
             switch(type) {
                 case 'cine':
                     if (game.money < 25) { showToast('No tienes dinero', 'error'); return; }
                     game.money -= 25;
                     game.happiness = Math.min(100, game.happiness + 20);
-                    showToast('+20 Felicidad', 'success');
+                    showToast('+20 Felicidad, -S/25', 'success');
                     break;
                 case 'fiesta':
                     if (game.money < 80) { showToast('No tienes dinero', 'error'); return; }
+                    if (game.energy < 30) { showToast('Necesitas mas energia para la fiesta', 'error'); return; }
                     game.money -= 80;
                     game.happiness = Math.min(100, game.happiness + 35);
                     game.energy = Math.max(0, game.energy - 30);
-                    showToast('+35 Felicidad', 'success');
+                    showToast('+35 Felicidad, -S/80', 'success');
                     break;
                 case 'paseo':
                     game.happiness = Math.min(100, game.happiness + 10);
                     game.health = Math.min(100, game.health + 5);
-                    showToast('+10 Felicidad', 'success');
+                    showToast('+10 Felicidad, +5 Salud', 'success');
                     break;
                 case 'videojuegos':
+                    if (game.energy < 10) { showToast('Necesitas algo de energia', 'error'); return; }
                     game.happiness = Math.min(100, game.happiness + 15);
                     game.energy = Math.max(0, game.energy - 10);
                     showToast('+15 Felicidad', 'success');
                     break;
             }
-            updateUI();
+            useAction();
         }
 
         function doBuy(type) {
             closeModal();
+            // Compras no cuentan como accion principal
             switch(type) {
                 case 'comida':
-                    if (game.money < 50) return;
+                    if (game.money < 50) { showToast('No tienes dinero', 'error'); return; }
                     game.money -= 50;
                     game.happiness = Math.min(100, game.happiness + 15);
                     game.energy = Math.min(100, game.energy + 10);
-                    showToast('Delicioso!', 'success');
+                    showToast('Delicioso! +15 Felicidad, +10 Energia', 'success');
                     break;
                 case 'ropa':
-                    if (game.money < 200) return;
+                    if (game.money < 200) { showToast('No tienes dinero', 'error'); return; }
                     game.money -= 200;
                     game.happiness = Math.min(100, game.happiness + 20);
-                    showToast('Te ves bien!', 'success');
+                    showToast('Te ves bien! +20 Felicidad', 'success');
                     break;
                 case 'telefono':
-                    if (game.money < 1000) return;
+                    if (game.money < 1000) { showToast('No tienes dinero', 'error'); return; }
                     game.money -= 1000;
                     game.happiness = Math.min(100, game.happiness + 30);
                     game.assets.push({name: 'Telefono', icon: '📱', value: 800});
-                    showToast('Nuevo telefono!', 'success');
+                    showToast('Nuevo telefono! +30 Felicidad', 'success');
                     break;
             }
             updateUI();
         }
 
         function sleep() {
+            if (!checkActions()) return;
+
             game.energy = Math.min(100, game.energy + 50);
             game.health = Math.min(100, game.health + 5);
-            showToast('Descansaste bien', 'success');
-            updateUI();
+            useAction();
+            showToast('Descansaste bien. +50 Energia, +5 Salud', 'success');
         }
 
         function rentHouse() {
             if (game.money < 500) {
-                showToast('Necesitas S/500', 'error');
+                showToast('Necesitas S/500 para el primer pago', 'error');
                 return;
             }
+            game.money -= 500; // Cobrar inmediatamente
             game.housing = 'alquiler';
             game.happiness = Math.min(100, game.happiness + 20);
-            showEvent('🏢', '¡Independencia!', 'Ahora vives en tu propio departamento. Pagaras S/500 al año de alquiler.',
-                [{text: '+20 Felicidad', positive: true}]);
+            showEvent('🏢', '¡Independencia!', 'Ahora vives en tu propio departamento. Pagaste S/500 y pagaras lo mismo cada año.',
+                [{text: '+20 Felicidad', positive: true}, {text: '-S/500', positive: false}]);
             closeModal();
             updateUI();
         }
@@ -1554,8 +1833,42 @@
 
         // ===== AVANZAR TIEMPO =====
         function advanceYear() {
+            // Mostrar confirmacion primero
+            const expenses = (game.housing === 'alquiler' ? 500 : 0) + 200;
+            const confirmHTML = `
+                <div style="text-align:center;">
+                    <div style="font-size:3em;margin-bottom:10px;">⏰</div>
+                    <h3 style="margin-bottom:15px;">¿Avanzar 1 Año?</h3>
+                    <div style="background:#f8f9fa;padding:15px;border-radius:12px;margin-bottom:15px;text-align:left;">
+                        <p style="margin-bottom:8px;"><b>Lo que pasara:</b></p>
+                        <p style="color:#ef4444;margin-bottom:5px;">• Gastos anuales: -S/${expenses}</p>
+                        <p style="color:#ef4444;margin-bottom:5px;">• Salud: -5</p>
+                        <p style="color:#ef4444;margin-bottom:5px;">• Felicidad: -10</p>
+                        <p style="color:#22c55e;margin-bottom:5px;">• Energia se restaura a 100</p>
+                        <p style="color:#22c55e;">• Acciones diarias se reinician</p>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:center;">
+                        <button onclick="closeEvent()" style="padding:12px 25px;border-radius:10px;border:2px solid #ddd;background:white;font-weight:700;cursor:pointer;">Cancelar</button>
+                        <button onclick="doAdvanceYear()" style="padding:12px 25px;border-radius:10px;border:none;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-weight:700;cursor:pointer;">Avanzar</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('event-icon').textContent = '';
+            document.getElementById('event-title').textContent = '';
+            document.getElementById('event-desc').innerHTML = confirmHTML;
+            document.getElementById('event-effects').innerHTML = '';
+            document.querySelector('.event-btn').style.display = 'none';
+            document.getElementById('event-popup').classList.add('active');
+        }
+
+        function doAdvanceYear() {
+            document.querySelector('.event-btn').style.display = 'block';
+            closeEvent();
+
             game.age++;
             game.year++;
+            game.day = 1;
+            game.actionsToday = 0;
 
             // Gastos anuales
             let expenses = 0;
@@ -1568,24 +1881,51 @@
             game.happiness = Math.max(0, game.happiness - 10);
             game.energy = 100;
 
-            // Evento aleatorio
-            if (Math.random() < 0.3) {
+            // Festividad aleatoria
+            const festividad = FESTIVIDADES[Math.floor(Math.random() * FESTIVIDADES.length)];
+
+            // Aplicar bonus de festividad
+            if (festividad.bonus.happiness) game.happiness = Math.min(100, game.happiness + festividad.bonus.happiness);
+            if (festividad.bonus.health) game.health = Math.min(100, game.health + festividad.bonus.health);
+            if (festividad.bonus.intelligence) game.intelligence = Math.min(100, game.intelligence + festividad.bonus.intelligence);
+            if (festividad.bonus.money) game.money += festividad.bonus.money;
+            if (festividad.bonus.energy) game.energy = Math.max(0, Math.min(100, game.energy + festividad.bonus.energy));
+
+            // Check logro millonario
+            if (game.money >= 100000 && !game.achievements.includes('millonario')) {
+                game.achievements.push('millonario');
+                setTimeout(() => showAchievement('millonario'), 2000);
+            }
+
+            // Evento aleatorio o festividad
+            if (Math.random() < 0.25) {
                 triggerRandomEvent();
             } else {
-                showEvent('🎂', `Cumples ${game.age} años`,
-                    `Un año mas de vida. ${expenses > 0 ? `Pagaste S/${expenses} en gastos anuales.` : ''}`,
-                    expenses > 0 ? [{text: `-S/${expenses}`, positive: false}] : []);
+                // Mostrar festividad
+                const bonusBadges = [];
+                if (festividad.bonus.happiness) bonusBadges.push({text: `+${festividad.bonus.happiness} Felicidad`, positive: true});
+                if (festividad.bonus.health) bonusBadges.push({text: `+${festividad.bonus.health} Salud`, positive: true});
+                if (festividad.bonus.money) bonusBadges.push({text: `+S/${festividad.bonus.money}`, positive: true});
+                bonusBadges.push({text: `-S/${expenses}`, positive: false});
+
+                showEvent(festividad.icono, `¡${festividad.nombre}!`,
+                    `Cumples ${game.age} años celebrando ${festividad.nombre} en Peru. Un año mas de vida y experiencias.`,
+                    bonusBadges);
             }
 
             // Check game over
             if (game.money < -1000) {
-                showEvent('💀', 'Fin del Juego', 'Te quedaste sin dinero y no pudiste recuperarte. Tu historia termina aqui.', []);
-                setTimeout(() => location.reload(), 3000);
+                setTimeout(() => {
+                    showEvent('💀', 'Fin del Juego', 'Te quedaste sin dinero y no pudiste recuperarte. Tu historia termina aqui.', []);
+                    setTimeout(() => location.reload(), 3000);
+                }, 500);
             }
 
             if (game.health <= 0) {
-                showEvent('💀', 'Fin del Juego', 'Tu salud llegó a cero. Cuida mejor tu cuerpo en la proxima vida.', []);
-                setTimeout(() => location.reload(), 3000);
+                setTimeout(() => {
+                    showEvent('💀', 'Fin del Juego', 'Tu salud llegó a cero. Cuida mejor tu cuerpo en la proxima vida.', []);
+                    setTimeout(() => location.reload(), 3000);
+                }, 500);
             }
 
             updateUI();
@@ -1629,7 +1969,7 @@
             toast.className = `toast ${type}`;
             toast.textContent = msg;
             document.getElementById('toasts').appendChild(toast);
-            setTimeout(() => toast.remove(), 2500);
+            setTimeout(() => toast.remove(), 4000); // Mas tiempo para leer
         }
     </script>
 </body>
