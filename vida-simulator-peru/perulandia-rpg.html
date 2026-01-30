@@ -982,7 +982,7 @@
         let currentNearLocation = null;
 
         const config = {
-            type: Phaser.AUTO,
+            type: Phaser.CANVAS,
             width: 800,
             height: 600,
             parent: 'game-container',
@@ -1002,6 +1002,10 @@
             scale: {
                 mode: Phaser.Scale.FIT,
                 autoCenter: Phaser.Scale.CENTER_BOTH
+            },
+            render: {
+                pixelArt: false,
+                antialias: true
             }
         };
 
@@ -1037,17 +1041,31 @@
 
         function create() {
             const scene = this;
+            console.log('Phaser scene create() iniciado');
+
+            // Create solid background first
+            const bg = this.add.rectangle(400, 300, 800, 600, 0x1a1a2e);
+            bg.setDepth(-10);
 
             // Create ground pattern
             const graphics = this.add.graphics();
+            graphics.setDepth(-5);
 
             // Draw grid pattern for ground
-            graphics.lineStyle(1, 0x2a2a4a, 0.3);
+            graphics.lineStyle(1, 0x3a3a5a, 0.5);
             for (let x = 0; x < 800; x += 50) {
                 graphics.lineBetween(x, 0, x, 600);
             }
             for (let y = 0; y < 600; y += 50) {
                 graphics.lineBetween(0, y, 800, y);
+            }
+
+            // Add some floor decoration
+            graphics.fillStyle(0x2a2a4a, 0.3);
+            for (let x = 25; x < 800; x += 100) {
+                for (let y = 25; y < 600; y += 100) {
+                    graphics.fillCircle(x, y, 3);
+                }
             }
 
             // Create location buildings
@@ -1056,62 +1074,74 @@
 
                 // Building shadow
                 const shadow = this.add.rectangle(loc.x + 5, loc.y + 5, 70, 70, 0x000000, 0.3);
+                shadow.setDepth(0);
 
                 // Building
                 const building = this.add.rectangle(loc.x, loc.y, 70, 70, loc.color);
                 building.setStrokeStyle(2, 0xffffff, 0.5);
+                building.setDepth(1);
 
                 // Icon
                 const icon = this.add.text(loc.x, loc.y - 10, loc.icon, {
                     fontSize: '28px'
                 }).setOrigin(0.5);
+                icon.setDepth(2);
 
                 // Name
-                const name = this.add.text(loc.x, loc.y + 25, loc.name, {
+                const nameText = this.add.text(loc.x, loc.y + 25, loc.name, {
                     fontSize: '10px',
                     color: '#ffffff',
-                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    backgroundColor: 'rgba(0,0,0,0.7)',
                     padding: { x: 4, y: 2 }
                 }).setOrigin(0.5);
+                nameText.setDepth(2);
 
-                locationSprites[locId] = { building, icon, name, x: loc.x, y: loc.y };
+                locationSprites[locId] = { building, icon, name: nameText, x: loc.x, y: loc.y };
             });
+
+            console.log('Locations creadas:', Object.keys(locationSprites).length);
 
             // Create player
             player = this.add.container(400, 350);
+            player.setDepth(10);
 
             // Player shadow
-            const playerShadow = this.add.ellipse(0, 20, 24, 8, 0x000000, 0.3);
+            const playerShadow = this.add.ellipse(0, 20, 28, 10, 0x000000, 0.4);
             player.add(playerShadow);
 
             // Player body
-            const playerBody = this.add.rectangle(0, 0, 24, 36, 0xff6b6b);
+            const playerBody = this.add.rectangle(0, 0, 26, 38, 0xff6b6b);
             playerBody.setStrokeStyle(2, 0xee5a5a);
             player.add(playerBody);
 
             // Player head
-            const playerHead = this.add.circle(0, -22, 10, 0xffcc80);
+            const playerHead = this.add.circle(0, -24, 12, 0xffcc80);
             playerHead.setStrokeStyle(2, 0xe6b86a);
             player.add(playerHead);
 
             // Player hair
-            const playerHair = this.add.arc(0, -26, 10, Phaser.Math.DegToRad(180), Phaser.Math.DegToRad(360), false, 0x333333);
+            const playerHair = this.add.arc(0, -28, 12, Phaser.Math.DegToRad(180), Phaser.Math.DegToRad(360), false, 0x333333);
             player.add(playerHair);
 
             // Player eyes
-            const leftEye = this.add.circle(-3, -23, 2, 0x000000);
-            const rightEye = this.add.circle(3, -23, 2, 0x000000);
+            const leftEye = this.add.circle(-4, -25, 2, 0x000000);
+            const rightEye = this.add.circle(4, -25, 2, 0x000000);
             player.add(leftEye);
             player.add(rightEye);
+
+            // Smile
+            const smile = this.add.arc(0, -21, 4, Phaser.Math.DegToRad(0), Phaser.Math.DegToRad(180), false, 0x000000);
+            player.add(smile);
 
             // Add physics to player
             this.physics.world.enable(player);
             player.body.setCollideWorldBounds(true);
-            player.body.setSize(24, 36);
+            player.body.setSize(26, 38);
 
-            // Player indicator arrow
-            const arrow = this.add.triangle(400, 280, 0, 10, 5, 0, 10, 10, 0x4CAF50);
+            // Player indicator arrow (above player)
+            const arrow = this.add.triangle(400, 280, 0, 12, 6, 0, 12, 12, 0x4CAF50);
             arrow.setOrigin(0.5);
+            arrow.setDepth(11);
             this.tweens.add({
                 targets: arrow,
                 y: 275,
@@ -1120,6 +1150,8 @@
                 repeat: -1
             });
             player.arrow = arrow;
+
+            console.log('Player creado en posición:', player.x, player.y);
 
             // Input
             cursors = this.input.keyboard.createCursorKeys();
@@ -1143,6 +1175,18 @@
                 backgroundColor: 'rgba(0,0,0,0.7)',
                 padding: { x: 10, y: 5 }
             }).setOrigin(0.5);
+            this.locationText.setDepth(100);
+
+            // Instructions text
+            const instructions = this.add.text(400, 30, 'Usa WASD o flechas para moverte | ESPACIO para interactuar', {
+                fontSize: '12px',
+                color: '#888888',
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                padding: { x: 10, y: 5 }
+            }).setOrigin(0.5);
+            instructions.setDepth(100);
+
+            console.log('Phaser scene create() completado');
         }
 
         function update() {
@@ -1164,9 +1208,13 @@
                 player.body.setVelocityY(speed);
             }
 
-            // Update player arrow position
+            // Update player arrow position to follow player
             if (player.arrow) {
                 player.arrow.x = player.x;
+                // Keep base y relative to player, the tween handles the bounce
+                if (!player.arrow.baseY || player.arrow.baseY !== player.y - 70) {
+                    player.arrow.baseY = player.y - 70;
+                }
             }
 
             // Check proximity to locations
@@ -1512,8 +1560,26 @@
             updateHUD();
             addEvent(`Bienvenido a Perulandia, ${name}!`, 'special');
 
-            // Start Phaser game
-            game = new Phaser.Game(config);
+            // Start Phaser game with error handling
+            try {
+                if (typeof Phaser === 'undefined') {
+                    throw new Error('Phaser no se cargó correctamente');
+                }
+                game = new Phaser.Game(config);
+                console.log('Phaser game iniciado correctamente');
+            } catch (error) {
+                console.error('Error iniciando Phaser:', error);
+                showNotification('Error al cargar el juego. Recargando...', 'error');
+                // Fallback: mostrar mensaje
+                document.getElementById('game-container').innerHTML += `
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                                background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; text-align: center; z-index: 50;">
+                        <h2 style="color: #ff6b6b; margin-bottom: 15px;">Error de Carga</h2>
+                        <p style="color: #888; margin-bottom: 20px;">No se pudo iniciar el motor de juego</p>
+                        <button onclick="location.reload()" class="action-btn">Reintentar</button>
+                    </div>
+                `;
+            }
         }
 
         // ==================== INITIALIZATION ====================
